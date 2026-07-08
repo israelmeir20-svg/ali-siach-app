@@ -11,8 +11,6 @@
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .drag-over-category { border: 3px dashed #3b82f6 !important; background-color: #eff6ff !important; }
-        .drag-ghost { opacity: 0.4; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800 antialiased">
@@ -26,8 +24,7 @@
             <div class="space-y-4 text-right">
                 <div>
                     <label class="block text-xs font-bold text-slate-500 mb-1">שם המדריך / מנהל:</label>
-                    <select id="login-user-select" class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500">
-                        </select>
+                    <select id="login-user-select" class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"></select>
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-500 mb-1">קוד PIN אישי (4 ספרות):</label>
@@ -92,30 +89,21 @@
                         <button onclick="setRecipeTime('slow')" id="time-slow" class="p-3 rounded-xl border font-bold text-xs bg-slate-50 text-slate-600 hover:bg-slate-100">⏳ יש זמן (45+ דק')</button>
                     </div>
                 </div>
-
                 <div>
                     <h4 class="text-xs font-bold text-slate-500 mb-2">🍳 כלים זמינים ונקיים כרגע במטבח (לחץ לכיבוי כלי תפוס):</h4>
-                    <div class="flex flex-wrap gap-1.5" id="recipe-tools-container">
-                        </div>
+                    <div class="flex flex-wrap gap-1.5" id="recipe-tools-container"></div>
                 </div>
-
                 <div>
                     <h4 class="text-xs font-bold text-slate-500 mb-1">🥕 זמינות ירקות וחומרי גלם (מנגנון תלת-מצב חזותי):</h4>
                     <p class="text-[10px] text-slate-400 mb-2 font-bold">🟢 אפשר להשתמש | 🔵 חייב לשלב במנה (עודף) | ⚪ חסר בדירה (אל תשתמש)</p>
-                    <div class="max-h-40 overflow-y-auto border rounded-xl p-3 bg-slate-50 flex flex-wrap gap-2" id="recipe-ingredients-container">
-                        </div>
+                    <div class="max-h-40 overflow-y-auto border rounded-xl p-3 bg-slate-50 flex flex-wrap gap-2" id="recipe-ingredients-container"></div>
                 </div>
-
-                <button onclick="generateAIReceipt()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-3 rounded-xl transition shadow-md">
-                    🚀 בנה לי רעיון למתכון מעולה!
-                </button>
-
+                <button onclick="generateAIReceipt()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-3 rounded-xl transition shadow-md">🚀 בנה לי רעיון למתכון מעולה!</button>
                 <div id="recipe-ai-box" class="hidden border border-indigo-100 bg-indigo-50/30 rounded-2xl p-4 mt-2">
                     <div id="recipe-ai-loader" class="hidden text-center py-4 text-xs font-bold text-indigo-600 animate-pulse">🤖 ה-AI מנתח את הכלים והמצרכים שלך ומנסח מתכון מותאם...</div>
                     <div id="recipe-ai-content" class="text-sm leading-relaxed whitespace-pre-wrap text-slate-700 font-medium"></div>
                 </div>
             </div>
-
             <div class="flex justify-end mt-4 pt-3 border-t">
                 <button onclick="closeRecipeModal()" class="px-4 py-2 bg-slate-100 font-bold rounded-xl text-xs">סגור חלונית</button>
             </div>
@@ -146,12 +134,11 @@
                     <input type="url" id="cloud-url-input" placeholder="https://script.google.com/macros/s/..." class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-white outline-none focus:ring-1 focus:ring-blue-500 text-xs font-mono">
                     <button onclick="saveCloudUrl()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-xl transition">שמור קישור וסנכרן כעת 🔄</button>
                 </div>
-                
                 <div class="bg-slate-800/40 p-4 rounded-xl border border-slate-800 space-y-3">
                     <h4 class="font-bold text-emerald-400">➕ ניהול צוות ומדריכים בדירה:</h4>
                     <div class="flex gap-2">
                         <input type="text" id="new-user-name" placeholder="שם מדריך" class="w-1/3 bg-slate-950 border border-slate-800 p-2 rounded-xl text-white outline-none">
-                        <input type="password" id="new-user-pin" maxlength="4" placeholder="PIN (4 ספרות)" class="w-1/3 bg-slate-950 border border-slate-800 p-2 rounded-xl text-white text-center outline-none">
+                        <input type="password" id="new-user-pin" maxlength="4" placeholder="PIN" class="w-1/3 bg-slate-950 border border-slate-800 p-2 rounded-xl text-white text-center outline-none">
                         <select id="new-user-role" class="w-1/3 bg-slate-950 border border-slate-800 p-2 rounded-xl text-white outline-none">
                             <option value="staff">מדריך (Staff)</option>
                             <option value="admin">מנהל (Admin)</option>
@@ -168,20 +155,17 @@
                 <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
                     <div class="relative w-full md:w-80">
                         <span class="absolute right-3.5 top-2.5 text-slate-400 text-sm">🔍</span>
-                        <input type="text" id="search-bar" oninput="filterInventory()" placeholder="חיפוש מצרך או תבלין..." class="w-full pr-9 pl-4 py-2 bg-slate-50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs font-bold">
+                        <input type="text" id="search-bar" oninput="filterInventory()" placeholder="חיפוש מצרך..." class="w-full pr-9 pl-4 py-2 bg-slate-50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs font-bold">
                     </div>
-                    
                     <div class="flex flex-wrap gap-1.5 bg-slate-100 p-1 rounded-xl text-[11px] font-black">
                         <button onclick="setFilter('all')" id="filter-all" class="px-3 py-1.5 rounded-lg bg-white text-blue-600 shadow-sm">הכל</button>
                         <button onclick="setFilter('to-order')" id="filter-to-order" class="px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-200">רק מוצרים להזמנה</button>
                         <button onclick="setFilter('in-stock')" id="filter-in-stock" class="px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-200">רק מה שיש במלאי</button>
                     </div>
-
                     <div class="flex items-center gap-2 font-bold text-xs text-red-600 bg-red-50 px-3 py-2 rounded-xl border border-red-100">
-                        <span>🚨</span> <span id="critical-count-display">0 מוצרים חסרים לחלוטין (כמות = 0)</span>
+                        <span>🚨</span> <span id="critical-count-display">0 מוצרים חסרים לחלוטין</span>
                     </div>
                 </div>
-
                 <div id="inventory-container" class="space-y-6"></div>
             </div>
 
@@ -189,24 +173,19 @@
                 <div class="bg-white border rounded-3xl p-5 shadow-sm flex flex-col h-[550px]">
                     <div class="flex justify-between items-center border-b pb-3 mb-3">
                         <div>
-                            <h3 class="text-sm font-black text-slate-900 flex items-center gap-1.5">💬 מרכז הודעות ועדכוני צוות</h3>
+                            <h3 class="text-sm font-black text-slate-900 flex items-center gap-1.5">💬 מרכז הודעות צוות</h3>
                             <p class="text-[10px] text-slate-400 font-bold">סנכרון רשת חי בין כל המדריכים</p>
                         </div>
                         <span id="unread-badge" class="hidden bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse">0</span>
                     </div>
-
-                    <div id="messages-list-container" class="flex-1 overflow-y-auto space-y-2 pr-1 text-xs">
-                        </div>
-
+                    <div id="messages-list-container" class="flex-1 overflow-y-auto space-y-2 pr-1 text-xs"></div>
                     <div class="pt-3 border-t mt-3 space-y-2">
                         <div class="flex gap-1 overflow-x-auto pb-1 text-[9px] font-black">
                             <button onclick="insertQuickTemplate('⚠️ מוצר חיוני נגמר בדירה!')" class="bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded-md text-slate-600 flex-shrink-0">⚠️ חיוני נגמר</button>
                             <button onclick="insertQuickTemplate('🍲 האוכל מוכן ומחכה במקרר קומת מגורים')" class="bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded-md text-slate-600 flex-shrink-0">🍲 אוכל במקרר</button>
                             <button onclick="insertQuickTemplate('🧹 סיימתי ספירת מלאי מקיפה במחסן')" class="bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded-md text-slate-600 flex-shrink-0">🧹 ספירה הושלמה</button>
                         </div>
-                        
                         <textarea id="msg-text-input" placeholder="כתוב הודעה כאן למדריכים..." class="w-full p-2 border rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none h-14 bg-slate-50 font-medium"></textarea>
-                        
                         <div class="flex gap-1.5 items-center">
                             <select id="msg-to-select" class="w-1/2 p-2 border rounded-xl text-[11px] font-bold bg-white outline-none">
                                 <option value="כולם">📢 לכולם ביחד</option>
@@ -227,12 +206,10 @@
             </div>
             <button onclick="closeWalkthroughMode()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-xl text-xs font-bold transition">🚪 יציאה מהספירה</button>
         </div>
-
         <div class="flex-1 flex flex-col items-center justify-center py-6 text-center max-w-xl mx-auto w-full relative">
             <span class="text-7xl mb-4 block select-none" id="wt-item-emoji">📦</span>
             <h1 class="text-3xl font-black tracking-tight mb-2 px-2" id="wt-item-name">שם המוצר</h1>
             <p class="text-slate-400 text-xs mb-6 max-w-xs font-bold" id="wt-item-notes">אין הערות למוצר זה</p>
-
             <div class="flex items-center gap-6 my-4 bg-slate-800/50 p-4 rounded-3xl border border-slate-800 shadow-xl">
                 <button onclick="adjustWtQty(-0.5)" class="w-16 h-16 rounded-2xl bg-red-600 hover:bg-red-500 font-black text-2xl transition active:scale-95 shadow-md">-0.5</button>
                 <div class="w-32">
@@ -241,11 +218,9 @@
                 </div>
                 <button onclick="adjustWtQty(0.5)" class="w-16 h-16 rounded-2xl bg-green-600 hover:bg-green-500 font-black text-2xl transition active:scale-95 shadow-md">+0.5</button>
             </div>
-
             <p class="text-[11px] text-slate-500 font-bold mt-4">חץ שמאלה / מנווט הבא | חץ ימינה / מנווט קודם</p>
             <p class="text-[11px] text-slate-400 font-bold text-blue-500/80">חץ למעלה = פלוס (+0.5) | חץ למטה = מינוס (-0.5)</p>
         </div>
-
         <div class="border-t border-slate-800 pt-4">
             <div class="flex justify-between items-center text-xs text-slate-500 font-bold mb-2">
                 <span id="wt-index-text">מוצר 0 מתוך 0</span>
@@ -258,7 +233,6 @@
     </div>
 
     <script>
-        // מילון האמוג'יס הסטנדרטי
         const emojiMap = {
             "אבקת כביסה": "🧺", "אמה": "🧽", "ברזלית": "🧽", "דאורדורנט": "🧴", "כרית ניקוי": "🧽", "מבשם אוויר": "💨",
             "מסיר אבנית": "🧪", "מסיר כתמים": "🧪", "מסיר שומנים": "🔥", "מרכך כביסה": "🧼", "משחת שיניים": "🪥", "משמיד חרקים": "🪰",
@@ -283,22 +257,14 @@
             return "📦";
         }
 
-        // המטבח והכלים
         const kitchenTools = [
-            { icon: "🔪", name: "סכין חיתוך ידנית" },
-            { icon: "🪚", name: "פומפייה ידנית" },
-            { icon: "🥘", name: "סיר בישול שטוח" },
-            { icon: "🫕", name: "סיר קטן וגבוה" },
-            { icon: "🫖", name: "סיר מרק גדול" },
-            { icon: "🍳", name: "מחבת (ללא מכסה)" },
-            { icon: "🛡️", name: "נייר כסף לכיסוי" },
-            { icon: "🟫", name: "תבנית תנור מקורית" },
-            { icon: "🍱", name: "תבנית אלומיניום חד\"פ" }
+            { icon: "🔪", name: "סכין חיתוך ידנית" }, { icon: "🪚", name: "פומפייה ידנית" }, { icon: "🥘", name: "סיר בישול שטוח" },
+            { icon: "🫕", name: "סיר קטן וגבוה" }, { icon: "𫖕", name: "סיר מרק גדול" }, { icon: "🍳", name: "מחבת (ללא מכסה)" },
+            { icon: "🛡️", name: "נייר כסף לכיסוי" }, { icon: "🟫", name: "תבנית תנור מקורית" }, { icon: "🍱", name: "תבנית אלומיניום חד\"פ" }
         ];
 
         const freshVegetables = ["בצל", "תפו\"א", "עגבניות", "מלפפונים", "גזרים", "פלפלים וגמבות", "דלורית", "כרוב", "שום טרי"];
 
-        // נתוני ברירת מחדל (הגיבוי שסיפקת מסודר ומובנה בתוך הקוד)
         let appData = {};
         let teamMembers = [];
         let teamMessages = [];
@@ -312,29 +278,9 @@
 
         let selectedRecipeTime = 'fast';
         let disabledTools = [];
-        let ingredientStates = {}; // שם: 0=אפשר, 1=חייב, 2=חסר
-
-        // טעינה ראשונית
-        async function init() {
-            loadLocalBackupData();
-            buildUserLoginSelect();
-            setupRecipeDefaults();
-            
-            if (cloudUrl) {
-                document.getElementById('cloud-url-input').value = cloudUrl;
-                await fetchCloudData();
-            }
-        }
-
-        function setupRecipeDefaults() {
-            freshVegetables.forEach(v => { ingredientStates[v] = 0; });
-            for (const cat in appData) {
-                appData[cat].forEach(item => { ingredientStates[item.name] = item.existing > 0 ? 0 : 2; });
-            }
-        }
+        let ingredientStates = {};
 
         function loadLocalBackupData() {
-            // הגיבוי האחרון שלכם מוזן כאן כבסיס התחלתי מקומי
             appData = {
                 "טואלטיקה, היגיינה וניקיון": [
                     { name: "אבקת כביסה", existing: 4.5, recommended: 2, price: 39, orderedLastMonth: 4.5, notes: "6 קילו", days: ["כל הימים"] },
@@ -406,4 +352,477 @@
                     { name: "שעועית ירוקה (שימורים)", existing: 2, recommended: 0, price: 10, orderedLastMonth: 2, notes: "אין צורך", days: ["כל הימים"] },
                     { name: "חומוס (שימורים)", existing: 0, recommended: 4, price: 8, orderedLastMonth: 0, notes: "יום שני (מרק ירקות)", days: ["שני"] },
                     { name: "שעועית לבנה (שימורים)", existing: 0, recommended: 1, price: 10, orderedLastMonth: 0, notes: "שבת (טשולנט). אין חובה", days: ["שבת"] },
-                    { name: "פטריות (שימורים)", existing: 3, recommended: 3, price: 5, orderedLastMonth: 3, notes: "שבת (מוקפץ)",
+                    { name: "פטריות (שימורים)", existing: 3, recommended: 3, price: 5, orderedLastMonth: 3, notes: "שבת (מוקפץ)", days: ["שבת"] },
+                    { name: "גפילטע פיש", existing: 3, recommended: 4, price: 16, orderedLastMonth: 3, notes: "שבת (סעודה שלישית)", days: ["שבת"] },
+                    { name: "קטשופ", existing: 1, recommended: 1, price: 13, orderedLastMonth: 1.5, notes: "יום ראשון (טוסט)", days: ["ראשון"] },
+                    { name: "טחינה", existing: 2.5, recommended: 2, price: 17, orderedLastMonth: 2.5, notes: "לארוחת בוקר ולשבת", days: ["כל הימים"] },
+                    { name: "שמן קנולה", existing: 8, recommended: 8, price: 9, orderedLastMonth: 8, notes: "כל יום", days: ["כל הימים"] },
+                    { name: "מיץ ענבים", existing: 4, recommended: 4, price: 18, orderedLastMonth: 4, notes: "קידוש בשבת", days: ["שבת"] },
+                    { name: "קפה טסטר צ'ויס", existing: 2, recommended: 2, price: 31, orderedLastMonth: 2, notes: "כל יום (מדריכים)", days: ["כל הימים"] },
+                    { name: "קפה נמס", existing: 2, recommended: 2, price: 26, orderedLastMonth: 2, notes: "כל יום", days: ["כל הימים"] }
+                ],
+                "ממתקים ושתייה מתוקה": [
+                    { name: "קורנפלקס", existing: 2.5, recommended: 2, price: 15, orderedLastMonth: 2.5, notes: "שבת (בוקר)", days: ["שבת"] },
+                    { name: "ופלים", existing: 8, recommended: 8, price: 4, orderedLastMonth: 8, notes: "", days: ["כל הימים"] },
+                    { name: "ופלים לימון", existing: 3, recommended: 3, price: 11, orderedLastMonth: 3, notes: "", days: ["כל הימים"] },
+                    { name: "עוגיות אוריאו", existing: 7, recommended: 7, price: 7, orderedLastMonth: 6, notes: "", days: ["כל הימים"] },
+                    { name: "ערגליות שוקו", existing: 6, recommended: 6, price: 11, orderedLastMonth: 6, notes: "", days: ["כל הימים"] },
+                    { name: "ערגליות תות", existing: 4, recommended: 4, price: 11, orderedLastMonth: 4, notes: "", days: ["כל הימים"] },
+                    { name: "קולה", existing: 1, recommended: 1, price: 35, orderedLastMonth: 1, notes: "שבת. שישיית פפסי max", days: ["שבת"] },
+                    { name: "סודה", existing: 1.5, recommended: 1, price: 16, orderedLastMonth: 1, notes: "שבת", days: ["שבת"] }
+                ]
+            };
+            teamMembers = [
+                { name: "בצלאל", pin: "1234", role: "admin" }, { name: "אסתי", pin: "5678", role: "admin" },
+                { name: "אבריימי", pin: "1111", role: "staff" }, { name: "יהודה", pin: "2222", role: "staff" }, { name: "איציק", pin: "3333", role: "staff" }
+            ];
+            teamMessages = [
+                { id: "msg_1", from: "מערכת", to: "כולם", text: "ברוכים הבאים למערכת המשותפת של עלי שיח!", date: "8.7.2026", readBy: [] }
+            ];
+        }
+
+        async function init() {
+            loadLocalBackupData(); // טען קודם כל את הנתונים המקומיים (מונע קריסה)
+            setupRecipeDefaults();
+            buildUserLoginSelect();
+            buildRecipeInterface();
+            
+            if (cloudUrl) {
+                document.getElementById('cloud-url-input').value = cloudUrl;
+                await fetchCloudData();
+            }
+        }
+
+        function setupRecipeDefaults() {
+            freshVegetables.forEach(v => { ingredientStates[v] = 0; });
+            for (const cat in appData) {
+                appData[cat].forEach(item => { ingredientStates[item.name] = item.existing > 0 ? 0 : 2; });
+            }
+        }
+
+        function buildUserLoginSelect() {
+            const select = document.getElementById('login-user-select');
+            if (!select) return;
+            select.innerHTML = '';
+            teamMembers.forEach(m => {
+                select.innerHTML += `<option value="${m.name}">${m.name} (${m.role === 'admin' ? 'מנהל' : 'מדריך'})</option>`;
+            });
+        }
+
+        function handleLogin() {
+            const selectedName = document.getElementById('login-user-select').value;
+            const inputPin = document.getElementById('login-pin-input').value;
+            const user = teamMembers.find(m => m.name === selectedName && m.pin === inputPin);
+            
+            if (user) {
+                currentUser = user;
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('current-user-display').innerText = user.name;
+                document.getElementById('current-role-display').innerText = user.role === 'admin' ? 'מנהל' : 'מדריך';
+                
+                if (user.role === 'admin') {
+                    document.getElementById('admin-toggle-btn').classList.remove('hidden');
+                } else {
+                    document.getElementById('admin-toggle-btn').classList.add('hidden');
+                }
+                showToast(`שלום ${user.name}, נכנסת בהצלחה!`, "🔑");
+                renderApp();
+                buildMsgToSelect();
+            } else {
+                alert("קוד PIN שגוי!");
+            }
+        }
+
+        function handleLogout() {
+            currentUser = null;
+            document.getElementById('login-pin-input').value = '';
+            document.getElementById('login-screen').classList.remove('hidden');
+        }
+
+        async function fetchCloudData() {
+            if (!cloudUrl) return;
+            try {
+                const res = await fetch(cloudUrl);
+                const data = await res.json();
+                if (data.success) {
+                    if (data.appData) appData = data.appData;
+                    if (data.teamMembers) teamMembers = data.teamMembers;
+                    if (data.teamMessages) teamMessages = data.teamMessages;
+                    buildUserLoginSelect();
+                    renderApp();
+                    buildMsgToSelect();
+                }
+            } catch (e) { console.log(e); }
+        }
+
+        async function syncWithCloud() {
+            if (!cloudUrl) return;
+            try {
+                await fetch(cloudUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ appData, teamMembers, teamMessages })
+                });
+            } catch (e) { console.log(e); }
+        }
+
+        function saveCloudUrl() {
+            const url = document.getElementById('cloud-url-input').value.trim();
+            if (url) {
+                cloudUrl = url;
+                localStorage.setItem('aliSiachCloudUrl', cloudUrl);
+                fetchCloudData();
+                showToast("קישור הענן עודכן!", "💾");
+            }
+        }
+
+        function adjustQuantity(category, index, change) {
+            const item = appData[category][index];
+            let current = parseFloat(item.existing) || 0;
+            let val = current + change;
+            if (val < 0) val = 0;
+            item.existing = Math.round(val * 2) / 2;
+            renderApp();
+            syncWithCloud();
+        }
+
+        function filterInventory() {
+            searchQuery = document.getElementById('search-bar').value.toLowerCase();
+            renderApp();
+        }
+
+        function setFilter(type) {
+            activeFilter = type;
+            ['all', 'to-order', 'in-stock'].forEach(t => {
+                document.getElementById(`filter-${t}`).className = t === type ? "px-3 py-1.5 rounded-lg bg-white text-blue-600 shadow-sm" : "px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-200";
+            });
+            renderApp();
+        }
+
+        function renderApp() {
+            const container = document.getElementById('inventory-container');
+            if (!container) return;
+            container.innerHTML = '';
+            let criticalCount = 0;
+
+            for (const [catName, items] of Object.entries(appData)) {
+                const filtered = items.filter(item => {
+                    const matchesSearch = item.name.toLowerCase().includes(searchQuery);
+                    const toOrder = calculateToOrder(item);
+                    if (item.existing === 0) criticalCount++;
+                    if (activeFilter === 'to-order') return matchesSearch && toOrder > 0;
+                    if (activeFilter === 'in-stock') return matchesSearch && toOrder === 0;
+                    return matchesSearch;
+                });
+
+                if (filtered.length === 0 && searchQuery !== '') continue;
+
+                const catSection = document.createElement('div');
+                catSection.className = "bg-white border rounded-3xl p-5 shadow-sm space-y-4";
+                let cardsHtml = `<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">`;
+
+                filtered.forEach(item => {
+                    const toOrder = calculateToOrder(item);
+                    const origIndex = items.findIndex(i => i.name === item.name);
+                    const isMissing = item.existing === 0;
+                    
+                    let statusBadge = `<span class="bg-slate-100 text-slate-600 font-bold px-2.5 py-1 rounded-lg text-[10px]">מלאי תקין</span>`;
+                    let borderClass = "border-slate-200 hover:border-blue-400";
+                    if (isMissing) {
+                        statusBadge = `<span class="bg-red-500 text-white font-extrabold px-2.5 py-1 rounded-lg text-[10px]">חסר! להזמין: ${toOrder}</span>`;
+                        borderClass = "border-red-300 bg-red-50/10";
+                    } else if (toOrder > 0) {
+                        statusBadge = `<span class="bg-amber-500 text-white font-bold px-2.5 py-1 rounded-lg text-[10px]">להשלים: ${toOrder}</span>`;
+                        borderClass = "border-amber-300 bg-amber-50/5";
+                    }
+
+                    let shopButton = item.buyUrl && toOrder > 0 ? `<a href="${item.buyUrl}" target="_blank" class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs shadow-sm">🛒</a>` : '';
+
+                    cardsHtml += `
+                        <div class="bg-white border rounded-2xl p-4 flex flex-col justify-between shadow-sm transition ${borderClass}">
+                            <div class="text-center flex flex-col items-center">
+                                <h4 class="font-extrabold text-slate-900 text-sm leading-tight min-h-[2rem] flex items-center justify-center">${item.name}</h4>
+                                <span class="text-4xl my-1 block select-none">${getEmoji(item.name)}</span>
+                                <div class="mt-1">${statusBadge}</div>
+                            </div>
+                            <div class="mt-3 pt-2 border-t border-slate-100 space-y-2">
+                                <div class="grid grid-cols-2 gap-2 text-[11px] bg-slate-50 p-2 rounded-xl text-center">
+                                    <div class="border-l">
+                                        <span class="block text-slate-400 font-bold text-[9px]">קיים בדירה:</span>
+                                        <div class="flex items-center gap-1 justify-center mt-0.5">
+                                            <button onclick="adjustQuantity('${catName}', ${origIndex}, -0.5)" class="w-5 h-5 rounded bg-white text-slate-800 font-bold border flex items-center justify-center">-</button>
+                                            <span class="font-black text-slate-900 text-xs">${item.existing}</span>
+                                            <button onclick="adjustQuantity('${catName}', ${origIndex}, 0.5)" class="w-5 h-5 rounded bg-white text-slate-800 font-bold border flex items-center justify-center">+</button>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span class="block text-slate-400 font-bold text-[9px]">יעד מומלץ:</span>
+                                        <span class="font-black text-slate-700 block mt-0.5">${item.recommended}</span>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-center text-[10px] text-slate-500 font-bold px-1">
+                                    <span>מחיר: ₪${item.price || 0}</span>
+                                    <span>לשעבר: ${item.orderedLastMonth || 0} יח'</span>
+                                </div>
+                                ${item.notes ? `<p class="text-[9px] text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded text-center truncate">📝 ${item.notes}</p>` : ''}
+                                <div class="pt-1.5 border-t border-slate-100 flex justify-between items-center">
+                                    ${shopButton}
+                                    <button onclick="openProductModal('${catName}', ${origIndex})" class="text-[10px] text-blue-500 hover:underline font-bold mr-auto">✏️ ערוך פריט</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                cardsHtml += `</div>`;
+                catSection.innerHTML = `
+                    <div class="flex justify-between items-center border-b pb-2">
+                        <h2 class="text-md font-black text-slate-900 border-r-4 border-blue-600 pr-2">${catName}</h2>
+                        <span class="bg-slate-100 text-slate-600 text-[10px] font-black px-2.5 py-0.5 rounded-full">${filtered.length} פריטים</span>
+                    </div>
+                    ${cardsHtml}
+                `;
+                container.appendChild(catSection);
+            }
+            document.getElementById('critical-count-display').innerText = `${criticalCount} מוצרים חסרים לחלוטין (כמות = 0)`;
+            renderMessages();
+            renderAdminTeamList();
+        }
+
+        let activeEdit = null;
+        function openProductModal(cat, index) {
+            if (currentUser && currentUser.role !== 'admin') {
+                showToast("פעולה מוגבלת למנהלים בלבד", "⚠️");
+                return;
+            }
+            activeEdit = { cat, index };
+            const item = appData[cat][index];
+            document.getElementById('modal-prod-name').value = item.name;
+            document.getElementById('modal-prod-price').value = item.price || 0;
+            document.getElementById('modal-prod-recommended').value = item.recommended || 0;
+            document.getElementById('modal-prod-url').value = item.buyUrl || '';
+            document.getElementById('modal-prod-notes').value = item.notes || '';
+            
+            document.getElementById('modal-prod-save-btn').onclick = saveProductModalData;
+            document.getElementById('product-modal').classList.remove('hidden');
+            document.getElementById('product-modal').classList.add('flex');
+        }
+
+        function closeProductModal() {
+            document.getElementById('product-modal').classList.add('hidden');
+        }
+
+        function saveProductModalData() {
+            if (!activeEdit) return;
+            const item = appData[activeEdit.cat][activeEdit.index];
+            item.price = parseFloat(document.getElementById('modal-prod-price').value) || 0;
+            item.recommended = parseFloat(document.getElementById('modal-prod-recommended').value) || 0;
+            item.buyUrl = document.getElementById('modal-prod-url').value.trim();
+            item.notes = document.getElementById('modal-prod-notes').value.trim();
+            
+            closeProductModal();
+            renderApp();
+            syncWithCloud();
+            showToast("המצרך עודכן בהצלחה!", "💾");
+        }
+
+        function buildMsgToSelect() {
+            const select = document.getElementById('msg-to-select');
+            if (!select) return;
+            select.innerHTML = '<option value="כולם">📢 לכולם ביחד</option>';
+            teamMembers.forEach(m => {
+                if (currentUser && m.name !== currentUser.name) {
+                    select.innerHTML += `<option value="${m.name}">👤 למדריך: ${m.name}</option>`;
+                }
+            });
+        }
+
+        function sendTeamMessage() {
+            const text = document.getElementById('msg-text-input').value.trim();
+            const to = document.getElementById('msg-to-select').value;
+            if (!text || !currentUser) return;
+
+            teamMessages.unshift({
+                id: "msg_" + Date.now(),
+                from: currentUser.name,
+                to: to,
+                text: text,
+                date: new Date().toLocaleDateString('he-IL'),
+                readBy: []
+            });
+            document.getElementById('msg-text-input').value = '';
+            renderApp();
+            syncWithCloud();
+        }
+
+        function deleteMessage(id) {
+            teamMessages = teamMessages.filter(m => m.id !== id);
+            renderApp();
+            syncWithCloud();
+        }
+
+        function markMessageAsRead(id) {
+            if (!currentUser) return;
+            const msg = teamMessages.find(m => m.id === id);
+            if (msg && !msg.readBy.includes(currentUser.name)) {
+                msg.readBy.push(currentUser.name);
+                renderApp();
+                syncWithCloud();
+            }
+        }
+
+        function renderMessages() {
+            const container = document.getElementById('messages-list-container');
+            if (!container || !currentUser) return;
+            container.innerHTML = '';
+            let unreadCount = 0;
+
+            const myMessages = teamMessages.filter(m => m.to === "כולם" || m.to === currentUser.name || m.from === currentUser.name);
+            if (myMessages.length === 0) {
+                container.innerHTML = `<div class="text-slate-300 italic text-center py-4">אין הודעות כרגע</div>`;
+                document.getElementById('unread-badge').classList.add('hidden');
+                return;
+            }
+
+            myMessages.forEach(m => {
+                const isFromMe = m.from === currentUser.name;
+                const isRead = m.readBy.includes(currentUser.name) || isFromMe;
+                if (!isRead) unreadCount++;
+
+                let bgClass = isRead ? "bg-slate-50" : "bg-blue-50 font-bold border-blue-100";
+                container.innerHTML += `
+                    <div class="p-2 border rounded-xl text-[11px] ${bgClass}">
+                        <div class="flex justify-between text-[9px] text-slate-400 mb-1">
+                            <span>מאת: ${m.from} ➔ ${m.to}</span>
+                            <span>${m.date}</span>
+                        </div>
+                        <p class="text-slate-800">${m.text}</p>
+                        <div class="flex justify-end gap-2 mt-1 pt-1 border-t text-[9px]">
+                            ${(!isRead && !isFromMe) ? `<button onclick="markMessageAsRead('${m.id}')" class="text-blue-600">👁️ קראתי</button>` : ''}
+                            <button onclick="deleteMessage('${m.id}')" class="text-red-500">🗑️ מחק</button>
+                        </div>
+                    </div>
+                `;
+            });
+            const b = document.getElementById('unread-badge');
+            if (unreadCount > 0) { b.innerText = unreadCount; b.classList.remove('hidden'); }
+            else b.classList.add('hidden');
+        }
+
+        function openRecipeModal() {
+            buildRecipeInterface();
+            document.getElementById('recipe-modal').classList.remove('hidden');
+            document.getElementById('recipe-modal').classList.add('flex');
+        }
+        function closeRecipeModal() { document.getElementById('recipe-modal').classList.add('hidden'); }
+        function setRecipeTime(t) { selectedRecipeTime = t; buildRecipeInterface(); }
+        function toggleRecipeTool(n) { if (disabledTools.includes(n)) disabledTools = disabledTools.filter(t => t !== n); else disabledTools.push(n); buildRecipeInterface(); }
+        function rotateIngredientState(n) { ingredientStates[n] = ((ingredientStates[n] || 0) + 1) % 3; buildRecipeInterface(); }
+
+        function buildRecipeInterface() {
+            const tc = document.getElementById('recipe-tools-container');
+            if (tc) {
+                tc.innerHTML = '';
+                kitchenTools.forEach(t => {
+                    const dis = disabledTools.includes(t.name);
+                    tc.innerHTML += `<button onclick="toggleRecipeTool('${t.name}')" class="px-2.5 py-1.5 rounded-lg border text-[11px] font-bold ${dis ? 'bg-slate-100 text-slate-300 line-through' : 'bg-white text-slate-700 shadow-sm'}">${t.icon} ${t.name}</button>`;
+                });
+            }
+            const ic = document.getElementById('recipe-ingredients-container');
+            if (ic) {
+                ic.innerHTML = '';
+                for (const [name, state] of Object.entries(ingredientStates)) {
+                    let cls = "bg-green-50 text-green-700"; let pfx = "🟢 ";
+                    if (state === 1) { cls = "bg-blue-600 text-white font-black"; pfx = "🔵 חובה! "; }
+                    if (state === 2) { cls = "bg-slate-100 text-slate-300 line-through"; pfx = "⚪ חסר: "; }
+                    ic.innerHTML += `<button onclick="rotateIngredientState('${name}')" class="px-2 py-1 rounded-lg border text-[10px] ${cls}">${pfx}${name}</button>`;
+                }
+            }
+        }
+
+        async function generateAIReceipt() {
+            const loader = document.getElementById('recipe-ai-loader');
+            const content = document.getElementById('recipe-ai-content');
+            document.getElementById('recipe-ai-box').classList.remove('hidden');
+            loader.classList.remove('hidden'); content.innerText = '';
+
+            const allowedTools = kitchenTools.filter(t => !disabledTools.includes(t.name)).map(t => t.name);
+            const canUse = Object.keys(ingredientStates).filter(k => ingredientStates[k] === 0);
+            const mustUse = Object.keys(ingredientStates).filter(k => ingredientStates[k] === 1);
+
+            let prompt = `הצע מתכון קל וטעימים ל-6 דיירים בעלי שיח.\nזמן: ${selectedRecipeTime}\nחובה: ${mustUse.join(', ')}\nמותר: ${canUse.join(', ')}\nכלים: ${allowedTools.join(', ')}\nסכין בלבד, בשרי, שמן קנולה, ללא סויה/כמון. חובה שדרוג מהיר בשורה אחת בסוף.`;
+            const key = localStorage.getItem('aliSiach_gemini_key') || "";
+            if (!key) { loader.classList.add('hidden'); content.innerHTML = `<span class="text-red-500 font-bold">⚠️ חסר מפתח Gemini API בהגדרות!</span>`; return; }
+
+            try {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${key}`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+                const r = await res.json();
+                loader.classList.add('hidden');
+                content.innerText = r.candidates?.[0]?.content?.parts?.[0]?.text || "שגיאה";
+            } catch (err) { loader.classList.add('hidden'); content.innerText = err.message; }
+        }
+
+        function startWalkthroughMode() {
+            walkthroughItems = [];
+            for (const cat in appData) { appData[cat].forEach((item, idx) => { walkthroughItems.push({ ...item, cat, origIdx: idx }); }); }
+            if (walkthroughItems.length === 0) return;
+            walkthroughIndex = 0; showWalkthroughItem();
+            document.getElementById('walkthrough-screen').classList.remove('hidden');
+        }
+        function closeWalkthroughMode() { document.getElementById('walkthrough-screen').classList.add('hidden'); renderApp(); }
+        function showWalkthroughItem() {
+            const item = walkthroughItems[walkthroughIndex]; const real = appData[item.cat][item.origIdx];
+            document.getElementById('wt-cat-title').innerText = item.cat;
+            document.getElementById('wt-item-emoji').innerText = getEmoji(real.name);
+            document.getElementById('wt-item-name').innerText = real.name;
+            document.getElementById('wt-item-qty').innerText = real.existing;
+            document.getElementById('wt-item-target').innerText = real.recommended;
+        }
+        function adjustWtQty(amt) {
+            const item = walkthroughItems[walkthroughIndex]; const real = appData[item.cat][item.origIdx];
+            let v = (parseFloat(real.existing) || 0) + amt; if (v < 0) v = 0;
+            real.existing = Math.round(v * 2) / 2; showWalkthroughItem(); syncWithCloud();
+        }
+
+        function toggleSettingsPanel() { document.getElementById('settings-panel').classList.toggle('hidden'); }
+        function renderAdminTeamList() {
+            const c = document.getElementById('admin-team-list'); if (!c) return; c.innerHTML = '';
+            teamMembers.forEach((m, idx) => {
+                c.innerHTML += `<div class="flex justify-between bg-slate-900 p-1.5 rounded-lg"><span>👤 ${m.name} (${m.pin}) - ${m.role}</span>${m.name !== 'בצלאל' ? `<button onclick="deleteTeamMember(${idx})" class="text-red-400">🗑️</button>` : ''}</div>`;
+            });
+        }
+        function addNewTeamMember() {
+            const name = document.getElementById('new-user-name').value.trim(); const pin = document.getElementById('new-user-pin').value.trim(); const role = document.getElementById('new-user-role').value;
+            if (!name || pin.length !== 4) return; teamMembers.push({ name, pin, role });
+            document.getElementById('new-user-name').value = ''; document.getElementById('new-user-pin').value = '';
+            renderApp(); syncWithCloud();
+        }
+        function deleteTeamMember(i) { teamMembers.splice(i, 1); renderApp(); syncWithCloud(); }
+
+        function copyOrderText() {
+            let txt = `📦 *הזמנה חודשית - עלי שיח* 📦\n\n`; let total = 0;
+            for (const [cat, items] of Object.entries(appData)) {
+                let ct = `*${cat}:*\n`; let has = false;
+                items.forEach(i => {
+                    const toOrd = calculateToOrder(i);
+                    if (toOrd > 0) { total += toOrd * (i.price || 0); ct += `• ${i.name} - כמות: *${toOrd}* יח'\n`; has = true; }
+                });
+                if (has) txt += ct + `\n`;
+            }
+            txt += ` סה"כ עלות משוערת: ₪${total.toFixed(2)}`;
+            const el = document.createElement('textarea'); el.value = txt; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el);
+            showToast("הרשימה הועתקה!", "📋");
+        }
+
+        function showToast(msg, icon = "✨") {
+            const t = document.getElementById('toast'); document.getElementById('toast-message').innerText = msg; document.getElementById('toast-icon').innerText = icon;
+            t.classList.remove('translate-y-20', 'opacity-0'); t.classList.add('translate-y-0', 'opacity-100');
+            setTimeout(() => { t.classList.remove('translate-y-0', 'opacity-100'); t.classList.add('translate-y-20', 'opacity-0'); }, 3000);
+        }
+        function insertQuickTemplate(t) { document.getElementById('msg-text-input').value = t; }
+    </script>
+</body>
+</html>
