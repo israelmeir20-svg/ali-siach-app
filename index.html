@@ -60,7 +60,7 @@
                     </div>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-1">קישור ישיר לרמי לוי / שופרסל</label>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">קישור ישיר לרמי לוי</label>
                     <input type="url" id="modal-prod-url" placeholder="https://www.rami-levy.co.il/..." class="w-full p-3 border rounded-xl text-xs focus:ring-2 focus:ring-blue-500 outline-none">
                 </div>
                 <div>
@@ -74,7 +74,6 @@
             </div>
         </div>
     </div>
-
     <div id="recipe-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
         <div class="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl max-h-[85vh] overflow-y-auto">
             <h3 class="text-2xl font-black text-slate-900 mb-2 flex items-center gap-2">🍲 מרכז מתכונים חצי-אוטומטי</h3>
@@ -231,7 +230,6 @@
             </div>
         </div>
     </div>
-
     <script>
         const emojiMap = {
             "אבקת כביסה": "🧺", "אמה": "🧽", "ברזלית": "🧽", "דאורדורנט": "🧴", "כרית ניקוי": "🧽", "מבשם אוויר": "💨",
@@ -246,7 +244,7 @@
             "עדשים אדומות": "🍲", "חיטה": "🌾", "קמח מצה": "🌾", "פירורי לחם": "🍞", "רסק עגבניות": "🥫", "טונה": "🐟",
             "מלפפונים בחומץ": "🥒", "שעועית ירוקה": "🥫", "חומוס (שימורים)": "🥫", "שעועית לבנה": "🥫", "פטריות (שימורים)": "🍄",
             "גפילטע פיש": "🐟", "קטשופ": "🍅", "טחינה": "🍯", "שמן קנולה": "🍾", "מיץ ענבים": "🍇", "קפה טסטר צ'ויס": "☕",
-            "קפה נמס": "☕", "קורנפלקס": "🥣", "ופלים": "🍫", "עוגיות אוריאו": "🍪", "ערגליות שוקו": "🍪", "ערגליות תות": "🍪",
+            "קפה נמס": "☕", "קורנפלקס": "🥣", "ופלים": "🍫", "ופלים לימון": "🍫", "עוגיות אוריאו": "🍪", "ערגליות שוקו": "🍪", "ערגליות תות": "🍪",
             "קולה": "🥤", "סודה": "🍾"
         };
 
@@ -288,93 +286,93 @@
         function loadLocalBackupData() {
             appData = {
                 "טואלטיקה, היגיינה וניקיון": [
-                    { name: "אבקת כביסה", existing: 4.5, recommended: 2, price: 39, orderedLastMonth: 4.5, notes: "6 קילו", days: ["כל הימים"] },
-                    { name: "אמה (נוזל כלים)", existing: 3, recommended: 3, price: 7.2, orderedLastMonth: 3, notes: "", days: ["כל הימים"] },
-                    { name: "ברזלית", existing: 5, recommended: 2, price: 4.5, orderedLastMonth: 5, notes: "", days: ["כל הימים"] },
-                    { name: "דאורדורנט", existing: 2, recommended: 2, price: 12, orderedLastMonth: 2, notes: "לשימוש של יהודה ואבריימי", days: ["כל הימים"] },
-                    { name: "כרית ניקוי (סקוץ')", existing: 4, recommended: 4, price: 2, orderedLastMonth: 2, notes: "", days: ["כל הימים"] },
-                    { name: "כרית ניקוי (סקוץ') לשבת", existing: 5, recommended: 2, price: 10, orderedLastMonth: 5, notes: "", days: ["שבת"] },
-                    { name: "מבשם אוויר", existing: 4, recommended: 1, price: 12, orderedLastMonth: 4, notes: "", days: ["כל הימים"] },
-                    { name: "מסיר אבנית", existing: 1, recommended: 1, price: 12, orderedLastMonth: 1, notes: "", days: ["כל הימים"] },
-                    { name: "מסיר כתמים", existing: 3, recommended: 3, price: 11, orderedLastMonth: 3, notes: "", days: ["כל הימים"] },
-                    { name: "מסיר שומנים", existing: 2, recommended: 2, price: 10, orderedLastMonth: 2, notes: "", days: ["כל הימים"] },
-                    { name: "מקלות אוזניים", existing: 1, recommended: 1, price: 10, orderedLastMonth: 1, notes: "לא בשימוש", days: ["כל הימים"] },
-                    { name: "מרכך כביסה", existing: 5, recommended: 3, price: 18, orderedLastMonth: 2, notes: "מכלים גדולים", days: ["כל הימים"] },
-                    { name: "משחת שיניים", existing: 6, recommended: 2, price: 13, orderedLastMonth: 6, notes: "", days: ["כל הימים"] },
-                    { name: "משמיד חרקים", existing: 1, recommended: 1, price: 10, orderedLastMonth: 1, notes: "", days: ["כל הימים"] },
-                    { name: "משמיד עובש", existing: 1, recommended: 1, price: 10, orderedLastMonth: 1, notes: "", days: ["כל הימים"] },
-                    { name: "נוזל לניקוי רצפות", existing: 6, recommended: 4, price: 13, orderedLastMonth: 6, notes: "4 ליטר", days: ["כל הימים"] },
-                    { name: "נייר טואלט", existing: 2.5, recommended: 1, price: 30, orderedLastMonth: 2.5, notes: "30 גלילים", days: ["כל הימים"] },
-                    { name: "ספוג הפלא", existing: 2, recommended: 1, price: 9, orderedLastMonth: 2, notes: "", days: ["כל הימים"] },
-                    { name: "ספריי לניקוי חלונות", existing: 2, recommended: 2, price: 6.2, orderedLastMonth: 2, notes: "", days: ["כל הימים"] },
-                    { name: "ספריי לניקוי רהיטי עץ", existing: 5, recommended: 1, price: 15, orderedLastMonth: 5, notes: "אין שימוש", days: ["כל הימים"] },
-                    { name: "שמפו", existing: 12, recommended: 12, price: 8, orderedLastMonth: 12, notes: "", days: ["כל הימים"] },
-                    { name: "שקיות אשפה", existing: 3.5, recommended: 3, price: 31, orderedLastMonth: 3.5, notes: "גודל XL", days: ["כל הימים"] },
-                    { name: "תרסיס אקונומיקה", existing: 6, recommended: 6, price: 10, orderedLastMonth: 6, notes: "לניקוי שירותים", days: ["כל הימים"] }
+                    { name: "אבקת כביסה", existing: 4.5, recommended: 2, price: 39, orderedLastMonth: 4.5, notes: "6 קילו" },
+                    { name: "אמה (נוזל כלים)", existing: 3, recommended: 3, price: 7.2, orderedLastMonth: 3, notes: "" },
+                    { name: "ברזלית", existing: 5, recommended: 2, price: 4.5, orderedLastMonth: 5, notes: "" },
+                    { name: "דאורדורנט", existing: 2, recommended: 2, price: 12, orderedLastMonth: 2, notes: "לשימוש של יהודה ואבריימי" },
+                    { name: "כרית ניקוי (סקוץ')", existing: 4, recommended: 4, price: 2, orderedLastMonth: 2, notes: "" },
+                    { name: "כרית ניקוי (סקוץ') לשבת", existing: 5, recommended: 2, price: 10, orderedLastMonth: 5, notes: "" },
+                    { name: "מבשם אוויר", existing: 4, recommended: 1, price: 12, orderedLastMonth: 4, notes: "" },
+                    { name: "מסיר אבנית", existing: 1, recommended: 1, price: 12, orderedLastMonth: 1, notes: "" },
+                    { name: "מסיר כתמים", existing: 3, recommended: 3, price: 11, orderedLastMonth: 3, notes: "" },
+                    { name: "מסיר שומנים", existing: 2, recommended: 2, price: 10, orderedLastMonth: 2, notes: "" },
+                    { name: "מקלות אוזניים", existing: 1, recommended: 1, price: 10, orderedLastMonth: 1, notes: "לא בשימוש" },
+                    { name: "מרכך כביסה", existing: 5, recommended: 3, price: 18, orderedLastMonth: 2, notes: "מכלים גדולים" },
+                    { name: "משחת שיניים", existing: 6, recommended: 2, price: 13, orderedLastMonth: 6, notes: "" },
+                    { name: "משמיד חרקים", existing: 1, recommended: 1, price: 10, orderedLastMonth: 1, notes: "" },
+                    { name: "משמיד עובש", existing: 1, recommended: 1, price: 10, orderedLastMonth: 1, notes: "" },
+                    { name: "נוזל לניקוי רצפות", existing: 6, recommended: 4, price: 13, orderedLastMonth: 6, notes: "4 ליטר" },
+                    { name: "נייר טואלט", existing: 2.5, recommended: 1, price: 30, orderedLastMonth: 2.5, notes: "30 גלילים" },
+                    { name: "ספוג הפלא", existing: 2, recommended: 1, price: 9, orderedLastMonth: 2, notes: "" },
+                    { name: "ספריי לניקוי חלונות", existing: 2, recommended: 2, price: 6.2, orderedLastMonth: 2, notes: "" },
+                    { name: "ספריי לניקוי רהיטי עץ", existing: 5, recommended: 1, price: 15, orderedLastMonth: 5, notes: "אין שימוש" },
+                    { name: "שמפו", existing: 12, recommended: 12, price: 8, orderedLastMonth: 12, notes: "" },
+                    { name: "שקיות אשפה", existing: 3.5, recommended: 3, price: 31, orderedLastMonth: 3.5, notes: "גודל XL" },
+                    { name: "תרסיס אקונומיקה", existing: 6, recommended: 6, price: 10, orderedLastMonth: 6, notes: "לניקוי שירותים" }
                 ],
                 "מוצרים חד-פעמיים ועזרי מטבח": [
-                    { name: "כוסות חד\"פ (פלסטיק)", existing: 1, recommended: 2, price: 5, orderedLastMonth: 1, notes: "כל יום (מדריכים). 100 יחידות בחבילה", days: ["כל הימים"] },
-                    { name: "כוסות קרטון", existing: 9, recommended: 9, price: 6, orderedLastMonth: 9, notes: "כל יום (מדריכים). 40 יחידות בחבילה", days: ["כל הימים"] },
-                    { name: "כפיות חד\"פ", existing: 2, recommended: 2, price: 7.5, orderedLastMonth: 0, notes: "כל יום (מדריכים)", days: ["כל הימים"] },
-                    { name: "מזלגות חד\"פ", existing: 1, recommended: 1, price: 7, orderedLastMonth: 1, notes: "שבת (מדריכים)", days: ["שבת"] },
-                    { name: "צלחות חד\"פ", existing: 1, recommended: 1, price: 8.5, orderedLastMonth: 1, notes: "שבת (מדריכים). 50 יחידות בחבילה", days: ["שבת"] },
-                    { name: "ניילון נצמד", existing: 0.5, recommended: 1, price: 4, orderedLastMonth: 0.5, notes: "", days: ["כל הימים"] },
-                    { name: "נייר כסף", existing: 1, recommended: 4, price: 6, orderedLastMonth: 1, notes: "לשקשוקה ולכיסוי הפלטה", days: ["רביעי", "שישי", "שבת"] },
-                    { name: "תבניות חד\"פ", existing: 4, recommended: 4, price: 7, orderedLastMonth: 4, notes: "לשבת (במקום סירים). 5 יחידות בחבילה", days: ["שישי", "שבת"] },
-                    { name: "כפפות חד\"פ", existing: 3, recommended: 2, price: 21, orderedLastMonth: 3, notes: "מידה XL", days: ["כל הימים"] }
+                    { name: "כוסות חד\"פ (פלסטיק)", existing: 1, recommended: 2, price: 5, orderedLastMonth: 1, notes: "כל יום (מדריכים). 100 יחידות בחבילה" },
+                    { name: "כוסות קרטון", existing: 9, recommended: 9, price: 6, orderedLastMonth: 9, notes: "כל יום (מדריכים). 40 יחידות בחבילה" },
+                    { name: "כפיות חד\"פ", existing: 2, recommended: 2, price: 7.5, orderedLastMonth: 0, notes: "כל יום (מדריכים)" },
+                    { name: "מזלגות חד\"פ", existing: 1, recommended: 1, price: 7, orderedLastMonth: 1, notes: "שבת (מדריכים)" },
+                    { name: "צלחות חד\"פ", existing: 1, recommended: 1, price: 8.5, orderedLastMonth: 1, notes: "שבת (מדריכים). 50 יחידות בחבילה" },
+                    { name: "ניילון נצמד", existing: 0.5, recommended: 1, price: 4, orderedLastMonth: 0.5, notes: "" },
+                    { name: "נייר כסף", existing: 1, recommended: 4, price: 6, orderedLastMonth: 1, notes: "לשקשוקה ולכיסוי הפלטה" },
+                    { name: "תבניות חד\"פ", existing: 4, recommended: 4, price: 7, orderedLastMonth: 4, notes: "לשבת (במקום סירים). 5 יחידות בחבילה" },
+                    { name: "כפפות חד\"פ", existing: 3, recommended: 2, price: 21, orderedLastMonth: 3, notes: "מידה XL" }
                 ],
                 "תבלינים": [
-                    { name: "מלח גס", existing: 1, recommended: 1, price: 10, orderedLastMonth: 0.5, notes: "אין חובה", days: ["כל הימים"] },
-                    { name: "מלח דק", existing: 1, recommended: 1, price: 9, orderedLastMonth: 2, notes: "", days: ["כל הימים"] },
-                    { name: "פלפל שחור", existing: 1, recommended: 1, price: 6, orderedLastMonth: 1.5, notes: "עדיפות למיכל על פני שקית", days: ["כל הימים"] },
-                    { name: "פפריקה מתוקה", existing: 3, recommended: 1, price: 20, orderedLastMonth: 3, notes: "עדיפות למיכל על פני שקית", days: ["כל הימים"] },
-                    { name: "פפריקה חריפה", existing: 1, recommended: 1, price: 10, orderedLastMonth: 1, notes: "אין חובה", days: ["כל הימים"] },
-                    { name: "תיבול לגריל עוף", existing: 2, recommended: 2, price: 10, orderedLastMonth: 2, notes: "עדיפות למיכל על פני שקית", days: ["שני", "חמישי", "שבת"] },
-                    { name: "צ'ילי חריף", existing: 0.5, recommended: 0.5, price: 6, orderedLastMonth: 0, notes: "אין חובה", days: ["כל הימים"] },
-                    { name: "רוטב צ'ילי מתוק", existing: 0, recommended: 1, price: 13, orderedLastMonth: 0, notes: "אין חובה", days: ["כל הימים"] },
-                    { name: "סוכר לבן", existing: 1.5, recommended: 1, price: 13, orderedLastMonth: 1.5, notes: "1 ק\"ג בצנצנת", days: ["כל הימים"] },
-                    { name: "סוכר חום דמררה", existing: 0.5, recommended: 0.5, price: 15, orderedLastMonth: 0.5, notes: "1 ק\"ג בצנצנת", days: ["כל הימים"] },
-                    { name: "סילאן", existing: 1, recommended: 1, price: 20, orderedLastMonth: 1, notes: "", days: ["שבת"] },
-                    { name: "רוטב סויה", existing: 1, recommended: 1, price: 10, orderedLastMonth: 1, notes: "אין חובה", days: ["כל הימים"] },
-                    { name: "רוטב שום", existing: 1.5, recommended: 1, price: 10, orderedLastMonth: 1.5, notes: "", days: ["כל הימים"] },
-                    { name: "אבקת שום", existing: 1, recommended: 1, price: 8, orderedLastMonth: 1, notes: "", days: ["כל הימים"] },
-                    { name: "שום גבישי", existing: 1, recommended: 1, price: 16, orderedLastMonth: 1, notes: "אין חובה", days: ["כל הימים"] },
-                    { name: "מיץ לימון", existing: 1, recommended: 1, price: 5, orderedLastMonth: 1, notes: "", days: ["כל הימים"] },
-                    { name: "חומץ", existing: 1, recommended: 1, price: 6, orderedLastMonth: 1, notes: "", days: ["כל הימים"] }
+                    { name: "מלח גס", existing: 1, recommended: 1, price: 10, orderedLastMonth: 0.5, notes: "אין חובה" },
+                    { name: "מלח דק", existing: 1, recommended: 1, price: 9, orderedLastMonth: 2, notes: "" },
+                    { name: "פלפל שחור", existing: 1, recommended: 1, price: 6, orderedLastMonth: 1.5, notes: "עדיפות למיכל על פני שקית" },
+                    { name: "פפריקה מתוקה", existing: 3, recommended: 1, price: 20, orderedLastMonth: 3, notes: "עדיפות למיכל על פני שקית" },
+                    { name: "פפריקה חריפה", existing: 1, recommended: 1, price: 10, orderedLastMonth: 1, notes: "אין חובה" },
+                    { name: "תיבול לגריל עוף", existing: 2, recommended: 2, price: 10, orderedLastMonth: 2, notes: "עדיפות למיכל על פני שקית" },
+                    { name: "צ'ילי חריף", existing: 0.5, recommended: 0.5, price: 6, orderedLastMonth: 0, notes: "אין חובה" },
+                    { name: "רוטב צ'ילי מתוק", existing: 0, recommended: 1, price: 13, orderedLastMonth: 0, notes: "אין חובה" },
+                    { name: "סוכר לבן", existing: 1.5, recommended: 1, price: 13, orderedLastMonth: 1.5, notes: "1 ק\"ג בצנצנת" },
+                    { name: "סוכר חום דמררה", existing: 0.5, recommended: 0.5, price: 15, orderedLastMonth: 0.5, notes: "1 ק\"ג בצנצנת" },
+                    { name: "סילאן", existing: 1, recommended: 1, price: 20, orderedLastMonth: 1, notes: "" },
+                    { name: "רוטב סויה", existing: 1, recommended: 1, price: 10, orderedLastMonth: 1, notes: "אין חובה" },
+                    { name: "רוטב שום", existing: 1.5, recommended: 1, price: 10, orderedLastMonth: 1.5, notes: "" },
+                    { name: "אבקת שום", existing: 1, recommended: 1, price: 8, orderedLastMonth: 1, notes: "" },
+                    { name: "שום גבישי", existing: 1, recommended: 1, price: 16, orderedLastMonth: 1, notes: "אין חובה" },
+                    { name: "מיץ לימון", existing: 1, recommended: 1, price: 5, orderedLastMonth: 1, notes: "" },
+                    { name: "חומץ", existing: 1, recommended: 1, price: 6, orderedLastMonth: 1, notes: "" }
                 ],
                 "מוצרים יבשים ושימורים": [
-                    { name: "אורז פרסי", existing: 9, recommended: 5, price: 13, orderedLastMonth: 9, notes: "שבת (סעודה ראשונה)", days: ["שבת"] },
-                    { name: "פסטה", existing: 6, recommended: 4, price: 6, orderedLastMonth: 6, notes: "יום שישי", days: ["שישי"] },
-                    { name: "קוסקוס", existing: 6, recommended: 6, price: 6, orderedLastMonth: 6, notes: "", days: ["שני"] },
-                    { name: "פירה אינסטנט", existing: 1, recommended: 0, price: 10, orderedLastMonth: 1, notes: "אין צורך", days: ["כל הימים"] },
-                    { name: "עדשים אדומות", existing: 2, recommended: 0, price: 8, orderedLastMonth: 2, notes: "תפריט חורף", days: ["כל הימים"] },
-                    { name: "חיטה", existing: 1, recommended: 1, price: 7, orderedLastMonth: 1, notes: "שבת (טשולנט). אין חובה", days: ["שבת"] },
-                    { name: "קמח מצה", existing: 1, recommended: 0, price: 10, orderedLastMonth: 1, notes: "אין צורך", days: ["כל הימים"] },
-                    { name: "פירורי לחם", existing: 4, recommended: 4, price: 11, orderedLastMonth: 4, notes: "שבת (סעודה ראשונה)", days: ["שבת"] },
-                    { name: "רסק עגבניות / מרוסקות", existing: 4, recommended: 4, price: 2.2, orderedLastMonth: 4, notes: "השלמה (1 לשבוע לשקשוקה ופיצה)", days: ["ראשון", "רביעי"] },
-                    { name: "טונה", existing: 16, recommended: 12, price: 5, orderedLastMonth: 16, notes: "3 קופסאות לשבוע", days: ["חמישי"] },
-                    { name: "מלפפונים בחומץ", existing: 4, recommended: 4, price: 9, orderedLastMonth: 4, notes: "יום חמישי", days: ["חמישי"] },
-                    { name: "שעועית ירוקה (שימורים)", existing: 2, recommended: 0, price: 10, orderedLastMonth: 2, notes: "אין צורך", days: ["כל הימים"] },
-                    { name: "חומוס (שימורים)", existing: 0, recommended: 4, price: 8, orderedLastMonth: 0, notes: "יום שני (מרק ירקות)", days: ["שני"] },
-                    { name: "שעועית לבנה (שימורים)", existing: 0, recommended: 1, price: 10, orderedLastMonth: 0, notes: "שבת (טשולנט). אין חובה", days: ["שבת"] },
-                    { name: "פטריות (שימורים)", existing: 3, recommended: 3, price: 5, orderedLastMonth: 3, notes: "שבת (מוקפץ)", days: ["שבת"] },
-                    { name: "גפילטע פיש", existing: 3, recommended: 4, price: 16, orderedLastMonth: 3, notes: "שבת (סעודה שלישית)", days: ["שבת"] },
-                    { name: "קטשופ", existing: 1, recommended: 1, price: 13, orderedLastMonth: 1.5, notes: "יום ראשון (טוסט)", days: ["ראשון"] },
-                    { name: "טחינה", existing: 2.5, recommended: 2, price: 17, orderedLastMonth: 2.5, notes: "לארוחת בוקר ולשבת", days: ["כל הימים"] },
-                    { name: "שמן קנולה", existing: 8, recommended: 8, price: 9, orderedLastMonth: 8, notes: "כל יום", days: ["כל הימים"] },
-                    { name: "מיץ ענבים", existing: 4, recommended: 4, price: 18, orderedLastMonth: 4, notes: "קידוש בשבת", days: ["שבת"] },
-                    { name: "קפה טסטר צ'ויס", existing: 2, recommended: 2, price: 31, orderedLastMonth: 2, notes: "כל יום (מדריכים)", days: ["כל הימים"] },
-                    { name: "קפה נמס", existing: 2, recommended: 2, price: 26, orderedLastMonth: 2, notes: "כל יום", days: ["כל הימים"] }
+                    { name: "אורז פרסי", existing: 9, recommended: 5, price: 13, orderedLastMonth: 9, notes: "שבת (סעודה ראשונה)" },
+                    { name: "פסטה", existing: 6, recommended: 4, price: 6, orderedLastMonth: 6, notes: "יום שישי" },
+                    { name: "קוסקוס", existing: 6, recommended: 6, price: 6, orderedLastMonth: 6, notes: "" },
+                    { name: "פירה אינסטנט", existing: 1, recommended: 0, price: 10, orderedLastMonth: 1, notes: "אין צורך" },
+                    { name: "עדשים אדומות", existing: 2, recommended: 0, price: 8, orderedLastMonth: 2, notes: "תפריט חורף" },
+                    { name: "חיטה", existing: 1, recommended: 1, price: 7, orderedLastMonth: 1, notes: "שבת (טשולנט). אין חובה" },
+                    { name: "קמח מצה", existing: 1, recommended: 0, price: 10, orderedLastMonth: 1, notes: "אין צורך" },
+                    { name: "פירורי לחם", existing: 4, recommended: 4, price: 11, orderedLastMonth: 4, notes: "שבת (סעודה ראשונה)" },
+                    { name: "רסק עגבניות / מרוסקות", existing: 4, recommended: 4, price: 2.2, orderedLastMonth: 4, notes: "השלמה (1 לשבוע לשקשוקה ופיצה)" },
+                    { name: "טונה", existing: 16, recommended: 12, price: 5, orderedLastMonth: 16, notes: "3 קופסאות לשבוע" },
+                    { name: "מלפפונים בחומץ", existing: 4, recommended: 4, price: 9, orderedLastMonth: 4, notes: "יום חמישי" },
+                    { name: "שעועית ירוקה (שימורים)", existing: 2, recommended: 0, price: 10, orderedLastMonth: 2, notes: "אין צורך" },
+                    { name: "חומוס (שימורים)", existing: 0, recommended: 4, price: 8, orderedLastMonth: 0, notes: "יום שני (מרק ירקות)" },
+                    { name: "שעועית לבנה (שימורים)", existing: 0, recommended: 1, price: 10, orderedLastMonth: 0, notes: "שבת (טשולנט). אין חובה" },
+                    { name: "פטריות (שימורים)", existing: 3, recommended: 3, price: 5, orderedLastMonth: 3, notes: "שבת (מוקפץ)" },
+                    { name: "גפילטע פיש", existing: 3, recommended: 4, price: 16, orderedLastMonth: 3, notes: "שבת (סעודה שלישית)" },
+                    { name: "קטשופ", existing: 1, recommended: 1, price: 13, orderedLastMonth: 1.5, notes: "יום ראשון (טוסט)" },
+                    { name: "טחינה", existing: 2.5, recommended: 2, price: 17, orderedLastMonth: 2.5, notes: "לארוחת בוקר ולשבת" },
+                    { name: "שמן קנולה", existing: 8, recommended: 8, price: 9, orderedLastMonth: 8, notes: "כל יום" },
+                    { name: "מיץ ענבים", existing: 4, recommended: 4, price: 18, orderedLastMonth: 4, notes: "קידוש בשבת" },
+                    { name: "קפה טסטר צ'ויס", existing: 2, recommended: 2, price: 31, orderedLastMonth: 2, notes: "כל יום (מדריכים)" },
+                    { name: "קפה נמס", existing: 2, recommended: 2, price: 26, orderedLastMonth: 2, notes: "כל יום" }
                 ],
                 "ממתקים ושתייה מתוקה": [
-                    { name: "קורנפלקס", existing: 2.5, recommended: 2, price: 15, orderedLastMonth: 2.5, notes: "שבת (בוקר)", days: ["שבת"] },
-                    { name: "ופלים", existing: 8, recommended: 8, price: 4, orderedLastMonth: 8, notes: "", days: ["כל הימים"] },
-                    { name: "ופלים לימון", existing: 3, recommended: 3, price: 11, orderedLastMonth: 3, notes: "", days: ["כל הימים"] },
-                    { name: "עוגיות אוריאו", existing: 7, recommended: 7, price: 7, orderedLastMonth: 6, notes: "", days: ["כל הימים"] },
-                    { name: "ערגליות שוקו", existing: 6, recommended: 6, price: 11, orderedLastMonth: 6, notes: "", days: ["כל הימים"] },
-                    { name: "ערגליות תות", existing: 4, recommended: 4, price: 11, orderedLastMonth: 4, notes: "", days: ["כל הימים"] },
-                    { name: "קולה", existing: 1, recommended: 1, price: 35, orderedLastMonth: 1, notes: "שבת. שישיית פפסי max", days: ["שבת"] },
-                    { name: "סודה", existing: 1.5, recommended: 1, price: 16, orderedLastMonth: 1, notes: "שבת", days: ["שבת"] }
+                    { name: "קורנפלקס", existing: 2.5, recommended: 2, price: 15, orderedLastMonth: 2.5, notes: "שבת (בוקר)" },
+                    { name: "ופלים", existing: 8, recommended: 8, price: 4, orderedLastMonth: 8, notes: "" },
+                    { name: "ופלים לימון", existing: 3, recommended: 3, price: 11, orderedLastMonth: 3, notes: "" },
+                    { name: "עוגיות אוריאו", existing: 7, recommended: 7, price: 7, orderedLastMonth: 6, notes: "" },
+                    { name: "ערגליות שוקו", existing: 6, recommended: 6, price: 11, orderedLastMonth: 6, notes: "" },
+                    { name: "ערגליות תות", existing: 4, recommended: 4, price: 11, orderedLastMonth: 4, notes: "" },
+                    { name: "קולה", existing: 1, recommended: 1, price: 35, orderedLastMonth: 1, notes: "שבת. שישיית פפסי max" },
+                    { name: "סודה", existing: 1.5, recommended: 1, price: 16, orderedLastMonth: 1, notes: "שבת" }
                 ]
             };
             teamMembers = [
