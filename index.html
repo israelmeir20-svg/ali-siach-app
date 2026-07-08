@@ -6,14 +6,14 @@
     <title>מנהל הזמנות חודשי - עלי שיח</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght=300;400;500;700;900&display=swap');
         body { font-family: 'Heebo', sans-serif; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen text-slate-800 antialiased">
+<body class="bg-slate-50 min-h-screen text-slate-800 antialiased" onload="init()">
 
     <div id="login-screen" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-sm w-full p-8 shadow-2xl text-center border border-slate-100">
@@ -280,6 +280,11 @@
         let disabledTools = [];
         let ingredientStates = {};
 
+        function calculateToOrder(item) {
+            let req = (parseFloat(item.recommended) || 0) - (parseFloat(item.existing) || 0);
+            return req > 0 ? req : 0;
+        }
+
         function loadLocalBackupData() {
             appData = {
                 "טואלטיקה, היגיינה וניקיון": [
@@ -382,7 +387,7 @@
         }
 
         async function init() {
-            loadLocalBackupData(); // טען קודם כל את הנתונים המקומיים (מונע קריסה)
+            loadLocalBackupData(); 
             setupRecipeDefaults();
             buildUserLoginSelect();
             buildRecipeInterface();
@@ -755,74 +760,4 @@
             if (!key) { loader.classList.add('hidden'); content.innerHTML = `<span class="text-red-500 font-bold">⚠️ חסר מפתח Gemini API בהגדרות!</span>`; return; }
 
             try {
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${key}`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-                });
-                const r = await res.json();
-                loader.classList.add('hidden');
-                content.innerText = r.candidates?.[0]?.content?.parts?.[0]?.text || "שגיאה";
-            } catch (err) { loader.classList.add('hidden'); content.innerText = err.message; }
-        }
-
-        function startWalkthroughMode() {
-            walkthroughItems = [];
-            for (const cat in appData) { appData[cat].forEach((item, idx) => { walkthroughItems.push({ ...item, cat, origIdx: idx }); }); }
-            if (walkthroughItems.length === 0) return;
-            walkthroughIndex = 0; showWalkthroughItem();
-            document.getElementById('walkthrough-screen').classList.remove('hidden');
-        }
-        function closeWalkthroughMode() { document.getElementById('walkthrough-screen').classList.add('hidden'); renderApp(); }
-        function showWalkthroughItem() {
-            const item = walkthroughItems[walkthroughIndex]; const real = appData[item.cat][item.origIdx];
-            document.getElementById('wt-cat-title').innerText = item.cat;
-            document.getElementById('wt-item-emoji').innerText = getEmoji(real.name);
-            document.getElementById('wt-item-name').innerText = real.name;
-            document.getElementById('wt-item-qty').innerText = real.existing;
-            document.getElementById('wt-item-target').innerText = real.recommended;
-        }
-        function adjustWtQty(amt) {
-            const item = walkthroughItems[walkthroughIndex]; const real = appData[item.cat][item.origIdx];
-            let v = (parseFloat(real.existing) || 0) + amt; if (v < 0) v = 0;
-            real.existing = Math.round(v * 2) / 2; showWalkthroughItem(); syncWithCloud();
-        }
-
-        function toggleSettingsPanel() { document.getElementById('settings-panel').classList.toggle('hidden'); }
-        function renderAdminTeamList() {
-            const c = document.getElementById('admin-team-list'); if (!c) return; c.innerHTML = '';
-            teamMembers.forEach((m, idx) => {
-                c.innerHTML += `<div class="flex justify-between bg-slate-900 p-1.5 rounded-lg"><span>👤 ${m.name} (${m.pin}) - ${m.role}</span>${m.name !== 'בצלאל' ? `<button onclick="deleteTeamMember(${idx})" class="text-red-400">🗑️</button>` : ''}</div>`;
-            });
-        }
-        function addNewTeamMember() {
-            const name = document.getElementById('new-user-name').value.trim(); const pin = document.getElementById('new-user-pin').value.trim(); const role = document.getElementById('new-user-role').value;
-            if (!name || pin.length !== 4) return; teamMembers.push({ name, pin, role });
-            document.getElementById('new-user-name').value = ''; document.getElementById('new-user-pin').value = '';
-            renderApp(); syncWithCloud();
-        }
-        function deleteTeamMember(i) { teamMembers.splice(i, 1); renderApp(); syncWithCloud(); }
-
-        function copyOrderText() {
-            let txt = `📦 *הזמנה חודשית - עלי שיח* 📦\n\n`; let total = 0;
-            for (const [cat, items] of Object.entries(appData)) {
-                let ct = `*${cat}:*\n`; let has = false;
-                items.forEach(i => {
-                    const toOrd = calculateToOrder(i);
-                    if (toOrd > 0) { total += toOrd * (i.price || 0); ct += `• ${i.name} - כמות: *${toOrd}* יח'\n`; has = true; }
-                });
-                if (has) txt += ct + `\n`;
-            }
-            txt += ` סה"כ עלות משוערת: ₪${total.toFixed(2)}`;
-            const el = document.createElement('textarea'); el.value = txt; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el);
-            showToast("הרשימה הועתקה!", "📋");
-        }
-
-        function showToast(msg, icon = "✨") {
-            const t = document.getElementById('toast'); document.getElementById('toast-message').innerText = msg; document.getElementById('toast-icon').innerText = icon;
-            t.classList.remove('translate-y-20', 'opacity-0'); t.classList.add('translate-y-0', 'opacity-100');
-            setTimeout(() => { t.classList.remove('translate-y-0', 'opacity-100'); t.classList.add('translate-y-20', 'opacity-0'); }, 3000);
-        }
-        function insertQuickTemplate(t) { document.getElementById('msg-text-input').value = t; }
-    </script>
-</body>
-</html>
+                const res = await fetch(`
