@@ -469,37 +469,35 @@
             if (!cloudUrl) return;
             try {
                 const res = await fetch(cloudUrl);
+                if (!res.ok) throw new Error("Google Error: " + res.status);
                 const data = await res.json();
                 if (data.success) {
-                    if (data.appData) appData = data.appData;
-                    if (data.teamMembers) teamMembers = data.teamMembers;
+                    if (data.appData && Object.keys(data.appData).length > 0) appData = data.appData;
+                    if (data.teamMembers && data.teamMembers.length > 0) teamMembers = data.teamMembers;
                     if (data.teamMessages) teamMessages = data.teamMessages;
                     buildUserLoginSelect();
                     renderApp();
                     buildMsgToSelect();
                 }
-            } catch (e) { console.log(e); }
-        }
-
-        // תוקן לחלוטין: מעקף חסימה חכם ושליחה מאומתת של כל הכמויות לגוגל שיטס
-        async function syncWithCloud() {
-            if (!cloudUrl) return;
-            try {
-                // פנייה לצינור האחורי של ורסל שיצרנו בשלב 1
-                await fetch('/api/sync', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        cloudUrl: cloudUrl,
-                        data: { appData, teamMembers, teamMessages }
-                    })
-                });
-                console.log("הנתונים נשלחו לגיבוי דרך השרת ומסונכרנים בהצלחה!");
             } catch (e) { 
-                console.log("שגיאה בסנכרון הרשת", e); 
+                console.log("שגיאה במשיכת נתונים מגוגל", e); 
             }
         }
 
+        async function syncWithCloud() {
+            if (!cloudUrl) return;
+            try {
+                // פנייה ישירה לגוגל עם הגדרת text/plain עוקפת את חסימת ה-CORS לצמיתות
+                await fetch(cloudUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ appData, teamMembers, teamMessages })
+                });
+                console.log("הנתונים נשמרו ישירות בגוגל שיטס בהצלחה.");
+            } catch (e) { 
+                console.log("שגיאה בסנכרון מול גוגל", e); 
+            }
+        }
         function saveCloudUrl() {
             const url = document.getElementById('cloud-url-input').value.trim();
             if (url) {
