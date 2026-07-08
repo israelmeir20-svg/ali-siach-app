@@ -485,14 +485,19 @@
         async function syncWithCloud() {
             if (!cloudUrl) return;
             try {
-                // המרת המידע למבנה של URL-Encoded כדי לעקוף את מנגנון ה-no-cors של גוגל ולהעביר נתונים אמיתיים!
-                await fetch(cloudUrl, {
+                // פנייה לצינור האחורי של ורסל שיצרנו בשלב 1
+                await fetch('/api/sync', {
                     method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'text/plain' }, 
-                    body: JSON.stringify({ appData, teamMembers, teamMessages })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        cloudUrl: cloudUrl,
+                        data: { appData, teamMembers, teamMessages }
+                    })
                 });
-            } catch (e) { console.log("שגיאה בסנכרון רשת", e); }
+                console.log("הנתונים נשלחו לגיבוי דרך השרת ומסונכרנים בהצלחה!");
+            } catch (e) { 
+                console.log("שגיאה בסנכרון הרשת", e); 
+            }
         }
 
         function saveCloudUrl() {
