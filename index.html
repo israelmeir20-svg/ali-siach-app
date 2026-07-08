@@ -7,8 +7,19 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&display=swap');
-        body { font-family: 'Assistant', sans-serif; background-color: #f8fafc; }
-        .sticky-thead th { position: sticky; top: 0; background-color: #f8fafc; z-index: 10; box-shadow: 0 1px 0 #e2e8f0; }
+        body { font-family: 'Assistant', sans-serif; background-color: #f8fafc; transition: background-color 0.3s, color 0.3s; }
+        
+        /* תיקון קשיח לנעילת כותרות הטבלה */
+        .sticky-thead th { position: sticky; top: 64px; z-index: 20; box-shadow: 0 2px 2px -1px rgba(0,0,0,0.05); }
+        
+        /* הגדרות מצב לילה ידניות מותאמות אישית לעקיפת מגבלות CDN */
+        body.dark-mode { background-color: #0f172a; color: #e2e8f0; }
+        body.dark-mode nav, body.dark-mode .bg-white { background-color: #1e293b; color: #e2e8f0; border-color: #334155; }
+        body.dark-mode input, body.dark-mode select { background-color: #334155; color: #ffffff; border-color: #475569; }
+        body.dark-mode tr:hover { background-color: #334155 !important; }
+        body.dark-mode .bg-slate-50, body.dark-mode .bg-slate-100 { background-color: #334155; color: #e2e8f0; }
+        body.dark-mode th { background-color: #1e293b !important; color: #94a3b8; }
+        body.dark-mode .text-slate-900 { color: #ffffff; }
     </style>
 </head>
 <body class="text-slate-800 antialiased min-h-screen flex flex-col">
@@ -20,16 +31,16 @@
             <h2 class="text-xl font-black text-slate-900">מערכת מלאי - עלי שיח</h2>
             <p class="text-xs text-slate-500 font-bold">בחר את שמך והזן את קוד ה-PIN האישי שלך</p>
             <div class="space-y-3 pt-2">
-                <select id="login-user-select" class="w-full p-2.5 rounded-xl border bg-slate-50 font-bold text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
-                <input type="password" id="login-pin-input" inputmode="numeric" maxlength="4" placeholder="קוד PIN (4 ספרות)" class="w-full p-2.5 rounded-xl border bg-slate-50 text-center font-black tracking-widest text-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select id="login-user-select" class="w-full p-2.5 rounded-xl border bg-slate-50 font-bold text-sm text-slate-700 focus:outline-none"></select>
+                <input type="password" id="login-pin-input" inputmode="numeric" maxlength="4" placeholder="קוד PIN (4 ספרות)" class="w-full p-2.5 rounded-xl border bg-slate-50 text-center font-black tracking-widest text-lg focus:outline-none">
                 <button onclick="handleLogin()" class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-sm shadow-md transition">התחבר למערכת</button>
             </div>
         </div>
     </div>
 
-    <!-- שורת ניווט עליונה (Facebook / Clean Style) -->
-    <nav class="sticky top-0 bg-white border-b border-slate-200 z-40 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
+    <!-- שורת ניווט עליונה -->
+    <nav class="sticky top-0 bg-white border-b border-slate-200 z-40 shadow-sm h-16 flex items-center">
+        <div class="max-w-7xl mx-auto px-4 w-full flex items-center justify-between gap-4">
             <div class="flex items-center gap-3">
                 <span class="text-2xl select-none">🧺</span>
                 <div>
@@ -38,16 +49,15 @@
                 </div>
             </div>
 
-            <!-- סרגל חיפוש וסינון מהיר -->
+            <!-- חיפוש משולב (שם + הערות) -->
             <div class="flex-1 max-w-md hidden md:flex items-center gap-2">
-                <input type="text" id="search-bar" oninput="filterInventory()" placeholder="חיפוש מהיר במלאי או בהערות (למשל: שבת, יום שישי)..." class="w-full px-3 py-1.5 rounded-xl border text-xs font-bold bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="text" id="search-bar" oninput="filterInventory()" placeholder="חיפוש לפי מוצר, יום, הערה (למשל: שבת, יום חמישי)..." class="w-full px-3 py-1.5 rounded-xl border text-xs font-bold bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
-            <!-- אזור משתמש והודעות (Facebook Navbar Style) -->
-            <div class="flex items-center gap-2 relative">
-                <button onclick="toggleRecipeModal()" class="px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-black hover:bg-emerald-100 transition ml-2">🍳 עוזר המתכונים AI</button>
+            <!-- אזור משתמש והודעות (Facebook Style - צפייה בלבד) -->
+            <div class="flex items-center gap-2">
+                <button onclick="toggleRecipeModal()" class="px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-black hover:bg-emerald-100 transition">🍳 עוזר מתכונים AI</button>
                 
-                <!-- שם המשתמש וכפתור ההודעות המובנה -->
                 <div class="relative">
                     <button onclick="toggleNotificationDropdown()" class="flex items-center gap-2 px-3 py-1.5 rounded-xl border hover:bg-slate-50 transition relative">
                         <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
@@ -55,17 +65,13 @@
                         <span id="unread-badge" class="hidden absolute -top-2 -right-2 bg-red-500 text-white font-black text-[9px] w-4 h-4 rounded-full flex items-center justify-center border border-white shadow-sm">0</span>
                     </button>
 
-                    <!-- חלונית הודעות צפה (Facebook Popover Style) -->
+                    <!-- חלונית הודעות נכנסות (Facebook Popover Style - צפייה בלבד) -->
                     <div id="notification-dropdown" class="hidden absolute left-0 mt-2 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 flex flex-col overflow-hidden animate-fade-in">
                         <div class="p-3 bg-slate-50 border-b flex justify-between items-center">
-                            <h3 class="text-xs font-black text-slate-900">עדכוני צוות והודעות</h3>
+                            <h3 class="text-xs font-black text-slate-900">הודעות שהתקבלו</h3>
                             <button onclick="toggleNotificationDropdown()" class="text-[10px] text-slate-400 hover:text-slate-600 font-bold">סגור</button>
                         </div>
                         <div id="messages-list-container" class="max-h-64 overflow-y-auto p-2 space-y-2"></div>
-                        <div class="p-2 bg-slate-50 border-t flex gap-1">
-                            <input type="text" id="msg-text-input" placeholder="כתוב עדכון קצר לצוות..." class="w-full p-1.5 rounded-lg border text-xs font-bold">
-                            <button onclick="sendTeamMessage()" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700">שלח</button>
-                        </div>
                     </div>
                 </div>
 
@@ -78,12 +84,23 @@
     <!-- מסך אפליקציה ראשי -->
     <main class="flex-1 max-w-7xl w-full mx-auto p-4 space-y-4">
         
-        <!-- מובייל: שורת חיפוש בלבד -->
-        <div class="block md:hidden">
-            <input type="text" id="search-bar-mobile" oninput="filterInventoryMobile()" placeholder="חיפוש מהיר במלאי או בהערות..." class="w-full px-3 py-2 rounded-xl border text-xs font-bold bg-white focus:outline-none">
+        <!-- דשבורד חזותי עליון (Dashboard) -->
+        <div id="dashboard-area" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div id="dash-card-missing" class="bg-white border p-4 rounded-2xl shadow-sm flex items-center justify-between border-r-4 border-r-red-500">
+                <div><span class="text-[10px] font-bold text-slate-400 block">מוצרים חסרים (כמות 0)</span><span id="dash-missing-val" class="text-xl font-black text-slate-900">0</span></div>
+                <span class="text-2xl">⚠️</span>
+            </div>
+            <div id="dash-card-total" class="bg-white border p-4 rounded-2xl shadow-sm flex items-center justify-between border-r-4 border-r-blue-500">
+                <div><span class="text-[10px] font-bold text-slate-400 block">סך פריטים להזמנה</span><span id="dash-total-val" class="text-xl font-black text-slate-900">0</span></div>
+                <span class="text-2xl">🛒</span>
+            </div>
+            <div id="dash-card-cost" class="bg-white border p-4 rounded-2xl shadow-sm flex items-center justify-between border-r-4 border-r-emerald-500">
+                <div><span class="text-[10px] font-bold text-slate-400 block">עלות משוערת להזמנה</span><span id="dash-cost-val" class="text-xl font-black text-slate-900">₪0.00</span></div>
+                <span class="text-2xl">💰</span>
+            </div>
         </div>
 
-        <!-- בר עליון: סינונים, ספירה מהירה ויצירת הזמנה -->
+        <!-- בר פקדים: סינונים, ספירה בולטת ושיתוף קומפקטי -->
         <div class="bg-white border rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-3">
             <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-black">
                 <button id="filter-all" onclick="setFilter('all')" class="px-3 py-1.5 rounded-lg bg-white text-blue-600 shadow-sm">📋 כל המוצרים</button>
@@ -91,46 +108,77 @@
                 <button id="filter-in-stock" onclick="setFilter('in-stock')" class="px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-200">✅ מלאי תקין</button>
             </div>
 
-            <!-- מרכז יצירת דוחות ואפשרויות שיתוף מורחבות -->
-            <div class="flex items-center gap-2">
-                <button onclick="startWalkthroughMode()" class="px-3 py-2 rounded-xl bg-blue-50 text-blue-700 text-xs font-black hover:bg-blue-100 transition">⏱️ ספירת מלאי מהירה</button>
+            <div class="flex items-center gap-3">
+                <!-- כפתור ספירת מלאי מוגדל, בולט ורוטט חזותית -->
+                <button onclick="startWalkthroughMode()" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-black shadow-lg transition transform hover:scale-105 animate-pulse">⏱️ ספירת מלאי מהירה</button>
+                
                 <div class="h-6 w-px bg-slate-200"></div>
-                <div class="flex items-center gap-1 bg-slate-50 p-1 border rounded-xl">
-                    <button onclick="exportData('copy')" class="p-1.5 text-xs font-bold hover:bg-slate-200 rounded-lg text-slate-700" title="העתק ללוח">📋 העתק</button>
-                    <button onclick="exportData('whatsapp')" class="p-1.5 text-xs font-bold hover:bg-emerald-100 rounded-lg text-emerald-700" title="שלח לוואטסאפ">💬 וואטסאפ</button>
-                    <button onclick="exportData('email')" class="p-1.5 text-xs font-bold hover:bg-blue-100 rounded-lg text-blue-700" title="שלח במייל">📧 מייל</button>
-                    <button onclick="exportData('csv')" class="p-1.5 text-xs font-bold hover:bg-purple-100 rounded-lg text-purple-700" title="הורד קובץ Excel/CSV">💾 קובץ</button>
+                
+                <!-- רכיב שיתוף קומפקטי (Popover Style) -->
+                <div class="relative inline-block">
+                    <button onclick="toggleSharePopover()" class="p-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-black flex items-center gap-1" title="אפשרויות שיתוף והפקה">
+                        <span>📤 שיתוף הדוח</span>
+                    </button>
+                    <div id="share-popover" class="hidden absolute left-0 mt-1.5 bg-white border border-slate-200 shadow-xl rounded-xl p-1.5 flex gap-1 z-30 animate-fade-in whitespace-nowrap">
+                        <button onclick="exportData('copy')" class="px-2.5 py-1 text-[11px] font-bold hover:bg-slate-100 rounded-lg text-slate-700">📋 העתק ללוח</button>
+                        <button onclick="exportData('whatsapp')" class="px-2.5 py-1 text-[11px] font-bold hover:bg-emerald-50 rounded-lg text-emerald-700">💬 וואטסאפ</button>
+                        <button onclick="exportData('email')" class="px-2.5 py-1 text-[11px] font-bold hover:bg-blue-50 rounded-lg text-blue-700">📧 מייל</button>
+                        <button onclick="exportData('csv')" class="px-2.5 py-1 text-[11px] font-bold hover:bg-purple-50 rounded-lg text-purple-700">💾 ייצוא Excel</button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- התראת סטטוס קריטי -->
-        <div id="critical-alert-bar" class="bg-red-50 border border-red-200 text-red-800 text-xs font-bold px-4 py-2.5 rounded-xl flex items-center justify-between">
-            <span id="critical-count-display">0 מוצרים חסרים לחלוטין (כמות = 0)</span>
-            <span class="text-xs">⚠️ מומלץ להשלים בהקדם</span>
-        </div>
-
-        <!-- מכולת הטבלה הראשית (100% רוחב, Sticky Table Headers) -->
+        <!-- מכולת הטבלה הראשית -->
         <div id="inventory-container" class="space-y-6"></div>
     </main>
 
-    <!-- מודל הגדרות מערכת (Telegram Style - שורות נקיות וקטגוריות) -->
-    <div id="settings-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <!-- כפתור הודעות צף בפינת שמאל למטה (Facebook Messenger Style) -->
+    <button onclick="toggleFloatingChat()" class="fixed bottom-4 left-4 w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-2xl z-50 hover:bg-blue-700 transition transform hover:scale-110 text-xl" title="צ'אט ועדכוני צוות">💬</button>
+
+    <!-- חלון צ'אט צף משמאל למטה (ניהול ושליחת הודעות) -->
+    <div id="floating-chat-window" class="hidden fixed bottom-18 left-4 w-80 h-96 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden animate-fade-in">
+        <div class="p-3 bg-blue-600 text-white flex justify-between items-center">
+            <h3 class="text-xs font-black">💬 צ'אט ועדכוני דירה</h3>
+            <button onclick="toggleFloatingChat()" class="text-xs font-bold opacity-80 hover:opacity-100">✕</button>
+        </div>
+        <div id="chat-messages-container" class="flex-1 p-3 overflow-y-auto space-y-2 bg-slate-50 text-[11px]"></div>
+        <div class="p-2 border-t bg-white flex gap-1">
+            <input type="text" id="chat-text-input" placeholder="כתוב הודעה חדשה לצוות..." class="w-full p-2 border rounded-xl text-xs font-bold focus:outline-none">
+            <button onclick="sendChatMessage()" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-700">שלח</button>
+        </div>
+    </div>
+
+    <!-- מודל הגדרות מערכת ופרופיל משתמש (Centered Modal - Telegram Style) -->
+    <div id="settings-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden flex flex-col border max-h-[85vh]">
             <div class="p-4 bg-slate-900 text-white flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                    <span class="text-xl">⚙️</span>
-                    <h2 class="text-sm font-black">הגדרות מערכת וניהול</h2>
-                </div>
+                <div class="flex items-center gap-2"><span>⚙️</span><h2 class="text-sm font-black">הגדרות מערכת ופרופיל משתמש</h2></div>
                 <button onclick="toggleSettingsModal()" class="text-slate-400 hover:text-white font-bold text-xs">סגור</button>
             </div>
             
             <div class="p-4 overflow-y-auto space-y-4 flex-1 text-xs">
-                <!-- קטגוריה 1: סנכרון וענן -->
+                <!-- הגדרות אישיות ומצב לילה -->
+                <div class="space-y-2 bg-slate-50 p-3 rounded-2xl border">
+                    <h3 class="font-black text-slate-800 border-b pb-1">👤 פרופיל הגדרות משתמש</h3>
+                    <div class="flex items-center justify-between pt-1">
+                        <span class="font-bold text-slate-600">מצב לילה (Dark Mode):</span>
+                        <button onclick="toggleDarkMode()" id="dark-mode-toggle-btn" class="px-3 py-1 rounded-lg bg-slate-200 text-slate-700 font-bold">כבוי</button>
+                    </div>
+                    <div class="space-y-1.5 pt-2">
+                        <span class="block font-bold text-slate-600">הגדרות תצוגת דשבורד עליון:</span>
+                        <div class="space-y-1 font-semibold">
+                            <label class="flex items-center gap-2"><input type="checkbox" id="chk-dash-missing" checked onchange="updateDashVisibility()"> הצג כרטיס מוצרים חסרים</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" id="chk-dash-total" checked onchange="updateDashVisibility()"> הצג כרטיס סך פריטים להזמנה</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" id="chk-dash-cost" checked onchange="updateDashVisibility()"> הצג כרטיס עלות משוערת</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ענן וסנכרון -->
                 <div class="space-y-2">
                     <h3 class="font-black text-blue-600 border-b pb-1">🌐 חיבור וסנכרון ענן</h3>
                     <div class="space-y-1">
-                        <label class="block font-bold text-slate-500">קישור Google Apps Script Web App:</label>
                         <div class="flex gap-1">
                             <input type="text" id="cloud-url-input" placeholder="https://script.google.com/macros/s/.../exec" class="w-full p-2 border rounded-xl font-mono text-[10px]">
                             <button onclick="saveCloudUrl()" class="px-3 bg-blue-600 text-white font-bold rounded-xl">שמור</button>
@@ -138,11 +186,10 @@
                     </div>
                 </div>
 
-                <!-- קטגוריה 2: מפתחות API ומנוע בינה מלאכותית -->
-                <div class="space-y-2 pt-2">
+                <!-- מפתח AI -->
+                <div class="space-y-2 pt-1">
                     <h3 class="font-black text-emerald-600 border-b pb-1">🤖 מנוע יצירת מתכונים AI</h3>
                     <div class="space-y-1">
-                        <label class="block font-bold text-slate-500">מפתח Gemini API Key:</label>
                         <div class="flex gap-1">
                             <input type="password" id="gemini-key-input" placeholder="הזן מפתח API של גוגל" class="w-full p-2 border rounded-xl font-mono text-[10px]">
                             <button onclick="saveGeminiKey()" class="px-3 bg-emerald-600 text-white font-bold rounded-xl">שמור</button>
@@ -150,49 +197,76 @@
                     </div>
                 </div>
 
-                <!-- קטגוריה 3: ניהול צוות (אדמינים בלבד) -->
-                <div id="admin-management-section" class="space-y-2 pt-2 hidden">
-                    <h3 class="font-black text-purple-600 border-b pb-1">👥 ניהול צוות ומדריכים</h3>
-                    <div id="admin-team-list" class="space-y-1.5 max-h-32 overflow-y-auto bg-slate-50 p-2 rounded-xl border"></div>
+                <!-- ניהול צוות -->
+                <div id="admin-management-section" class="space-y-2 pt-1 hidden">
+                    <h3 class="font-black text-purple-600 border-b pb-1">👥 ניהול צוות ומדריכים (מנהל)</h3>
+                    <div id="admin-team-list" class="space-y-1 max-h-24 overflow-y-auto bg-slate-50 p-2 rounded-xl border"></div>
                     <div class="grid grid-cols-3 gap-1 pt-1">
-                        <input type="text" id="new-user-name" placeholder="שם המדריך" class="p-2 border rounded-xl font-bold">
-                        <input type="text" id="new-user-pin" placeholder="PIN (4 ספרות)" maxlength="4" class="p-2 border rounded-xl font-bold text-center">
-                        <select id="new-user-role" class="p-2 border rounded-xl font-bold">
+                        <input type="text" id="new-user-name" placeholder="שם" class="p-1.5 border rounded-xl font-bold">
+                        <input type="text" id="new-user-pin" placeholder="PIN" maxlength="4" class="p-1.5 border rounded-xl font-bold text-center">
+                        <select id="new-user-role" class="p-1.5 border rounded-xl font-bold">
                             <option value="staff">מדריך</option>
                             <option value="admin">מנהל</option>
                         </select>
                     </div>
-                    <button onclick="addNewTeamMember()" class="w-full py-2 bg-purple-600 text-white font-bold rounded-xl shadow-sm">הוסף מדריך חדש לצוות</button>
+                    <button onclick="addNewTeamMember()" class="w-full py-2 bg-purple-600 text-white font-bold rounded-xl shadow-sm">הוסף מדריך</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- מודל ספירת מלאי מהירה (Centered Walkthrough Mode) -->
+    <div id="walkthrough-screen" class="fixed inset-0 bg-slate-900/80 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 shadow-2xl max-w-sm w-full space-y-4 text-center border relative">
+            <button onclick="closeWalkthroughMode()" class="absolute top-4 left-4 font-black text-sm text-slate-400 hover:text-slate-600">✕</button>
+            <div class="space-y-1">
+                <span id="wt-cat-title" class="bg-blue-50 text-blue-700 font-black px-3 py-1 rounded-full text-[9px]">קטגוריה</span>
+                <h3 id="wt-item-name" class="text-lg font-black text-slate-900 pt-1">-</h3>
+            </div>
+            <span id="wt-item-emoji" class="text-6xl block my-2 select-none">📦</span>
+            <div class="bg-slate-50 p-3 rounded-2xl grid grid-cols-2 gap-2 border">
+                <div class="border-l">
+                    <span class="block text-slate-400 font-bold text-[11px]">קיים בדירה:</span>
+                    <div class="flex items-center justify-center gap-2 mt-1">
+                        <button onclick="adjustWtQty(-0.5)" class="w-7 h-7 rounded-lg bg-white border font-black text-md shadow-sm">-</button>
+                        <span id="wt-item-qty" class="text-xl font-black text-slate-900">0</span>
+                        <button onclick="adjustWtQty(0.5)" class="w-7 h-7 rounded-lg bg-white border font-black text-md shadow-sm">+</button>
+                    </div>
+                </div>
+                <div class="flex flex-col justify-center items-center">
+                    <span class="block text-slate-400 font-bold text-[11px]">יעד מומלץ:</span>
+                    <span id="wt-item-target" class="text-xl font-black text-slate-600">0</span>
+                </div>
+            </div>
+            <div class="flex gap-2 pt-2">
+                <button onclick="walkthroughPrev()" class="flex-1 py-2 rounded-xl border font-bold text-slate-700 bg-slate-50">⬅️ קודם</button>
+                <button onclick="walkthroughNext()" class="flex-1 py-2 rounded-xl bg-blue-600 text-white font-black shadow-md">הבא ➡️</button>
             </div>
         </div>
     </div>
 
     <!-- מודל עוזר המתכונים AI -->
     <div id="recipe-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden flex flex-col border max-h-[90vh]">
+        <div class="bg-white rounded-3xl max-w-xl w-full shadow-2xl overflow-hidden flex flex-col border max-h-[85vh]">
             <div class="p-4 bg-emerald-700 text-white flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                    <span class="text-xl">🍳</span>
-                    <h2 class="text-sm font-black">עוזר המטבח החכם - יצירת מתכון AI ל-6 דיירים</h2>
-                </div>
+                <div class="flex items-center gap-2"><span>🍳</span><h2 class="text-sm font-black">עוזר המטבח החכם - מתכון ל-6 דיירים</h2></div>
                 <button onclick="toggleRecipeModal()" class="text-emerald-200 hover:text-white font-bold text-xs">סגור</button>
             </div>
             <div class="p-4 overflow-y-auto space-y-4 flex-1 text-xs">
-                <div class="space-y-1.5">
-                    <span class="block font-black text-slate-700">1. הגדרת זמן בישול מבוקש:</span>
+                <div class="space-y-1">
+                    <span class="block font-black text-slate-700">1. זמן בישול מבוקש:</span>
                     <div class="flex gap-2">
-                        <button onclick="setRecipeTime('fast')" id="time-fast" class="px-3 py-1.5 rounded-xl border font-bold bg-emerald-50 border-emerald-300 text-emerald-700 shadow-sm">⏱️ מהיר (עד חצי שעה)</button>
+                        <button onclick="setRecipeTime('fast')" id="time-fast" class="px-3 py-1.5 rounded-xl border font-bold bg-emerald-50 border-emerald-300 text-emerald-700 shadow-sm">⏱️ מהיר (חצי שעה)</button>
                         <button onclick="setRecipeTime('medium')" id="time-medium" class="px-3 py-1.5 rounded-xl border font-bold text-slate-600 hover:bg-slate-50">🍲 מושקע (לשבת/ערב)</button>
                     </div>
                 </div>
-                <div class="space-y-1.5">
-                    <span class="block font-black text-slate-700">2. ניהול מצרכים לבישול (לחץ לשינוי מצב):</span>
-                    <div id="recipe-ingredients-container" class="flex flex-wrap gap-1.5"></div>
+                <div class="space-y-1">
+                    <span class="block font-black text-slate-700">2. ניהול מצרכים לבישול:</span>
+                    <div id="recipe-ingredients-container" class="flex flex-wrap gap-1"></div>
                 </div>
-                <button onclick="generateAIRecipe()" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md transition">יצר מתכון מותאם אישית עכשיו</button>
-                <div id="recipe-ai-box" class="hidden border rounded-2xl bg-slate-50 p-4 relative min-h-[100px]">
-                    <div id="recipe-ai-loader" class="absolute inset-0 bg-white/80 flex items-center justify-center font-bold text-slate-600 hidden">🤖 המנוע מנתח את המלאי ומכין מתכון קל...</div>
+                <button onclick="generateAIRecipe()" class="w-full py-2 bg-emerald-600 text-white font-black rounded-xl shadow-sm">ייצר מתכון AI מותאם</button>
+                <div id="recipe-ai-box" class="hidden border rounded-2xl bg-slate-50 p-4 relative min-h-[80px]">
+                    <div id="recipe-ai-loader" class="absolute inset-0 bg-white/80 flex items-center justify-center font-bold text-slate-600 hidden">🤖 מרכיב מתכון קל...</div>
                     <div id="recipe-ai-content" class="whitespace-pre-line font-medium text-slate-800 leading-relaxed text-xs"></div>
                 </div>
             </div>
@@ -209,7 +283,7 @@
                     <div><label class="block font-bold text-slate-400 mb-0.5">מחיר משוער (₪):</label><input type="number" id="modal-prod-price" class="w-full p-2 rounded-xl border font-bold"></div>
                     <div><label class="block font-bold text-slate-400 mb-0.5">יעד מומלץ לדירה:</label><input type="number" id="modal-prod-recommended" class="w-full p-2 rounded-xl border font-bold"></div>
                 </div>
-                <div><label class="block font-bold text-slate-400 mb-0.5">קישור לרכישה מהירה (URL):</label><input type="text" id="modal-prod-url" placeholder="https://..." class="w-full p-2 rounded-xl border font-mono text-[10px]"></div>
+                <div><label class="block font-bold text-slate-400 mb-0.5">קישור לרכישה (URL):</label><input type="text" id="modal-prod-url" placeholder="https://..." class="w-full p-2 rounded-xl border font-mono text-[10px]"></div>
                 <div><label class="block font-bold text-slate-400 mb-0.5">הנחיות והערות תפריט:</label><input type="text" id="modal-prod-notes" class="w-full p-2 rounded-xl border font-bold"></div>
             </div>
             <div class="flex gap-2 pt-2">
@@ -219,40 +293,9 @@
         </div>
     </div>
 
-    <!-- מסך ספירת מלאי מהירה (Walkthrough mode) -->
-    <div id="walkthrough-screen" class="fixed inset-0 bg-slate-900/90 z-50 hidden flex-col items-center justify-center p-4">
-        <div class="bg-white rounded-3xl p-6 shadow-2xl max-w-md w-full space-y-6 text-center border relative">
-            <button onclick="closeWalkthroughMode()" class="absolute top-4 left-4 font-black text-sm text-slate-400 hover:text-slate-600">✕ יציאה</button>
-            <div class="space-y-1">
-                <span id="wt-cat-title" class="bg-blue-50 text-blue-700 font-black px-3 py-1 rounded-full text-[10px]">קטגוריה</span>
-                <h3 id="wt-item-name" class="text-xl font-black text-slate-900 pt-2">-</h3>
-            </div>
-            <span id="wt-item-emoji" class="text-7xl block my-4 select-none">📦</span>
-            <div class="bg-slate-50 p-4 rounded-2xl grid grid-cols-2 gap-4 border">
-                <div class="border-l">
-                    <span class="block text-slate-400 font-bold text-xs">קיים כעת בדירה:</span>
-                    <div class="flex items-center justify-center gap-3 mt-1">
-                        <button onclick="adjustWtQty(-0.5)" class="w-8 h-8 rounded-xl bg-white border font-black text-lg shadow-sm">-</button>
-                        <span id="wt-item-qty" class="text-2xl font-black text-slate-900">0</span>
-                        <button onclick="adjustWtQty(0.5)" class="w-8 h-8 rounded-xl bg-white border font-black text-lg shadow-sm">+</button>
-                    </div>
-                </div>
-                <div class="flex flex-col justify-center items-center">
-                    <span class="block text-slate-400 font-bold text-xs">יעד מומלץ:</span>
-                    <span id="wt-item-target" class="text-2xl font-black text-slate-600">0</span>
-                </div>
-            </div>
-            <div class="flex gap-2">
-                <button onclick="walkthroughPrev()" class="flex-1 py-2.5 rounded-xl border font-bold text-slate-700 bg-slate-50 hover:bg-slate-100">⬅️ מוצר קודם</button>
-                <button onclick="walkthroughNext()" class="flex-1 py-2.5 rounded-xl bg-blue-600 text-white font-black shadow-md hover:bg-blue-700">מוצר הבא ➡️</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- רכיב טוסט הודעות צפות קומפקטי -->
+    <!-- טוסט הודעות צפות קומפקטי -->
     <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 transform bg-slate-900 text-white px-4 py-2.5 rounded-2xl flex items-center gap-2 shadow-2xl transition duration-300 translate-y-20 opacity-0 z-50 text-xs font-bold">
-        <span id="toast-icon">✨</span>
-        <span id="toast-message">הודעה</span>
+        <span id="toast-icon">✨</span><span id="toast-message">הודעה</span>
     </div>
 
     <script>
@@ -280,12 +323,6 @@
             return "📦";
         }
 
-        const kitchenTools = [
-            { icon: "🔪", name: "סכין חיתוך ידנית" }, { icon: "🪚", name: "פומפייה ידנית" }, { icon: "🥘", name: "סיר בישול שטוח" },
-            { icon: "🫕", name: "סיר קטן וגבוה" }, { icon: "𫖕", name: "סיר מרק גדול" }, { icon: "🍳", name: "מחבת (ללא מכסה)" },
-            { icon: "🛡️", name: "נייר כסף לכיסוי" }, { icon: "🟫", name: "תבנית תנור מקורית" }, { icon: "🍱", name: "תבנית אלומיניום חד\"פ" }
-        ];
-
         const freshVegetables = ["בצל", "תפו\"א", "עגבניות", "מלפפונים", "גזרים", "פלפלים וגמבות", "דלורית", "כרוב", "שום טרי"];
 
         let appData = {};
@@ -294,6 +331,7 @@
         let currentUser = null;
         let cloudUrl = localStorage.getItem('aliSiachCloudUrl') || "";
         let saveTimeout = null;
+        let isDarkMode = localStorage.getItem('aliSiachDarkMode') === 'true';
 
         let activeFilter = 'all';
         let searchQuery = '';
@@ -308,7 +346,6 @@
             return req > 0 ? req : 0;
         }
 
-        // טעינת גיבוי מקומי מיידית לשיפור חווית אופליין
         function loadLocalBackupData() {
             const cached = localStorage.getItem('aliSiachLocalCache');
             if (cached) {
@@ -316,121 +353,68 @@
                 appData = parsed.appData; teamMembers = parsed.teamMembers; teamMessages = parsed.teamMessages;
                 return;
             }
-            
-            // ברירת מחדל קשיחה אם אין מטמון בדפדפן
+            // פולבק ראשוני במקרה ואין ענן או מטמון
             appData = {
-                "טואלטיקה, היגיינה וניקיון": [
-                    { name: "אבקת כביסה", existing: 4.5, recommended: 2, price: 39, orderedLastMonth: 4.5, notes: "6 קילו" },
+                "טואלטיקה וניקיון": [
+                    { name: "אבקת כביסה", existing: 1, recommended: 3, price: 39, orderedLastMonth: 2, notes: "6 קילו" },
                     { name: "אמה (נוזל כלים)", existing: 3, recommended: 3, price: 7.2, orderedLastMonth: 3, notes: "" },
-                    { name: "ברזלית", existing: 5, recommended: 2, price: 4.5, orderedLastMonth: 5, notes: "" },
-                    { name: "דאורדורנט", existing: 2, recommended: 2, price: 12, orderedLastMonth: 2, notes: "לשימוש של יהודה ואבריימי" },
-                    { name: "כרית ניקוי (סקוץ')", existing: 4, recommended: 4, price: 2, orderedLastMonth: 2, notes: "" },
-                    { name: "כרית ניקוי (סקוץ') לשבת", existing: 5, recommended: 2, price: 10, orderedLastMonth: 5, notes: "" },
-                    { name: "מבשם אוויר", existing: 4, recommended: 1, price: 12, orderedLastMonth: 4, notes: "" },
-                    { name: "מסיר אבנית", existing: 1, recommended: 1, price: 12, orderedLastMonth: 1, notes: "" },
-                    { name: "מסיר כתמים", existing: 3, recommended: 3, price: 11, orderedLastMonth: 3, notes: "" },
-                    { name: "מסיר שומנים", existing: 2, recommended: 2, price: 10, orderedLastMonth: 2, notes: "" },
-                    { name: "מרכך כביסה", existing: 5, recommended: 3, price: 18, orderedLastMonth: 2, notes: "מכלים גדולים" },
-                    { name: "משחת שיניים", existing: 6, recommended: 2, price: 13, orderedLastMonth: 6, notes: "" },
-                    { name: "נוזל לניקוי רצפות", existing: 6, recommended: 4, price: 13, orderedLastMonth: 6, notes: "4 ליטר" },
-                    { name: "נייר טואלט", existing: 2.5, recommended: 1, price: 30, orderedLastMonth: 2.5, notes: "30 גלילים" },
-                    { name: "שמפו", existing: 12, recommended: 12, price: 8, orderedLastMonth: 12, notes: "" },
-                    { name: "שקיות אשפה", existing: 3.5, recommended: 3, price: 31, orderedLastMonth: 3.5, notes: "גודל XL" },
-                    { name: "תרסיס אקונומיקה", existing: 6, recommended: 6, price: 10, orderedLastMonth: 6, notes: "לניקוי שירותים" }
-                ],
-                "מוצרים חד-פעמיים ועזרי מטבח": [
-                    { name: "כוסות חד\"פ (פלסטיק)", existing: 1, recommended: 2, price: 5, orderedLastMonth: 1, notes: "כל יום (מדריכים)" },
-                    { name: "כוסות קרטון", existing: 9, recommended: 9, price: 6, orderedLastMonth: 9, notes: "כל יום (מדריכים)" },
-                    { name: "כפיות חד\"פ", existing: 2, recommended: 2, price: 7.5, orderedLastMonth: 0, notes: "כל יום" },
-                    { name: "מזלגות חד\"פ", existing: 1, recommended: 1, price: 7, orderedLastMonth: 1, notes: "שבת" },
-                    { name: "צלחות חד\"פ", existing: 1, recommended: 1, price: 8.5, orderedLastMonth: 1, notes: "שבת" },
-                    { name: "נייר כסף", existing: 1, recommended: 4, price: 6, orderedLastMonth: 1, notes: "לשקשוקה ולכיסוי הפלטה" },
-                    { name: "תבניות חד\"פ", existing: 4, recommended: 4, price: 7, orderedLastMonth: 4, notes: "לשבת (במקום סירים)" },
-                    { name: "כפפות חד\"פ", existing: 3, recommended: 2, price: 21, orderedLastMonth: 3, notes: "מידה XL" }
-                ],
-                "תבלינים": [
-                    { name: "מלח דק", existing: 1, recommended: 1, price: 9, orderedLastMonth: 2, notes: "" },
-                    { name: "פלפל שחור", existing: 1, recommended: 1, price: 6, orderedLastMonth: 1.5, notes: "מיכל" },
-                    { name: "פפריקה מתוקה", existing: 3, recommended: 1, price: 20, orderedLastMonth: 3, notes: "מיכל" },
-                    { name: "תיבול לגריל עוף", existing: 2, recommended: 2, price: 10, orderedLastMonth: 2, notes: "מיכל" },
-                    { name: "סוכר לבן", existing: 1.5, recommended: 1, price: 13, orderedLastMonth: 1.5, notes: "1 ק\"ג" },
-                    { name: "סוכר חום דמררה", existing: 0.5, recommended: 0.5, price: 15, orderedLastMonth: 0.5, notes: "1 ק\"ג" },
-                    { name: "סילאן", existing: 1, recommended: 1, price: 20, orderedLastMonth: 1, notes: "" },
-                    { name: "רוטב שום", existing: 1.5, recommended: 1, price: 10, orderedLastMonth: 1.5, notes: "" },
-                    { name: "אבקת שום", existing: 1, recommended: 1, price: 8, orderedLastMonth: 1, notes: "" },
-                    { name: "מיץ לימון", existing: 1, recommended: 1, price: 5, orderedLastMonth: 1, notes: "" },
-                    { name: "חומץ", existing: 1, recommended: 1, price: 6, orderedLastMonth: 1, notes: "" }
+                    { name: "ברזלית", existing: 0, recommended: 2, price: 4.5, orderedLastMonth: 2, notes: "" }
                 ],
                 "מוצרים יבשים ושימורים": [
-                    { name: "אורז פרסי", existing: 9, recommended: 5, price: 13, orderedLastMonth: 9, notes: "שבת (סעודה ראשונה)" },
-                    { name: "פסטה", existing: 6, recommended: 4, price: 6, orderedLastMonth: 6, notes: "יום שישי" },
-                    { name: "קוסקוס", existing: 6, recommended: 6, price: 6, orderedLastMonth: 6, notes: "" },
-                    { name: "פירורי לחם", existing: 4, recommended: 4, price: 11, orderedLastMonth: 4, notes: "שבת (סעודה ראשונה)" },
-                    { name: "רסק עגבניות / מרוסקות", existing: 4, recommended: 4, price: 2.2, orderedLastMonth: 4, notes: "1 לשבוע לשקשוקה" },
-                    { name: "טונה", existing: 16, recommended: 12, price: 5, orderedLastMonth: 16, notes: "3 קופסאות לשבוע" },
-                    { name: "מלפפונים בחומץ", existing: 4, recommended: 4, price: 9, orderedLastMonth: 4, notes: "יום חמישי" },
-                    { name: "חומוס (שימורים)", existing: 0, recommended: 4, price: 8, orderedLastMonth: 0, notes: "יום שני (מרק ירקות)" },
-                    { name: "פטריות (שימורים)", existing: 3, recommended: 3, price: 5, orderedLastMonth: 3, notes: "שבת (מוקפץ)" },
-                    { name: "גפילטע פיש", existing: 3, recommended: 4, price: 16, orderedLastMonth: 3, notes: "שבת (סעודה שלישית)" },
-                    { name: "קטשופ", existing: 1, recommended: 1, price: 13, orderedLastMonth: 1.5, notes: "יום ראשון (טוסט)" },
-                    { name: "טחינה", existing: 2.5, recommended: 2, price: 17, orderedLastMonth: 2.5, notes: "לארוחת בוקר ולשבת" },
-                    { name: "שמן קנולה", existing: 8, recommended: 8, price: 9, orderedLastMonth: 8, notes: "כל יום" },
-                    { name: "מיץ ענבים", existing: 4, recommended: 4, price: 18, orderedLastMonth: 4, notes: "קידוש בשבת" },
-                    { name: "קפה טסטר צ'ויס", existing: 2, recommended: 2, price: 31, orderedLastMonth: 2, notes: "כל יום (מדריכים)" },
-                    { name: "קפה נמס", existing: 2, recommended: 2, price: 26, orderedLastMonth: 2, notes: "כל יום" }
-                ],
-                "ממתקים ושתייה מתוקה": [
-                    { name: "קורנפלקס", existing: 2.5, recommended: 2, price: 15, orderedLastMonth: 2.5, notes: "שבת (בוקר)" },
-                    { name: "ופלים", existing: 8, recommended: 8, price: 4, orderedLastMonth: 8, notes: "" },
-                    { name: "ופלים לימון", existing: 3, recommended: 3, price: 11, orderedLastMonth: 3, notes: "" },
-                    { name: "עוגיות אוריאו", existing: 7, recommended: 7, price: 7, orderedLastMonth: 6, notes: "" },
-                    { name: "ערגליות שוקו", existing: 6, recommended: 6, price: 11, orderedLastMonth: 6, notes: "" },
-                    { name: "ערגליות תות", existing: 4, recommended: 4, price: 11, orderedLastMonth: 4, notes: "" },
-                    { name: "קולה", existing: 1, recommended: 1, price: 35, orderedLastMonth: 1, notes: "שבת (פפסי max)" },
-                    { name: "סודה", existing: 1.5, recommended: 1, price: 16, orderedLastMonth: 1, notes: "שבת" }
+                    { name: "אורז פרסי", existing: 4, recommended: 5, price: 13, orderedLastMonth: 5, notes: "שבת (סעודה ראשונה)" },
+                    { name: "פסטה", existing: 2, recommended: 4, price: 6, orderedLastMonth: 4, notes: "יום שישי" },
+                    { name: "טונה", existing: 12, recommended: 12, price: 5, orderedLastMonth: 12, notes: "3 קופסאות לשבוע" }
                 ]
             };
             teamMembers = [
-                { name: "בצלאל", pin: "1234", role: "admin" }, { name: "אסתי", pin: "5678", role: "admin" },
-                { name: "אבריימי", pin: "1111", role: "staff" }, { name: "יהודה", pin: "2222", role: "staff" }, { name: "איציק", pin: "3333", role: "staff" }
+                { name: "בצלאל", pin: "1234", role: "admin" }, { name: "אבריימי", pin: "1111", role: "staff" }
             ];
             teamMessages = [
-                { id: "msg_1", from: "מערכת", to: "כולם", text: "ברוכים הבאים למערכת המשותפת של עלי שיח!", date: "8.7.2026", readBy: [] }
+                { id: "msg_1", from: "מערכת", to: "כולם", text: "ברוכים הבאים למערכת המשותפת!", date: "8.7.2026", readBy: [] }
             ];
         }
 
         async function init() {
             loadLocalBackupData(); 
+            applyDarkModeStyles();
             setupRecipeDefaults();
             buildUserLoginSelect();
-            buildRecipeInterface();
             renderApp();
             
             if (cloudUrl) {
                 document.getElementById('cloud-url-input').value = cloudUrl;
                 await fetchCloudData();
             }
-
-            // האזנה לחזרת אינטרנט אוטומטית (חוסן רשת)
-            window.addEventListener('online', () => {
-                showToast("חיבור האינטרנט חזר! מסנכרן נתונים לענן...", "🌐");
-                triggerDebouncedSync(true);
-            });
+            window.addEventListener('online', () => { showToast("החיבור חזר, מסנכרן...", "🌐"); triggerDebouncedSync(true); });
         }
 
-        function setupRecipeDefaults() {
-            freshVegetables.forEach(v => { ingredientStates[v] = 0; });
-            for (const cat in appData) {
-                appData[cat].forEach(item => { ingredientStates[item.name] = item.existing > 0 ? 0 : 2; });
+        function toggleDarkMode() {
+            isDarkMode = !isDarkMode;
+            localStorage.setItem('aliSiachDarkMode', isDarkMode);
+            applyDarkModeStyles();
+        }
+
+        function applyDarkModeStyles() {
+            const btn = document.getElementById('dark-mode-toggle-btn');
+            if (isDarkMode) {
+                document.body.classList.add('dark-mode');
+                if(btn) btn.innerText = "פעיל";
+            } else {
+                document.body.classList.remove('dark-mode');
+                if(btn) btn.innerText = "כבוי";
             }
+        }
+
+        function updateDashVisibility() {
+            document.getElementById('dash-card-missing').style.display = document.getElementById('chk-dash-missing').checked ? 'flex' : 'none';
+            document.getElementById('dash-card-total').style.display = document.getElementById('chk-dash-total').checked ? 'flex' : 'none';
+            document.getElementById('dash-card-cost').style.display = document.getElementById('chk-dash-cost').checked ? 'flex' : 'none';
         }
 
         function buildUserLoginSelect() {
             const select = document.getElementById('login-user-select');
             if (!select) return; select.innerHTML = '';
-            teamMembers.forEach(m => {
-                select.innerHTML += `<option value="${m.name}">${m.name} (${m.role === 'admin' ? 'מנהל' : 'מדריך'})</option>`;
-            });
+            teamMembers.forEach(m => { select.innerHTML += `<option value="${m.name}">${m.name}</option>`; });
         }
 
         function handleLogin() {
@@ -442,18 +426,10 @@
                 currentUser = user;
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('current-user-display').innerText = user.name;
-                
-                if (user.role === 'admin') {
-                    document.getElementById('admin-management-section').classList.remove('hidden');
-                } else {
-                    document.getElementById('admin-management-section').classList.add('hidden');
-                }
-                
-                document.getElementById('gemini-key-input').value = localStorage.getItem('aliSiach_gemini_key') || "";
-                showToast(`שלום ${user.name}, נכנסת בהצלחה!`, "🔑");
+                if (user.role === 'admin') document.getElementById('admin-management-section').classList.remove('hidden');
                 renderApp();
             } else {
-                alert("קוד PIN שגוי!");
+                alert("PIN שגוי!");
             }
         }
 
@@ -475,65 +451,39 @@
             } catch (e) { console.log(e); }
         }
 
-        // מנגנון שמירה מרוכזת (Debouncing) וחוסן אופליין
         function triggerDebouncedSync(immediate = false) {
-            // גיבוי מיידי ומאובטח במחשב המקומי (Local-First)
             localStorage.setItem('aliSiachLocalCache', JSON.stringify({ appData, teamMembers, teamMessages }));
-
             if (saveTimeout) clearTimeout(saveTimeout);
-            
-            if (immediate) {
-                syncWithCloud();
-            } else {
-                saveTimeout = setTimeout(syncWithCloud, 1500); // המתנה של שנייה וחצי לאיחוד פקודות
-            }
+            if (immediate) syncWithCloud(); else saveTimeout = setTimeout(syncWithCloud, 1500);
         }
 
         async function syncWithCloud() {
-            if (!cloudUrl) return;
-            if (!navigator.onLine) {
-                console.log("אופליין: השינוי נשמר במכשיר ויסונכרן אוטומטית כשהרשת תחזור.");
-                return;
-            }
+            if (!cloudUrl || !navigator.onLine) return;
             try {
                 await fetch(cloudUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain' }, 
                     body: JSON.stringify({ appData, teamMembers, teamMessages })
                 });
-                console.log("הסתנכרן בהצלחה מול גוגל שיטס!");
             } catch (e) { console.log(e); }
         }
 
         function saveCloudUrl() {
             const url = document.getElementById('cloud-url-input').value.trim();
-            if (url) { cloudUrl = url; localStorage.setItem('aliSiachCloudUrl', cloudUrl); fetchCloudData(); showToast("קישור הענן עודכן!", "💾"); }
+            if (url) { cloudUrl = url; localStorage.setItem('aliSiachCloudUrl', cloudUrl); fetchCloudData(); showToast("הוגדר ענן!", "💾"); }
         }
         function saveGeminiKey() {
-            const key = document.getElementById('gemini-key-input').value.trim();
-            localStorage.setItem('aliSiach_gemini_key', key); showToast("מפתח Gemini עודכן!", "🤖");
+            localStorage.setItem('aliSiach_gemini_key', document.getElementById('gemini-key-input').value.trim()); showToast("הוגדר מפתח AI!", "🤖");
         }
 
         function adjustQuantity(category, index, change) {
             const item = appData[category][index];
-            let current = parseFloat(item.existing) || 0;
-            let val = current + change;
-            if (val < 0) val = 0;
-            item.existing = Math.round(val * 2) / 2; // עיגול אוטומטי לקפיצות של 0.5 לקוד נקי
-            renderApp();
-            triggerDebouncedSync();
+            let val = (parseFloat(item.existing) || 0) + change;
+            item.existing = val < 0 ? 0 : Math.round(val * 2) / 2;
+            renderApp(); triggerDebouncedSync();
         }
 
-        // חיפוש משולב חכם: סורק גם שם מוצר וגם הערות/ימי תפריט
-        function filterInventory() {
-            searchQuery = document.getElementById('search-bar').value.toLowerCase();
-            renderApp();
-        }
-        function filterInventoryMobile() {
-            searchQuery = document.getElementById('search-bar-mobile').value.toLowerCase();
-            renderApp();
-        }
-
+        function filterInventory() { searchQuery = document.getElementById('search-bar').value.toLowerCase(); renderApp(); }
         function setFilter(type) {
             activeFilter = type;
             ['all', 'to-order', 'in-stock'].forEach(t => {
@@ -545,14 +495,16 @@
         function renderApp() {
             const container = document.getElementById('inventory-container');
             if (!container) return; container.innerHTML = '';
-            let criticalCount = 0;
+            let criticalCount = 0, totalToOrderItems = 0, totalCost = 0;
 
             for (const [catName, items] of Object.entries(appData)) {
-                // סינון משולב חכם (שם + הערה)
                 const filtered = items.filter(item => {
                     const matchesSearch = item.name.toLowerCase().includes(searchQuery) || (item.notes && item.notes.toLowerCase().includes(searchQuery));
                     const toOrder = calculateToOrder(item);
+                    
                     if (item.existing === 0) criticalCount++;
+                    if (toOrder > 0) { totalToOrderItems += toOrder; totalCost += toOrder * (item.price || 0); }
+
                     if (activeFilter === 'to-order') return matchesSearch && toOrder > 0;
                     if (activeFilter === 'in-stock') return matchesSearch && toOrder === 0;
                     return matchesSearch;
@@ -568,45 +520,53 @@
                     const toOrder = calculateToOrder(item);
                     const origIndex = items.findIndex(i => i.name === item.name);
                     const isMissing = item.existing === 0;
-                    let rowBg = isMissing ? "bg-red-50/40" : toOrder > 0 ? "bg-amber-50/20" : "";
+                    let rowBg = isMissing ? "bg-red-50/30" : toOrder > 0 ? "bg-amber-50/10" : "even:bg-slate-50/40";
 
                     tableRows += `
-                        <tr class="border-b text-xs text-right font-medium ${rowBg} hover:bg-slate-50 transition">
-                            <td class="p-2.5 text-slate-900 font-bold">${getEmoji(item.name)} ${item.name}</td>
-                            <td class="p-2.5">
-                                <div class="flex items-center gap-1">
-                                    <button onclick="adjustQuantity('${catName}', ${origIndex}, -0.5)" class="w-5 h-5 rounded-lg bg-slate-100 border flex items-center justify-center font-black text-slate-700 hover:bg-slate-200">-</button>
-                                    <input type="text" readonly inputmode="decimal" value="${item.existing}" class="w-8 text-center font-black text-slate-900 bg-transparent">
-                                    <button onclick="adjustQuantity('${catName}', ${origIndex}, 0.5)" class="w-5 h-5 rounded-lg bg-slate-100 border flex items-center justify-center font-black text-slate-700 hover:bg-slate-200">+</button>
+                        <tr class="border-b text-xs text-right font-medium ${rowBg} hover:bg-slate-50/80 transition">
+                            <td class="p-3 text-slate-900 font-bold max-w-xs">${getEmoji(item.name)} ${item.name}</td>
+                            
+                            <!-- צבעוניות נפרדת לכל עמודה לקריאות מקסימלית -->
+                            <td class="p-3 bg-blue-50/30 dark:bg-blue-900/10 w-32">
+                                <div class="flex items-center gap-1 justify-start">
+                                    <button onclick="adjustQuantity('${catName}', ${origIndex}, -0.5)" class="w-5 h-5 rounded-md bg-white border flex items-center justify-center font-black text-slate-700 hover:bg-slate-200 shadow-sm">-</button>
+                                    <span class="w-8 text-center font-black text-blue-700 dark:text-blue-400 text-sm">${item.existing}</span>
+                                    <button onclick="adjustQuantity('${catName}', ${origIndex}, 0.5)" class="w-5 h-5 rounded-md bg-white border flex items-center justify-center font-black text-slate-700 hover:bg-slate-200 shadow-sm">+</button>
                                 </div>
                             </td>
-                            <td class="p-2.5 text-slate-600 font-bold">${item.recommended}</td>
-                            <td class="p-2.5 font-black ${toOrder > 0 ? 'text-amber-600' : 'text-slate-400'}">${toOrder || '-'}</td>
-                            <td class="p-2.5 text-slate-500">₪${item.price || 0}</td>
-                            <td class="p-2.5 text-slate-400 font-bold max-w-xs truncate">${item.notes || '-'}</td>
-                            <td class="p-2.5 text-center">
-                                <button onclick="openProductModal('${catName}', ${origIndex})" class="text-blue-500 hover:underline font-bold">✏️ ערוך</button>
+                            
+                            <td class="p-3 bg-slate-100/50 dark:bg-slate-800/10 font-bold text-slate-600">${item.recommended}</td>
+                            
+                            <!-- עמודת חודש קודם שהוחזרה בעיצוב סגול וברור -->
+                            <td class="p-3 bg-purple-50/30 dark:bg-purple-900/10 italic text-purple-700 dark:text-purple-400 font-bold">${item.orderedLastMonth || 0}</td>
+                            
+                            <td class="p-3 bg-amber-50/40 dark:bg-amber-900/10 font-black text-sm ${toOrder > 0 ? 'text-amber-600' : 'text-slate-300'}">${toOrder || '-'}</td>
+                            <td class="p-3 text-slate-500">₪${item.price || 0}</td>
+                            <td class="p-3 text-slate-400 font-bold max-w-xs truncate">${item.notes || '-'}</td>
+                            <td class="p-3 text-center">
+                                <button onclick="openProductModal('${catName}', ${origIndex})" class="text-blue-500 hover:underline font-bold">✏️</button>
                             </td>
                         </tr>
                     `;
                 });
 
                 catSection.innerHTML = `
-                    <div class="flex justify-between items-center border-b pb-1.5 px-1">
+                    <div class="flex justify-between items-center border-b pb-2 px-1">
                         <h2 class="text-xs font-black text-slate-900 border-r-4 border-blue-600 pr-2">${catName}</h2>
                         <span class="bg-slate-100 text-slate-600 text-[10px] font-black px-2 py-0.5 rounded-md">${filtered.length} פריטים</span>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-right border-collapse">
                             <thead>
-                                <tr class="sticky-thead text-[10px] font-black text-slate-400 uppercase border-b">
-                                    <th class="p-2">שם המצרך</th>
-                                    <th class="p-2">קיים בדירה</th>
-                                    <th class="p-2">יעד מומלץ</th>
-                                    <th class="p-2">להזמנה</th>
-                                    <th class="p-2">מחיר</th>
-                                    <th class="p-2">הערות תפריט וימי סינון</th>
-                                    <th class="p-2 text-center">פעולות</th>
+                                <tr class="sticky-thead text-[11px] font-black text-slate-400 uppercase border-b bg-slate-50">
+                                    <th class="p-3">שם המצרך</th>
+                                    <th class="p-3 bg-blue-50/50 text-blue-800">קיים בדירה</th>
+                                    <th class="p-3 bg-slate-100 text-slate-700">יעד מומלץ</th>
+                                    <th class="p-3 bg-purple-50 text-purple-800">חודש קודם</th>
+                                    <th class="p-3 bg-amber-50 text-amber-800">להזמנה</th>
+                                    <th class="p-3">מחיר</th>
+                                    <th class="p-3">הערות תפריט וימי סינון</th>
+                                    <th class="p-3 text-center">פעולות</th>
                                 </tr>
                             </thead>
                             <tbody>${tableRows}</tbody>
@@ -615,48 +575,31 @@
                 `;
                 container.appendChild(catSection);
             }
-            document.getElementById('critical-count-display').innerText = `${criticalCount} מוצרים חסרים לחלוטין (כמות = 0)`;
+            
+            // עדכון נתוני דשבורד
+            document.getElementById('dash-missing-val').innerText = criticalCount;
+            document.getElementById('dash-total-val').innerText = totalToOrderItems;
+            document.getElementById('dash-cost-val').innerText = `₪${totalCost.toFixed(2)}`;
+            
             renderMessages();
+            renderChatMessages();
         }
 
-        // ניהול חלונית הודעות (מודל פייסבוק - קריאה בסגירה)
+        // ניהול חלונית ההודעות העליונה (צפייה בלבד - פייסבוק סטייל)
         let isNotificationOpen = false;
         function toggleNotificationDropdown() {
             const dropdown = document.getElementById('notification-dropdown');
             isNotificationOpen = !isNotificationOpen;
-            
             if (isNotificationOpen) {
                 dropdown.classList.remove('hidden');
                 renderMessages();
             } else {
                 dropdown.classList.add('hidden');
-                // ברגע הסגירה: הפיכת כל ההודעות המוצגות לנקראו באופן אוטומטי
                 if (currentUser) {
-                    let changed = false;
-                    teamMessages.forEach(m => {
-                        if ((m.to === "כולם" || m.to === currentUser.name) && !m.readBy.includes(currentUser.name)) {
-                            m.readBy.push(currentUser.name); changed = true;
-                        }
-                    });
-                    if (changed) { renderApp(); triggerDebouncedSync(true); }
+                    teamMessages.forEach(m => { if (!m.readBy.includes(currentUser.name)) m.readBy.push(currentUser.name); });
+                    renderApp(); triggerDebouncedSync(true);
                 }
             }
-        }
-
-        function sendTeamMessage() {
-            const text = document.getElementById('msg-text-input').value.trim();
-            if (!text || !currentUser) return;
-            teamMessages.unshift({
-                id: "msg_" + Date.now(), from: currentUser.name, to: "כולם",
-                text: text, date: new Date().toLocaleDateString('he-IL'), readBy: []
-            });
-            document.getElementById('msg-text-input').value = '';
-            renderApp(); triggerDebouncedSync(true);
-        }
-
-        function deleteMessage(id) {
-            teamMessages = teamMessages.filter(m => m.id !== id);
-            renderApp(); triggerDebouncedSync(true);
         }
 
         function renderMessages() {
@@ -664,42 +607,68 @@
             if (!container || !currentUser) return; container.innerHTML = '';
             let unreadCount = 0;
 
-            const myMessages = teamMessages.filter(m => m.to === "כולם" || m.to === currentUser.name || m.from === currentUser.name);
-            
-            // ספירת הודעות שלא נקראו
             teamMessages.forEach(m => {
-                if ((m.to === "כולם" || m.to === currentUser.name) && !m.readBy.includes(currentUser.name) && m.from !== currentUser.name) {
-                    unreadCount++;
-                }
+                if (!m.readBy.includes(currentUser.name) && m.from !== currentUser.name) unreadCount++;
             });
 
             const badge = document.getElementById('unread-badge');
-            if (unreadCount > 0) { badge.innerText = unreadCount; badge.classList.remove('hidden'); }
-            else { badge.classList.add('hidden'); }
+            if (unreadCount > 0) { badge.innerText = unreadCount; badge.classList.remove('hidden'); } else badge.classList.add('hidden');
 
-            if (myMessages.length === 0) {
-                container.innerHTML = `<div class="text-slate-300 italic text-center py-4">אין הודעות בלוח</div>`; return;
-            }
+            if (teamMessages.length === 0) { container.innerHTML = `<div class="text-slate-300 italic text-center py-3">אין הודעות</div>`; return; }
 
-            myMessages.forEach(m => {
-                const isFromMe = m.from === currentUser.name;
-                const isRead = m.readBy.includes(currentUser.name) || isFromMe;
-                // טקסט שחור לחדש, אפור לישן/נקרא
-                const textStyle = isRead ? "text-slate-400 font-normal" : "text-slate-900 font-bold";
-                
+            teamMessages.slice(0, 10).forEach(m => {
+                const isRead = m.readBy.includes(currentUser.name) || m.from === currentUser.name;
                 container.innerHTML += `
-                    <div class="p-2 border-b text-[11px] relative hover:bg-slate-50 transition">
-                        <div class="flex justify-between text-[9px] text-slate-400 mb-0.5">
-                            <span>מאת: ${m.from}</span> <span>${m.date}</span>
-                        </div>
-                        <p class="${textStyle} pr-4">${m.text}</p>
-                        <button onclick="deleteMessage('${m.id}')" class="absolute left-1 top-2 text-red-400 hover:text-red-600 opacity-40 hover:opacity-100 text-[10px] font-bold" title="מחק">✕</button>
+                    <div class="p-2 border-b text-[11px] hover:bg-slate-50 transition">
+                        <div class="flex justify-between text-[9px] text-slate-400"><span>מאת: ${m.from}</span><span>${m.date}</span></div>
+                        <p class="${isRead ? 'text-slate-400' : 'text-slate-900 font-bold'}">${m.text}</p>
+                        <button onclick="replyToMessage()" class="text-blue-500 font-bold text-[10px] mt-1 block">↩️ השב בצ'אט</button>
                     </div>
                 `;
             });
         }
 
-        // פאנל שיתוף והפקה מורחב (וואטסאפ, מייל, קובץ, העתקה)
+        function replyToMessage() { document.getElementById('notification-dropdown').classList.add('hidden'); isNotificationOpen = false; toggleFloatingChat(true); }
+
+        // ניהול צ'אט צף משמאל למטה (שליחה וקריאה)
+        let isChatOpen = false;
+        function toggleFloatingChat(forceOpen = false) {
+            const win = document.getElementById('floating-chat-window');
+            isChatOpen = forceOpen ? true : !isChatOpen;
+            if (isChatOpen) { win.classList.remove('hidden'); renderChatMessages(); } else win.classList.add('hidden');
+        }
+
+        function sendChatMessage() {
+            const inp = document.getElementById('chat-text-input');
+            const text = inp.value.trim();
+            if (!text || !currentUser) return;
+            teamMessages.unshift({ id: "msg_" + Date.now(), from: currentUser.name, to: "כולם", text, date: new Date().toLocaleDateString('he-IL'), readBy: [currentUser.name] });
+            inp.value = ''; renderApp(); triggerDebouncedSync(true);
+        }
+
+        function renderChatMessages() {
+            const container = document.getElementById('chat-messages-container');
+            if (!container) return; container.innerHTML = '';
+            teamMessages.forEach(m => {
+                container.innerHTML += `
+                    <div class="p-2 border rounded-xl bg-white mb-1.5 relative shadow-sm">
+                        <div class="flex justify-between text-[9px] text-slate-400 mb-0.5"><span>${m.from}</span><span>${m.date}</span></div>
+                        <p class="text-slate-800 font-medium pr-3">${m.text}</p>
+                        <button onclick="deleteMessage('${m.id}')" class="absolute left-1 top-1 text-red-400 opacity-50 hover:opacity-100">✕</button>
+                    </div>
+                `;
+            });
+        }
+
+        function deleteMessage(id) { teamMessages = teamMessages.filter(m => m.id !== id); renderApp(); triggerDebouncedSync(true); }
+
+        // רכיב שיתוף קומפקטי פופאובר
+        let isShareOpen = false;
+        function toggleSharePopover() {
+            isShareOpen = !isShareOpen;
+            document.getElementById('share-popover').classList.toggle('hidden', !isShareOpen);
+        }
+
         function generateOrderText() {
             let txt = `📦 *דוח הזמנת מלאי חודשית - עלי שיח* 📦\n\n`; let total = 0;
             for (const [cat, items] of Object.entries(appData)) {
@@ -710,39 +679,39 @@
                 });
                 if (has) txt += ct + `\n`;
             }
-            txt += `💰 סה"כ עלות משוערת לדירה: ₪${total.toFixed(2)}`; return txt;
+            txt += `💰 סה"כ עלות משוערת: ₪${total.toFixed(2)}`; return txt;
         }
 
         function exportData(type) {
             const text = generateOrderText();
+            toggleSharePopover();
             if (type === 'copy') {
                 const el = document.createElement('textarea'); el.value = text; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el);
-                showToast("הרשימה הועתקה ללוח!", "📋");
+                showToast("הרשימה הועתקה!", "📋");
             } else if (type === 'whatsapp') {
                 window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
             } else if (type === 'email') {
-                window.location.href = `mailto:?subject=${encodeURIComponent('הזמנת מלאי - עלי שיח')}&body=${encodeURIComponent(text)}`;
+                window.location.href = `mailto:?subject=הזמנת מלאי עלי שיח&body=${encodeURIComponent(text)}`;
             } else if (type === 'csv') {
-                let csvContent = "data:text/csv;charset=utf-8,\uFEFFקטגוריה,מוצר,קיים,מומלץ,להזמנה,מחיר\n";
+                let csv = "data:text/csv;charset=utf-8,\uFEFFקטגוריה,מוצר,קיים,מומלץ,להזמנה,מחיר\n";
                 for (const [cat, items] of Object.entries(appData)) {
                     items.forEach(i => {
                         const toOrd = calculateToOrder(i);
-                        if (toOrd > 0) csvContent += `"${cat}","${i.name}",${i.existing},${i.recommended},${toOrd},${i.price}\n`;
+                        if (toOrd > 0) csv += `"${cat}","${i.name}",${i.existing},${i.recommended},${toOrd},${i.price}\n`;
                     });
                 }
-                const encodedUri = encodeURI(csvContent); const link = document.createElement("a"); link.setAttribute("href", encodedUri);
-                link.setAttribute("download", "הזמנת_מלאי_עלי_שיח.csv"); document.body.appendChild(link); link.click(); document.body.removeChild(link);
+                const dl = document.createElement("a"); dl.setAttribute("href", encodeURI(csv)); dl.setAttribute("download", "מלאי_עלי_שיח.csv"); dl.click();
             }
         }
 
-        // ספירת מלאי מהירה (Walkthrough mode)
+        // ספירת מלאי מהירה (Centered Walkthrough)
         function startWalkthroughMode() {
             walkthroughItems = [];
             for (const cat in appData) { appData[cat].forEach((item, idx) => { walkthroughItems.push({ ...item, cat, origIdx: idx }); }); }
             if (walkthroughItems.length === 0) return; walkthroughIndex = 0; showWalkthroughItem();
-            document.getElementById('walkthrough-screen').classList.remove('hidden');
+            document.getElementById('walkthrough-screen').classList.remove('hidden'); document.getElementById('walkthrough-screen').classList.add('flex');
         }
-        function closeWalkthroughMode() { document.getElementById('walkthrough-screen').classList.add('hidden'); renderApp(); }
+        function closeWalkthroughMode() { document.getElementById('walkthrough-screen').classList.add('hidden'); document.getElementById('walkthrough-screen').classList.remove('flex'); renderApp(); }
         function showWalkthroughItem() {
             const item = walkthroughItems[walkthroughIndex]; const real = appData[item.cat][item.origIdx];
             document.getElementById('wt-cat-title').innerText = item.cat;
@@ -753,18 +722,23 @@
         }
         function adjustWtQty(amt) {
             const item = walkthroughItems[walkthroughIndex]; const real = appData[item.cat][item.origIdx];
-            let v = (parseFloat(real.existing) || 0) + amt; if (v < 0) v = 0; real.existing = Math.round(v * 2) / 2;
+            let v = (parseFloat(real.existing) || 0) + amt; real.existing = v < 0 ? 0 : Math.round(v * 2) / 2;
             showWalkthroughItem(); triggerDebouncedSync();
         }
-        function walkthroughNext() { if (walkthroughIndex < walkthroughItems.length - 1) { walkthroughIndex++; showWalkthroughItem(); } else { closeWalkthroughMode(); showToast("ספירת המלאי הושלמה בהצלחה!", "🏁"); } }
+        function walkthroughNext() { if (walkthroughIndex < walkthroughItems.length - 1) { walkthroughIndex++; showWalkthroughItem(); } else { closeWalkthroughMode(); showToast("ספירת המלאי הושלמה!", "🏁"); } }
         function walkthroughPrev() { if (walkthroughIndex > 0) { walkthroughIndex--; showWalkthroughItem(); } }
 
-        // פאנל ניהול אדמין (Telegram Style וניהול צוות)
-        function toggleSettingsModal() { document.getElementById('settings-modal').classList.toggle('hidden'); renderAdminTeamList(); }
+        // הגדרות וניהול צוות
+        function toggleSettingsModal() { 
+            const m = document.getElementById('settings-modal');
+            m.classList.toggle('hidden'); 
+            m.classList.toggle('flex');
+            renderAdminTeamList(); 
+        }
         function renderAdminTeamList() {
             const c = document.getElementById('admin-team-list'); if (!c) return; c.innerHTML = '';
             teamMembers.forEach((m, idx) => {
-                c.innerHTML += `<div class="flex justify-between bg-white p-2 rounded-xl border mb-1 items-center font-bold"><span>👤 ${m.name} (PIN: ${m.pin}) - ${m.role === 'admin' ? 'מנהל' : 'מדריך'}</span>${m.name !== 'בצלאל' ? `<button onclick="deleteTeamMember(${idx})" class="text-red-500 font-bold">🗑️</button>` : ''}</div>`;
+                c.innerHTML += `<div class="flex justify-between bg-white dark:bg-slate-700 p-1.5 rounded-xl border mb-1 items-center font-bold"><span>👤 ${m.name} (${m.pin})</span>${m.name !== 'בצלאל' ? `<button onclick="deleteTeamMember(${idx})" class="text-red-500">🗑️</button>` : ''}</div>`;
             });
         }
         function addNewTeamMember() {
@@ -775,36 +749,31 @@
         }
         function deleteTeamMember(i) { teamMembers.splice(i, 1); renderAdminTeamList(); buildUserLoginSelect(); triggerDebouncedSync(true); }
 
-        // עריכת מוצרים
+        // עריכה
         let activeEdit = null;
         function openProductModal(cat, index) {
-            if (currentUser && currentUser.role !== 'admin') { showToast("עריכת מוצרים פתוחה למנהלים בלבד", "⚠️"); return; }
+            if (currentUser && currentUser.role !== 'admin') { showToast("פעולה למנהלים בלבד", "⚠️"); return; }
             activeEdit = { cat, index }; const item = appData[cat][index];
             document.getElementById('modal-prod-name').value = item.name;
             document.getElementById('modal-prod-price').value = item.price || 0;
             document.getElementById('modal-prod-recommended').value = item.recommended || 0;
             document.getElementById('modal-prod-url').value = item.buyUrl || '';
             document.getElementById('modal-prod-notes').value = item.notes || '';
-            document.getElementById('modal-prod-save-btn').onclick = saveProductModalData;
-            document.getElementById('product-modal').classList.remove('hidden');
+            document.getElementById('product-modal').classList.remove('hidden'); document.getElementById('product-modal').classList.add('flex');
         }
-        function closeProductModal() { document.getElementById('product-modal').classList.add('hidden'); }
+        function closeProductModal() { document.getElementById('product-modal').classList.add('hidden'); document.getElementById('product-modal').classList.remove('flex'); }
         function saveProductModalData() {
             if (!activeEdit) return; const item = appData[activeEdit.cat][activeEdit.index];
             item.price = parseFloat(document.getElementById('modal-prod-price').value) || 0;
             item.recommended = parseFloat(document.getElementById('modal-prod-recommended').value) || 0;
             item.buyUrl = document.getElementById('modal-prod-url').value.trim();
             item.notes = document.getElementById('modal-prod-notes').value.trim();
-            closeProductModal(); renderApp(); triggerDebouncedSync(true); showToast("המצרך עודכן בהצלחה!", "💾");
+            closeProductModal(); renderApp(); triggerDebouncedSync(true); showToast("המצרך עודכן!", "💾");
         }
 
-        // מנוע מתכונים AI קומפקטי
-        function toggleRecipeModal() { document.getElementById('recipe-modal').classList.toggle('hidden'); buildRecipeInterface(); }
-        function setRecipeTime(t) {
-            selectedRecipeTime = t;
-            document.getElementById('time-fast').className = t === 'fast' ? "px-3 py-1.5 rounded-xl border font-bold bg-emerald-50 border-emerald-300 text-emerald-700 shadow-sm" : "px-3 py-1.5 rounded-xl border font-bold text-slate-600 hover:bg-slate-50";
-            document.getElementById('time-medium').className = t === 'medium' ? "px-3 py-1.5 rounded-xl border font-bold bg-emerald-50 border-emerald-300 text-emerald-700 shadow-sm" : "px-3 py-1.5 rounded-xl border font-bold text-slate-600 hover:bg-slate-50";
-        }
+        // מתכונים AI
+        function toggleRecipeModal() { document.getElementById('recipe-modal').classList.toggle('hidden'); document.getElementById('recipe-modal').classList.toggle('flex'); buildRecipeInterface(); }
+        function setRecipeTime(t) { selectedRecipeTime = t; }
         function rotateIngredientState(n) { ingredientStates[n] = ((ingredientStates[n] || 0) + 1) % 3; buildRecipeInterface(); }
         function buildRecipeInterface() {
             const ic = document.getElementById('recipe-ingredients-container'); if (!ic) return; ic.innerHTML = '';
@@ -812,7 +781,7 @@
                 let cls = "bg-green-50 text-green-700 border-green-200"; let pfx = "🟢 ";
                 if (state === 1) { cls = "bg-blue-600 text-white border-blue-600 font-bold"; pfx = "🔵 חובה! "; }
                 if (state === 2) { cls = "bg-slate-100 text-slate-300 border-slate-200 line-through"; pfx = "⚪ חסר: "; }
-                ic.innerHTML += `<button onclick="rotateIngredientState('${name}')" class="px-2 py-1 rounded-lg border text-[10px] ${cls} transition">${pfx}${name}</button>`;
+                ic.innerHTML += `<button onclick="rotateIngredientState('${name}')" class="px-2 py-1 rounded-lg border text-[10px] ${cls}">${pfx}${name}</button>`;
             }
         }
         async function generateAIRecipe() {
@@ -822,15 +791,14 @@
             const mustUse = Object.keys(ingredientStates).filter(k => ingredientStates[k] === 1);
             let prompt = `הצע מתכון קל וטעימים ל-6 דיירים בעלי שיח.\nזמן: ${selectedRecipeTime}\nחובה: ${mustUse.join(', ')}\nמותר: ${canUse.join(', ')}\nסכין בלבד, בשרי, שמן קנולה, ללא סויה/כמון. חובה שדרוג מהיר בשורה אחת בסוף.`;
             const key = localStorage.getItem('aliSiach_gemini_key');
-            if (!key) { loader.classList.add('hidden'); content.innerHTML = `<span class="text-red-500 font-bold">⚠️ חסר מפתח Gemini API בהגדרות המערכת!</span>`; return; }
+            if (!key) { loader.classList.add('hidden'); content.innerHTML = `<span class="text-red-500 font-bold">⚠️ חסר מפתח Gemini API!</span>`; return; }
             try {
                 const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${key}`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
                 });
                 const r = await res.json(); loader.classList.add('hidden');
                 content.innerText = r.candidates?.[0]?.content?.parts?.[0]?.text || "שגיאה ביצירת מתכון";
-            } catch (err) { loader.classList.add('hidden'); content.innerText = "תקלה בחיבור למנוע ה-AI. ודא שהמפתח תקין."; }
+            } catch (err) { loader.classList.add('hidden'); content.innerText = "תקלה בחיבור למנוע ה-AI."; }
         }
 
         function showToast(msg, icon = "✨") {
