@@ -293,7 +293,11 @@
         let appData = {}, teamMembers = [], teamMessages = [], currentUser = null, cloudUrl = localStorage.getItem('aliSiachCloudUrl') || "", saveTimeout = null, isDarkMode = localStorage.getItem('aliSiachDarkMode') === 'true';
         let activeFilter = 'all', searchQuery = '', walkthroughItems = [], walkthroughIndex = 0, selectedRecipeTime = 'fast', ingredientStates = {};
 
-        // תיקון קריטי: הגנה הרמטית מפני נתוני מטמון משובשים כדי למנוע נעילת משתמשים
+        function calculateToOrder(item) {
+            let req = (parseFloat(item.recommended) || 0) - (parseFloat(item.existing) || 0);
+            return req > 0 ? req : 0;
+        }
+
         function loadLocalBackupData() {
             try {
                 const cached = localStorage.getItem('aliSiachLocalCache');
@@ -346,7 +350,6 @@
                 document.getElementById('cloud-url-input').value = cloudUrl; 
                 await fetchCloudData(); 
             }
-            window.addEventListener('online', () => { showToast("החיבור חזר, מסנכרן נתונים...", "🌐"); triggerDebouncedSync(true); });
         }
 
         function toggleDarkMode() { isDarkMode = !isDarkMode; localStorage.setItem('aliSiachDarkMode', isDarkMode); applyDarkModeStyles(); }
@@ -382,7 +385,9 @@
             try {
                 const res = await fetch(cloudUrl); const data = await res.json();
                 if (data.success) {
-                    if (data.appData) appData = data.appData; if (data.teamMembers) teamMembers = data.teamMembers; if (data.teamMessages) teamMessages = data.teamMessages;
+                    if (data.appData && Object.keys(data.appData).length > 0) appData = data.appData; 
+                    if (data.teamMembers && data.teamMembers.length > 0) teamMembers = data.teamMembers; // הגנה חסינת קריסה
+                    if (data.teamMessages) teamMessages = data.teamMessages;
                     localStorage.setItem('aliSiachLocalCache', JSON.stringify({ appData, teamMembers, teamMessages }));
                     buildUserLoginSelect(); renderApp();
                 }
@@ -646,6 +651,8 @@
             t.classList.remove('translate-y-20', 'opacity-0'); t.classList.add('translate-y-0', 'opacity-100');
             setTimeout(() => { t.classList.remove('translate-y-0', 'opacity-100'); t.classList.add('translate-y-20', 'opacity-0'); }, 3000);
         }
+
+        init();
     </script>
 </body>
 </html>
