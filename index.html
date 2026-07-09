@@ -110,7 +110,7 @@
             </div>
 
             <div class="flex items-center gap-3">
-                <button onclick="startWalkthroughMode()" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-black shadow-lg transition transform hover:scale-105 animate-pulse">⏱️ ספירת מלאי מהירה</button>
+                <button onclick="startWalkthroughMode()" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-black shadow-lg transition transform hover:scale-105">⏱️ ספירת מלאי מהירה</button>
                 <div class="h-6 w-px bg-slate-200"></div>
                 <div class="relative inline-block">
                     <button onclick="toggleSharePopover()" class="p-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-black flex items-center gap-1">
@@ -244,25 +244,13 @@
         </div>
     </div>
 
-    <div id="settings-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden flex flex-col border max-h-[85vh]">
-            <div class="p-4 bg-slate-900 text-white flex justify-between items-center"><div class="flex items-center gap-2"><span>⚙️</span><h2 class="text-sm font-black">הגדרות מערכת</h2></div><button onclick="toggleSettingsModal()" class="text-slate-400 font-bold text-xs">סגור</button></div>
-            <div class="p-4 overflow-y-auto space-y-4 flex-1 text-xs">
-                <div class="space-y-2 bg-slate-50 p-3 rounded-2xl border">
-                    <h3 class="font-black text-slate-800 border-b pb-1">👤 פרופיל משתמש</h3>
-                    <div class="flex items-center justify-between pt-1"><span class="font-bold text-slate-600">מצב לילה (Dark Mode):</span><button onclick="toggleDarkMode()" id="dark-mode-toggle-btn" class="px-3 py-1 rounded-lg bg-slate-200 text-slate-700 font-bold">כבוי</button></div>
-                </div>
-                <div class="space-y-2"><h3 class="font-black text-blue-600 border-b pb-1">🌐 חיבור ענן</h3><div class="flex gap-1"><input type="text" id="cloud-url-input" class="w-full p-2 border rounded-xl font-mono text-[10px]"><button onclick="saveCloudUrl()" class="px-3 bg-blue-600 text-white font-bold rounded-xl">שמור</button></div></div>
-                <div class="space-y-2 pt-1"><h3 class="font-black text-emerald-600 border-b pb-1">🤖 מפתח Gemini API:</h3><div class="flex gap-1"><input type="password" id="gemini-key-input" class="w-full p-2 border rounded-xl font-mono text-[10px]"><button onclick="saveGeminiKey()" class="px-3 bg-emerald-600 text-white font-bold rounded-xl">שמור</button></div></div>
-                <div id="admin-management-section" class="space-y-2 pt-1 hidden">
-                    <h3 class="font-black text-purple-600 border-b pb-1">👥 ניהול צוות (מנהל)</h3>
-                    <div id="admin-team-list" class="space-y-1 max-h-24 overflow-y-auto bg-slate-50 p-2 rounded-xl border"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script>
+        // פונקציית העזר הקריטית - ממוקמת בראש ה-Script כדי למנוע ReferenceError
+        function calculateToOrder(item) { 
+            let req = (parseFloat(item.recommended) || 0) - (parseFloat(item.existing) || 0); 
+            return req > 0 ? req : 0; 
+        }
+
         // לוכד שגיאות סינכרוני גלובלי
         window.onerror = function(msg, url, line, col, error) {
             const errBox = document.getElementById('test-diagnostic-error');
@@ -273,11 +261,11 @@
             return false;
         };
 
-        // לוכד שגיאות אסינכרוני גלובלי קשיח (עבור קריסות Promises/ענן)
+        // לוכד שגיאות אסינכרוני גלובלי
         window.onunhandledrejection = function(event) {
             const errBox = document.getElementById('test-diagnostic-error');
             if (errBox) {
-                errBox.innerText = `🚨 קריסת מערכת אסינכרונית (ענן/Promise):\nהודעה: ${event.reason}`;
+                errBox.innerText = `🚨 קריסת מערכת אסינכרונית:\nהודעה: ${event.reason}`;
                 errBox.classList.remove('hidden');
             }
         };
@@ -497,7 +485,6 @@
             document.getElementById('dash-cost-val').innerText = `₪${totalCost.toFixed(2)}`;
             updateChartData(); 
             
-            // תיקון קשיח מפני קריסות: הרנדור רץ רק אם המשתמש מחובר פיזית
             if (currentUser) {
                 renderMessages(); 
                 renderChatMessages();
