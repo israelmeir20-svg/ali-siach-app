@@ -31,65 +31,53 @@ function setAITab(tab) {
     });
 }
 
-// בניית מעטפת המטריצות הציקליות מוקפות עיגול צבעוני (באג ג')
+// בניית רכיב אימוג'ים מעגליים צבעוניים מחזוריים (באג ה')
 function buildAILists() {
     const vegContainer = document.getElementById('matrix-vegetables'); if (!vegContainer) return; vegContainer.innerHTML = '';
     for (const [name, state] of Object.entries(vegetableMatrix)) {
         let stateClass = state === 1 ? "matrix-circle-must" : state === 2 ? "matrix-circle-forbidden" : "matrix-circle-available";
-        let titleTip = state === 1 ? "חובה להשתמש" : state === 2 ? "אסור להשתמש" : "אפשר להשתמש";
+        let titleTip = state === 1 ? "חובה להשתמש (אדום)" : state === 2 ? "אסור להשתמש (אפור)" : "אפשר להשתמש (ירוק)";
         
-        const btn = document.createElement('div');
-        btn.className = `matrix-circle ${stateClass}`;
-        btn.title = `${name}: ${titleTip}`;
-        btn.innerHTML = getEmoji(name).trim();
-        btn.onclick = () => cycleMatrixState('veg', name);
-        vegContainer.appendChild(btn);
+        const circle = document.createElement('div');
+        circle.className = `matrix-circle ${stateClass}`;
+        circle.title = `${name}: ${titleTip}`;
+        circle.innerHTML = getEmoji(name).trim();
+        circle.onclick = () => cycleMatrixState('veg', name);
+        vegContainer.appendChild(circle);
     }
 
     const toolContainer = document.getElementById('matrix-tools'); if (!toolContainer) return; toolContainer.innerHTML = '';
+    const toolEmojis = {
+        "מחבת ללא מכסה בשרית": "🍳", "סיר שטוח עם מכסה בשרי": "🍲", "סיר קטן גבוה עם מכסה בשרי": "🥣", 
+        "סיר רגיל עם מכסה בשרי": "🍲", "סכין בשרית": "🔪", "סכין חלבית": "🍴", "פומפייה": "🧀", 
+        "תנור בשרי": "♨️", "טוסטר חלבי": "🥪", "כיריים": "🔥", "מיניבר": "🚰"
+    };
     for (const [name, state] of Object.entries(toolMatrix)) {
         let stateClass = state === 1 ? "matrix-circle-must" : state === 2 ? "matrix-circle-forbidden" : "matrix-circle-available";
-        let titleTip = state === 1 ? "חובה להשתמש" : state === 2 ? "אסור להשתמש" : "אפשר להשתמש";
+        let titleTip = state === 1 ? "חובה להשתמש (אדום)" : state === 2 ? "אסור להשתמש (אפור)" : "אפשר להשתמש (ירוק)";
         
-        const btn = document.createElement('div');
-        btn.className = `matrix-circle ${stateClass}`;
-        btn.title = `${name}: ${titleTip}`;
-        btn.innerHTML = "🔧"; // אימוג'י ברירת מחדל לכלי
-        btn.onclick = () => cycleMatrixState('tool', name);
-        toolContainer.appendChild(btn);
+        const circle = document.createElement('div');
+        circle.className = `matrix-circle ${stateClass}`;
+        circle.title = `${name}: ${titleTip}`;
+        circle.innerHTML = toolEmojis[name] || "🔧";
+        circle.onclick = () => cycleMatrixState('tool', name);
+        toolContainer.appendChild(circle);
     }
 }
 
-// ניהול מחזור הלחיצות: אפשר (0) -> חובה (1) -> אסור (2) -> אפשר (0)
-function cycleMatrixState(type, name) {
-    if (type === 'veg') {
-        vegetableMatrix[name] = (vegetableMatrix[name] + 1) % 3;
-    } else {
-        toolMatrix[name] = (toolMatrix[name] + 1) % 3;
-    }
-    buildAILists();
-    triggerDebouncedSync();
-}
-
-function addCustomMatrixItem(type) {
-    let name = prompt(type === 'veg' ? "הזן שם ירק חדש:" : "הזן שם כלי מטבח חדש:");
-    if (name) {
-        if (type === 'veg') vegetableMatrix[name] = 0; else toolMatrix[name] = 0;
-        buildAILists();
-        triggerDebouncedSync();
-    }
-}
-
-// בנית רכיב בחירה ידנית של מוצרים קיימים במזווה (באג ג' חלק 2)
+// בנית רכיב בחירה ידנית מהמזווה תוך חסימת מוצרי טואלטיקה וניקיון (באג ו')
 function buildPantryManualSelectionDOM() {
     const container = document.getElementById('pantry-manual-selection-container');
     if (!container) return;
     container.innerHTML = '';
     
     for (const [cat, items] of Object.entries(appData)) {
+        // חסימת קטגוריית טואלטיקה וניקיון באופן מוחלט
+        if (cat === "טואלטיקה וניקיון") continue;
+        
         items.forEach(item => {
             if (manualPantrySelections[item.name] === undefined) {
-                manualPantrySelections[item.name] = true; // ברירת מחדל - כלול
+                manualPantrySelections[item.name] = true; 
             }
             const wrapper = document.createElement('label');
             wrapper.className = "flex items-center gap-2 p-1.5 bg-white rounded-lg border text-[10px] font-bold cursor-pointer hover:bg-slate-50 select-none";
@@ -106,7 +94,6 @@ function buildPantryManualSelectionDOM() {
         });
     }
 }
-
 function cycleRecipeTime() {
     recipeTimeMode = (recipeTimeMode + 1) % 3; const btn = document.getElementById('time-cycle-btn');
     if (recipeTimeMode === 0) btn.innerText = "⏱️ זמן: מהיר (עד 20 דק')";
