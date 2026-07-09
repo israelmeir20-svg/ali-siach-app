@@ -87,11 +87,18 @@
             </div>
         </div>
 
+        <!-- פילטרים, כלי עבודה וכפתורי תצוגה -->
         <div class="bg-white border rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-3">
-            <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-black">
+            <div class="flex flex-wrap items-center gap-2 bg-slate-100 p-1 rounded-xl text-xs font-black">
                 <button id="filter-all" onclick="setFilter('all')" class="px-3 py-1.5 rounded-lg bg-white text-blue-600 shadow-sm">📋 כל המוצרים</button>
                 <button id="filter-to-order" onclick="setFilter('to-order')" class="px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-200">🛒 מוצרים לחסר</button>
                 <button id="filter-in-stock" onclick="setFilter('in-stock')" class="px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-200">✅ מלאי תקין</button>
+            </div>
+
+            <!-- בורר סוג תצוגה חדש -->
+            <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-black">
+                <button id="view-grid-btn" onclick="setViewMode('grid')" class="px-3 py-1.5 rounded-lg bg-blue-600 text-white shadow-sm">📱 קוביות</button>
+                <button id="view-table-btn" onclick="setViewMode('table')" class="px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-200">📋 טבלה</button>
             </div>
 
             <div class="flex items-center gap-3">
@@ -111,6 +118,7 @@
             </div>
         </div>
 
+        <!-- מכלול המלאי הדינמי -->
         <div id="inventory-container" class="space-y-6"></div>
     </main>
 
@@ -247,13 +255,27 @@
                 </div>
                 <div class="space-y-2"><h3 class="font-black text-blue-600 border-b pb-1">🌐 חיבור ענן</h3><div class="flex gap-1"><input type="text" id="cloud-url-input" class="w-full p-2 border rounded-xl font-mono text-[10px]"><button onclick="saveCloudUrl()" class="px-3 bg-blue-600 text-white font-bold rounded-xl">שמור</button></div></div>
                 <div class="space-y-2 pt-1"><h3 class="font-black text-emerald-600 border-b pb-1">🤖 מפתח Gemini API:</h3><div class="flex gap-1"><input type="password" id="gemini-key-input" class="w-full p-2 border rounded-xl font-mono text-[10px]"><button onclick="saveGeminiKey()" class="px-3 bg-emerald-600 text-white font-bold rounded-xl">שמור</button></div></div>
+                <!-- מנגנון ניהול אנשי צוות מורחב למנהלים בלבד -->
                 <div id="admin-management-section" class="space-y-2 pt-1 hidden">
                     <h3 class="font-black text-purple-600 border-b pb-1">👥 ניהול צוות (מנהל)</h3>
-                    <div id="admin-team-list" class="space-y-1 max-h-24 overflow-y-auto bg-slate-50 p-2 rounded-xl border"></div>
+                    <div id="admin-team-list" class="space-y-1 max-h-32 overflow-y-auto bg-slate-50 p-2 rounded-xl border"></div>
+                    
+                    <!-- טופס הוספת איש צוות חדש -->
+                    <div class="p-3 bg-slate-100 rounded-xl border space-y-2">
+                        <span class="font-bold block text-slate-700 text-[10px]">➕ הוספת איש צוות חדש:</span>
+                        <div class="grid grid-cols-2 gap-1.5">
+                            <input type="text" id="new-user-name" placeholder="שם עובד" class="p-1.5 border rounded-lg bg-white">
+                            <input type="password" id="new-user-pin" maxlength="4" placeholder="קוד PIN" class="p-1.5 border rounded-lg bg-white text-center tracking-widest">
+                        </div>
+                        <div class="flex gap-1.5">
+                            <select id="new-user-role" class="p-1.5 border rounded-lg bg-white flex-1">
+                                <option value="staff">מדריך (Staff)</option>
+                                <option value="admin">מנהל (Admin)</option>
+                            </select>
+                            <button onclick="addNewTeamMember()" class="px-3 bg-purple-600 text-white font-black rounded-lg hover:bg-purple-700">הוסף</button>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-    </div>
 
     <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 transform bg-slate-900 text-white px-4 py-2.5 rounded-2xl flex items-center gap-2 shadow-2xl transition duration-300 translate-y-20 opacity-0 z-50 text-xs font-bold">
         <span id="toast-icon">✨</span><span id="toast-message">הודעה</span>
