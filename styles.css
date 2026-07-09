@@ -6,41 +6,64 @@ body {
     transition: background-color 0.3s, color 0.3s; 
 }
 
-/* הגדרות מעטפת מחזוריות המטריצה של ה-AI */
+/* -------------------------------------------------------------------------- */
+/* צבעי רקע וטקסט קבועים להבחנה בין סוגי הנתונים */
+/* -------------------------------------------------------------------------- */
+.data-existing {
+    background-color: #eff6ff !important; /* כחול בהיר */
+    color: #1e40af !important;
+}
+.data-recommended {
+    background-color: #f8fafc !important; /* אפור/סלייט בהיר */
+    color: #334155 !important;
+}
+.data-lastmonth {
+    background-color: #fdf4ff !important; /* סגול בהיר */
+    color: #6b21a8 !important;
+}
+.data-toorder {
+    background-color: #fffbeb !important; /* אמבר בהיר */
+    color: #b45309 !important;
+}
+.data-toorder-active {
+    background-color: #fef2f2 !important; /* אדום בהיר לחסר פעיל */
+    color: #dc2626 !important;
+    font-weight: 900 !important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* התאמות למטריצת האימוג'ים בעיגולים (גרסה סופית מוגדלת) */
+/* -------------------------------------------------------------------------- */
 .matrix-circle {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     border-radius: 9999px;
-    font-size: 1.25rem;
+    font-size: 1.5rem;
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     user-select: none;
 }
-
 .matrix-circle-available {
-    border: 3px solid #10b981;
-    background-color: #ecfdf5;
-    box-shadow: 0 0 0 2px #10b981;
+    border: 3px solid #10b981 !important; /* עיגול ירוק - אפשר להשתמש */
+    background-color: #ecfdf5 !important;
 }
-
 .matrix-circle-must {
-    border: 3px solid #ef4444;
-    background-color: #fef2f2;
-    box-shadow: 0 0 0 2px #ef4444;
+    border: 3px solid #ef4444 !important; /* עיגול אדום - חובה להשתמש */
+    background-color: #fef2f2 !important;
 }
-
 .matrix-circle-forbidden {
-    border: 3px solid #94a3b8;
-    background-color: #f1f5f9;
-    box-shadow: 0 0 0 2px #94a3b8;
+    border: 3px solid #94a3b8 !important; /* עיגול אפור - אסור להשתמש */
+    background-color: #f1f5f9 !important;
     filter: grayscale(100%);
-    opacity: 0.6;
+    opacity: 0.4;
 }
 
+/* -------------------------------------------------------------------------- */
 /* סגנונות למצב כהה (Dark Mode) */
+/* -------------------------------------------------------------------------- */
 body.dark-mode { 
     background-color: #0f172a; 
     color: #e2e8f0; 
@@ -63,6 +86,9 @@ body.dark-mode .text-slate-900 {
     color: #ffffff; 
 }
 
+/* -------------------------------------------------------------------------- */
+/* אנימציות ומעברים */
+/* -------------------------------------------------------------------------- */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(4px); }
     to { opacity: 1; transform: translateY(0); }
