@@ -10,15 +10,11 @@
         @import url('https://fonts.googleapis.com/css2?family=Assistant:wght=300;400;600;700;800&display=swap');
         body { font-family: 'Assistant', sans-serif; background-color: #f8fafc; transition: background-color 0.3s, color 0.3s; }
         
-        /* תיקון קשיח ואטום לנעילת כותרות הטבלה ללא חפיפת שורות */
-        .sticky-th { position: sticky; top: 64px; z-index: 20; background-color: #ffffff !important; box-shadow: 0 2px 2px -1px rgba(0,0,0,0.05); }
-        
         body.dark-mode { background-color: #0f172a; color: #e2e8f0; }
         body.dark-mode nav, body.dark-mode .bg-white { background-color: #1e293b; color: #e2e8f0; border-color: #334155; }
         body.dark-mode input, body.dark-mode select { background-color: #334155; color: #ffffff; border-color: #475569; }
         body.dark-mode tr:hover { background-color: #334155 !important; }
         body.dark-mode .bg-slate-50, body.dark-mode .bg-slate-100 { background-color: #334155; color: #e2e8f0; }
-        body.dark-mode .sticky-th { background-color: #1e293b !important; color: #94a3b8; }
         body.dark-mode .text-slate-900 { color: #ffffff; }
     </style>
 </head>
@@ -26,16 +22,15 @@
 
     <!-- מסך כניסה מאובטח -->
     <div id="login-screen" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl p-6 shadow-2xl max-w-sm w-full space-y-4 border text-center relative">
-            <!-- אזור התראת טסטים פנימי -->
-            <div id="test-diagnostic-error" class="hidden text-right bg-red-500 text-white text-[10px] p-3 rounded-xl font-bold whitespace-pre-line leading-tight"></div>
-            <div id="test-diagnostic-success" class="hidden bg-emerald-500 text-white text-[10px] p-1.5 rounded-xl font-bold text-center">✅ כל הבדיקות הפנימיות עברו בהצלחה</div>
+        <div class="bg-white rounded-3xl p-6 shadow-2xl max-w-sm w-full space-y-4 border text-center">
+            <!-- קופסת שגיאות קשיחה - אם משהו קורס, זה יודפס כאן מיד -->
+            <div id="test-diagnostic-error" class="hidden text-right bg-red-600 text-white text-xs p-3 rounded-xl font-bold whitespace-pre-line leading-relaxed shadow-inner"></div>
             
             <span class="text-5xl block">📦</span>
             <h2 class="text-xl font-black text-slate-900">מערכת מלאי - עלי שיח</h2>
             <p class="text-xs text-slate-500 font-bold">בחר את שמך והזן את קוד ה-PIN האישי שלך</p>
             <div class="space-y-3 pt-2">
-                <select id="login-user-select" class="w-full p-2.5 rounded-xl border bg-slate-50 font-bold text-sm text-slate-700 focus:outline-none"></select>
+                <select id="login-user-select" class="w-full p-2.5 rounded-xl border bg-slate-50 font-black text-sm text-slate-700 focus:outline-none"></select>
                 <input type="password" id="login-pin-input" inputmode="numeric" maxlength="4" placeholder="קוד PIN (4 ספרות)" class="w-full p-2.5 rounded-xl border bg-slate-50 text-center font-black tracking-widest text-lg focus:outline-none">
                 <button onclick="handleLogin()" class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-sm shadow-md transition">התחבר למערכת</button>
             </div>
@@ -53,12 +48,10 @@
                 </div>
             </div>
 
-            <!-- חיפוש משולב -->
             <div class="flex-1 max-w-sm hidden md:flex items-center gap-2">
                 <input type="text" id="search-bar" oninput="filterInventory()" placeholder="חיפוש לפי מוצר, יום, הערה..." class="w-full px-3 py-1.5 rounded-xl border text-xs font-bold bg-slate-50 focus:outline-none">
             </div>
 
-            <!-- אזור בקרה ובינה מלאכותית עליון -->
             <div class="flex items-center gap-2">
                 <button onclick="openAICenter()" class="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-black transition shadow-sm">🧠 מרכז AI חכם</button>
                 
@@ -155,13 +148,11 @@
             </div>
 
             <div class="p-4 overflow-y-auto space-y-4 flex-1 text-xs">
-                <!-- לשונית 1: המלצות רכש -->
                 <div id="panel-ai-procure" class="space-y-3">
                     <button onclick="runAIProcurementAnalysis()" class="w-full py-2.5 bg-purple-600 text-white font-black rounded-xl shadow-md">הפעל ניתוח מלאי מגמתי</button>
                     <div id="ai-procure-output" class="hidden whitespace-pre-line bg-slate-50 p-4 rounded-xl border leading-relaxed font-semibold"></div>
                 </div>
 
-                <!-- לשונית 2: מחולל מתכונים מתקדם -->
                 <div id="panel-ai-recipes" class="hidden grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="md:col-span-2 space-y-3">
                         <div class="space-y-1">
@@ -169,7 +160,6 @@
                             <input type="text" id="ai-recipe-dish-input" placeholder="למשל: מרק ירקות, פסטה..." class="w-full p-2.5 border rounded-xl font-bold">
                         </div>
                         <div class="flex items-center gap-2">
-                            <!-- כפתור אימוג'י שעון תלת-מצבי קשיח -->
                             <button onclick="cycleRecipeTime()" id="time-cycle-btn" class="px-4 py-2 rounded-xl border font-black bg-emerald-50 border-emerald-300 text-emerald-700 text-xs">⏱️ זמן: מהיר (עד 20 דק')</button>
                         </div>
                         <button onclick="generateAdvancedAIRecipe()" class="w-full py-2.5 bg-emerald-600 text-white font-black rounded-xl shadow-sm">ייצר מתכון מותאם קשר</button>
@@ -191,7 +181,6 @@
                     </div>
                 </div>
 
-                <!-- לשונית 3: סורק קבלות חכם -->
                 <div id="panel-ai-receipt" class="hidden space-y-3">
                     <div class="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 p-6 rounded-xl bg-slate-50">
                         <input type="file" id="receipt-file-input" accept="image/*" class="hidden" onchange="handleReceiptUpload(event)">
@@ -202,7 +191,6 @@
                     <div id="ai-receipt-output" class="hidden bg-slate-50 p-4 rounded-xl border space-y-3 font-semibold"></div>
                 </div>
 
-                <!-- לשונית 4: עוזר חופשי לצוות -->
                 <div id="panel-ai-chat" class="hidden flex flex-col h-[50vh] border rounded-2xl bg-slate-50 overflow-hidden">
                     <div id="ai-chat-box" class="flex-1 p-3 overflow-y-auto space-y-2 font-medium"></div>
                     <div class="p-2 border-t bg-white flex gap-1">
@@ -221,7 +209,6 @@
         <div class="p-3 bg-blue-600 text-white flex justify-between items-center"><h3 class="text-xs font-black">💬 צ'אט ועדכוני דירה</h3><button onclick="toggleFloatingChat()" class="text-xs font-bold">✕</button></div>
         <div id="chat-messages-container" class="flex-1 p-3 overflow-y-auto space-y-2 bg-slate-50 text-[11px]"></div>
         
-        <!-- שליחת הודעה עם ניתוב למדריכים ספציפיים -->
         <div class="p-2 border-t bg-white flex flex-col gap-1.5">
             <div class="flex gap-1 items-center">
                 <span class="text-[10px] font-bold text-slate-400">אל:</span>
@@ -234,7 +221,6 @@
         </div>
     </div>
 
-    <!-- מודל ספירת מלאי מהירה -->
     <div id="walkthrough-screen" class="fixed inset-0 bg-slate-900/80 z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-3xl p-6 shadow-2xl max-w-sm w-full space-y-4 text-center border relative">
             <button onclick="closeWalkthroughMode()" class="absolute top-4 left-4 font-black text-sm text-slate-400">✕</button>
@@ -248,7 +234,6 @@
         </div>
     </div>
 
-    <!-- מודל עריכת מצרך -->
     <div id="product-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl space-y-3 border text-xs">
             <h3 class="text-sm font-black text-slate-900 border-b pb-1">✏️ עריכת נתוני מצרך</h3>
@@ -264,10 +249,17 @@
         </div>
     </div>
 
-    <!-- טוסט הודעות צפות קומפקטי -->
-    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 transform bg-slate-900 text-white px-4 py-2.5 rounded-2xl flex items-center gap-2 shadow-2xl transition duration-300 translate-y-20 opacity-0 z-50 text-xs font-bold"><span id="toast-icon">✨</span><span id="toast-message">הודעה</span></div>
-
     <script>
+        // לוכד שגיאות גלובלי הרמטי - אם משהו קורס, הוא מודפס באדום על המסך מיד
+        window.onerror = function(msg, url, line, col, error) {
+            const errBox = document.getElementById('test-diagnostic-error');
+            if (errBox) {
+                errBox.innerText = `🚨 קריסת מערכת בשורת הקוד!\nהודעה: ${msg}\nשורה: ${line}\nעמודה: ${col}`;
+                errBox.classList.remove('hidden');
+            }
+            return false;
+        };
+
         const emojiMap = {
             "אבקת כביסה": "🧺", "אמה": "🧽", "ברזלית": "🧽", "דאורדורנט": "🧴", "כרית ניקוי": "🧽", "מבשם אוויר": "💨",
             "מסיר אבנית": "🧪", "מסיר כתמים": "🧪", "מסיר שומנים": "🔥", "מרכך כביסה": "🧼", "משחת שיניים": "🪥", "משמיד חרקים": "🪰",
@@ -287,27 +279,7 @@
         let vegetableMatrix = { "עגבניה": 0, "מלפפון": 0, "גזר": 0, "קולרבי": 0, "תפו\"א": 0, "כרוב": 0, "בצל": 0, "דלורית": 0, "פלפל": 0 };
         let toolMatrix = { "מחבת ללא מכסה בשרית": 0, "סיר שטוח עם מכסה בשרי": 0, "סיר קטן גבוה עם מכסה בשרי": 0, "סיר רגיל עם מכסה בשרי": 0, "סכין בשרית": 0, "סכין חלבית": 0, "פומפייה": 0, "תנור בשרי": 0, "טוסטר חלבי": 0, "כיריים": 0, "מיניבר": 0 };
 
-        // פונקציית טסטים פנימית קשיחה למניעת קפיאות ומציאת תקלות בזמן אמת
-        function runDiagnostics() {
-            const errors = [];
-            const requiredIds = ['login-user-select', 'login-pin-input', 'inventory-container', 'categoryChart', 'dashboard-area', 'chat-target-select'];
-            requiredIds.forEach(id => { if (!document.getElementById(id)) errors.push(`אלמנט HTML חסר: ${id}`); });
-            if (!appData || typeof appData !== 'object' || Object.keys(appData).length === 0) errors.push('מבנה נתוני appData משובש או ריק');
-            if (!Array.isArray(teamMembers) || teamMembers.length === 0) errors.push('רשימת teamMembers ריקה או שגויה');
-            
-            const errBox = document.getElementById('test-diagnostic-error');
-            const successBox = document.getElementById('test-diagnostic-success');
-            if (errors.length > 0) {
-                errBox.innerText = `🚨 כשל בטסטים הפנימיים (נא לתקן):\n${errors.join('\n')}`;
-                errBox.classList.remove('hidden'); successBox.classList.add('hidden');
-                console.error("Diagnostics failed:", errors);
-                return false;
-            } else {
-                successBox.classList.remove('hidden'); errBox.classList.add('hidden');
-                setTimeout(() => { successBox.classList.add('hidden'); }, 3000);
-                return true;
-            }
-        }
+        function calculateToOrder(item) { let req = (parseFloat(item.recommended) || 0) - (parseFloat(item.existing) || 0); return req > 0 ? req : 0; }
 
         function loadLocalBackupData() {
             try {
@@ -338,19 +310,14 @@
             teamMessages = [{ id: "msg_1", from: "מערכת", to: "כולם", text: "ברוכים הבאים למערכת המשותפת!", date: "8.7.2026", readBy: [] }];
         }
 
-        // הגדרה אסינכרונית קשיחה של פונקציית האתחול
         async function init() {
             loadLocalBackupData(); 
             applyDarkModeStyles(); 
             buildUserLoginSelect(); 
             buildChatTargetSelect();
+            initChart(); // בניית תשתית הגרף
+            renderApp(); // רינדור ראשוני עם נתוני הגיבוי הבטוחים
             
-            // הרצת מערכת הטסטים האוטומטית לפני הרינדור
-            const diagnosticsPassed = runDiagnostics();
-            if (!diagnosticsPassed) return;
-
-            initChart(); 
-            renderApp(); 
             if (cloudUrl) { 
                 document.getElementById('cloud-url-input').value = cloudUrl; 
                 await fetchCloudData(); 
@@ -367,7 +334,7 @@
                     options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { display: false } } } }
                 });
                 updateChartData();
-            } catch(e) { console.error("Chart.js failed to init", e); }
+            } catch(e) { console.error(e); }
         }
 
         function updateChartData() {
@@ -479,7 +446,6 @@
                         <span class="bg-slate-100 text-slate-600 text-[10px] font-black px-2 py-0.5 rounded-md">${filtered.length} פריטים</span>
                     </div>
                     <div class="overflow-x-auto">
-                        <!-- שימוש ב-border-separate למניעת כשלי Sticky Header -->
                         <table class="w-full text-right border-separate border-spacing-0">
                             <thead>
                                 <tr class="text-[11px] font-black text-slate-400 border-b bg-slate-50">
@@ -686,7 +652,7 @@
             prompt += `קשר סינון נוכחי (השתמש אך ורק במוצרים אלו שנמצאים כעת על המסך תחת הסינון של המדריך!): ${JSON.stringify(visibleProducts)}\n\n`;
             prompt += `מטריצת ירקות (0=אפשר, 1=חייב להשתמש): ${JSON.stringify(vegetableMatrix)}\n`;
             prompt += `מטריצת כלי מטבח זמינים (0=אפשר, 1=חייב להשתמש): ${JSON.stringify(toolMatrix)}\n\n`;
-            prompt += `חובה להציג את הוראות ההכנה בצורה פשוטה וברורה למדריכים, ובשורה האחרונה בהחלט לתת שדרוג/האק מהיר למנה [Upgrade/Hack].`;
+            prompt += `הצג את הוראות ההכנה בצורה פשוטה וברורה למדריכים, ובשורה האחרונה בהחלט תתתן שדרוג/האק מהיר למנה [Upgrade/Hack].`;
             
             out.innerText = await callGeminiAPI([{ parts: [{ text: prompt }] }]);
         }
