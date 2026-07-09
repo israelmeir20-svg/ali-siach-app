@@ -1,24 +1,26 @@
-// פונקציית העזר הקריטית - ממוקמת בראש ה-Script כדי למנוע ReferenceError
+// ==========================================
+// 1. פונקציות עזר גלובליות ומערכי תצורה
+// ==========================================
+
 function calculateToOrder(item) { 
     let req = (parseFloat(item.recommended) || 0) - (parseFloat(item.existing) || 0); 
     return req > 0 ? req : 0; 
 }
 
-// לוכד שגיאות סינכרוני גלובלי
+// לוכדי שגיאות גלובליים להצגת חיוויים על גבי מסך הדיאגנוסטיקה
 window.onerror = function(msg, url, line, col, error) {
     const errBox = document.getElementById('test-diagnostic-error');
     if (errBox) {
-        errBox.innerText = `🚨 קריסת מערכת (שגיאה סינכרונית):\nהודעה: ${msg}\nשורה: ${line}`;
+        errBox.innerText = `🚨 שגיאה סינכרונית בריצת הקוד:\nהודעה: ${msg}\nשורה: ${line}`;
         errBox.classList.remove('hidden');
     }
     return false;
 };
 
-// לוכד שגיאות אסינכרוני גלובלי
 window.onunhandledrejection = function(event) {
     const errBox = document.getElementById('test-diagnostic-error');
     if (errBox) {
-        errBox.innerText = `🚨 קריסת מערכת אסינכרונית:\nהודעה: ${event.reason}`;
+        errBox.innerText = `🚨 שגיאה אסינכרונית (הבטחה שנדחתה):\nהודעה: ${event.reason}`;
         errBox.classList.remove('hidden');
     }
 };
@@ -32,23 +34,28 @@ const emojiMap = {
     "קפה טסטר צ'ויס": "☕", "קפה נמס": "☕", "קורנפלקס": "🥣", "ופלים": "🍫", "עוגיות אוריאו": "🍪", "ערגליות": "🍪", "קולה": "🥤", "סודה": "🍾"
 };
 
-function getEmoji(name) { for (const [key, value] of Object.entries(emojiMap)) { if (name.includes(key)) return value; } return "📦"; }
+function getEmoji(name) { 
+    for (const [key, value] of Object.entries(emojiMap)) { if (name.includes(key)) return value; } 
+    return "📦"; 
+}
 
 const freshVegetables = ["בצל", "תפו\"א", "עגבניות", "מלפפונים", "גזרים", "פלפלים וגמבות", "דלורית", "כרוב", "שום טרי"];
-let appData = {}, teamMembers = [], teamMessages = [], currentUser = null, cloudUrl = localStorage.getItem('aliSiachCloudUrl') || "", saveTimeout = null, isDarkMode = localStorage.getItem('aliSiachDarkMode') === 'true';
-let activeFilter = 'all', searchQuery = '', walkthroughItems = [], walkthroughIndex = 0, activeAITab = 'procure', base64ReceiptImage = null, receiptMimeType = null, myChart = null;
- 
+
+// ניהול משתני מערכת גלובליים
+let appData = {}, teamMembers = [], teamMessages = [], currentUser = null;
+let cloudUrl = localStorage.getItem('aliSiachCloudUrl') || "";
+let saveTimeout = null;
+let isDarkMode = localStorage.getItem('aliSiachDarkMode') === 'true';
+let activeFilter = 'all', searchQuery = '', walkthroughItems = [], walkthroughIndex = 0, activeAITab = 'procure';
+let base64ReceiptImage = null, receiptMimeType = null, myChart = null;
 let recipeTimeMode = 0; 
+
 let vegetableMatrix = { "עגבניה": 0, "מלפפון": 0, "גזר": 0, "קולרבי": 0, "תפו\"א": 0, "כרוב": 0, "בצל": 0, "דלורית": 0, "פלפל": 0 };
 let toolMatrix = { "מחבת ללא מכסה בשרית": 0, "סיר שטוח עם מכסה בשרי": 0, "סיר קטן גבוה עם מכסה בשרי": 0, "סיר רגיל עם מכסה בשרי": 0, "סכין בשרית": 0, "סכין חלבית": 0, "פומפייה": 0, "תנור בשרי": 0, "טוסטר חלבי": 0, "כיריים": 0, "מיניבר": 0 };
 
-function toggleDarkMode() { isDarkMode = !isDarkMode; localStorage.setItem('aliSiachDarkMode', isDarkMode); applyDarkModeStyles(); }
- 
-function applyDarkModeStyles() {
-    const btn = document.getElementById('dark-mode-toggle-btn');
-    if (isDarkMode) { document.body.classList.add('dark-mode'); if(btn) btn.innerText = "פעיל"; } 
-    else { document.body.classList.remove('dark-mode'); if(btn) btn.innerText = "כבוי"; }
-}
+// ==========================================
+// 2. פונקציות אתחול וסנכרון נתונים
+// ==========================================
 
 function loadLocalBackupData() {
     try {
@@ -60,6 +67,7 @@ function loadLocalBackupData() {
             }
         }
     } catch (e) { console.error(e); }
+    
     localStorage.removeItem('aliSiachLocalCache');
     appData = {
         "טואלטיקה וניקיון": [
@@ -86,49 +94,14 @@ async function init() {
     buildChatTargetSelect();
     initChart(); 
     renderApp(); 
-     
-    if (cloudUrl) { 
-        document.getElementById('cloud-url-input').value = cloudUrl; 
-        await fetchCloudData(); 
-    }
-}
+    
+    const cloudInput = document.getElementById('cloud-url-input');
+    if (cloudInput) cloudInput.value = cloudUrl;
+    const geminiInput = document.getElementById('gemini-key-input');
+    if (geminiInput) geminiInput.value = localStorage.getItem('aliSiach_gemini_key') || "";
 
-function initChart() {
-    try {
-        const ctx = document.getElementById('categoryChart'); if (!ctx) return;
-        if (myChart) myChart.destroy();
-        myChart = new Chart(ctx, {
-            type: 'bar',
-            data: { labels: [], datasets: [{ label: 'פריטים לחסר', data: [], backgroundColor: 'rgba(147, 51, 234, 0.6)', borderColor: 'rgb(147, 51, 234)', borderWidth: 1 }] },
-            options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { display: false } } } }
-        });
-        updateChartData();
-    } catch(e) { console.error(e); }
+    if (cloudUrl) { await fetchCloudData(); }
 }
-
-function updateChartData() {
-    if (!myChart) return; let labels = [], data = [];
-    for (const [cat, items] of Object.entries(appData)) { let sum = 0; items.forEach(i => { sum += calculateToOrder(i); }); labels.push(cat); data.push(sum); }
-    myChart.data.labels = labels; myChart.data.datasets[0].data = data; myChart.update();
-}
-
-function buildChatTargetSelect() {
-    const s = document.getElementById('chat-target-select'); if (!s) return; s.innerHTML = '<option value="כולם">📢 כולם (כל הצוות)</option>';
-    teamMembers.forEach(m => { s.innerHTML += `<option value="${m.name}">👤 ${m.name}</option>`; });
-}
-
-function buildUserLoginSelect() {
-    const select = document.getElementById('login-user-select'); if (!select) return; select.innerHTML = '';
-    teamMembers.forEach(m => { select.innerHTML += `<option value="${m.name}">${m.name} (${m.role === 'admin' ? 'מנהל' : 'מדריך'})</option>`; });
-}
-
-function handleLogin() {
-    const selectedName = document.getElementById('login-user-select').value; const inputPin = document.getElementById('login-pin-input').value;
-    const user = teamMembers.find(m => m.name === selectedName && m.pin === inputPin);
-    if (user) { currentUser = user; document.getElementById('login-screen').classList.add('hidden'); document.getElementById('current-user-display').innerText = user.name; if (user.role === 'admin') document.getElementById('admin-management-section').classList.remove('hidden'); renderApp(); } else { alert("PIN שגוי!"); }
-}
-
-function handleLogout() { currentUser = null; document.getElementById('login-pin-input').value = ''; document.getElementById('login-screen').classList.remove('hidden'); renderApp(); }
 
 async function fetchCloudData() {
     if (!cloudUrl || !navigator.onLine) return;
@@ -138,7 +111,8 @@ async function fetchCloudData() {
             if (data.appData && Object.keys(data.appData).length > 0) appData = data.appData; 
             if (data.teamMembers && data.teamMembers.length > 0) teamMembers = data.teamMembers; 
             if (data.teamMessages) teamMessages = data.teamMessages;
-            localStorage.setItem('aliSiachLocalCache', JSON.stringify({ appData, teamMembers, teamMessages })); buildUserLoginSelect(); buildChatTargetSelect(); renderApp();
+            localStorage.setItem('aliSiachLocalCache', JSON.stringify({ appData, teamMembers, teamMessages })); 
+            buildUserLoginSelect(); buildChatTargetSelect(); renderApp();
         }
     } catch (e) { console.error(e); }
 }
@@ -153,8 +127,33 @@ async function syncWithCloud() {
     try { await fetch(cloudUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ appData, teamMembers, teamMessages }) }); } catch (e) { console.error(e); }
 }
 
-function saveCloudUrl() { cloudUrl = document.getElementById('cloud-url-input').value.trim(); localStorage.setItem('aliSiachCloudUrl', cloudUrl); fetchCloudData(); showToast("הוגדר ענן!", "💾"); }
-function saveGeminiKey() { localStorage.setItem('aliSiach_gemini_key', document.getElementById('gemini-key-input').value.trim()); showToast("הוגדר מפתח AI!", "🤖"); }
+function saveCloudUrl() { 
+    const input = document.getElementById('cloud-url-input');
+    if (input) { cloudUrl = input.value.trim(); localStorage.setItem('aliSiachCloudUrl', cloudUrl); fetchCloudData(); showToast("הוגדר ענן!", "💾"); }
+}
+function saveGeminiKey() { 
+    const input = document.getElementById('gemini-key-input');
+    if (input) { localStorage.setItem('aliSiach_gemini_key', input.value.trim()); showToast("הוגדר מפתח AI!", "🤖"); }
+}
+
+// ==========================================
+// 3. לוגיקת ממשק משתמש ורנדור מלאי
+// ==========================================
+
+function handleLogin() {
+    const select = document.getElementById('login-user-select'); if (!select) return;
+    const selectedName = select.value; const inputPin = document.getElementById('login-pin-input').value;
+    const user = teamMembers.find(m => m.name === selectedName && m.pin === inputPin);
+    if (user) { 
+        currentUser = user; document.getElementById('login-screen').classList.add('hidden'); 
+        document.getElementById('current-user-display').innerText = user.name; 
+        const adminSection = document.getElementById('admin-management-section');
+        if (user.role === 'admin' && adminSection) adminSection.classList.remove('hidden'); 
+        renderApp(); 
+    } else { alert("PIN שגוי!"); }
+}
+
+function handleLogout() { currentUser = null; document.getElementById('login-pin-input').value = ''; document.getElementById('login-screen').classList.remove('hidden'); renderApp(); }
 
 function adjustQuantity(category, index, change) {
     const item = appData[category][index]; let val = (parseFloat(item.existing) || 0) + change; item.existing = val < 0 ? 0 : Math.round(val * 2) / 2;
@@ -163,7 +162,10 @@ function adjustQuantity(category, index, change) {
 
 function filterInventory() { searchQuery = document.getElementById('search-bar').value.toLowerCase(); renderApp(); }
 function setFilter(type) {
-    activeFilter = type; ['all', 'to-order', 'in-stock'].forEach(t => { document.getElementById(`filter-${t}`).className = t === type ? "px-3 py-1.5 rounded-lg bg-white text-blue-600 shadow-sm" : "px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-200"; });
+    activeFilter = type; ['all', 'to-order', 'in-stock'].forEach(t => { 
+        const el = document.getElementById(`filter-${t}`);
+        if (el) el.className = t === type ? "px-3 py-1.5 rounded-lg bg-white text-blue-600 shadow-sm" : "px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-200"; 
+    });
     renderApp();
 }
 
@@ -233,60 +235,42 @@ function renderApp() {
             </div>
         `; container.appendChild(catSection);
     }
-    document.getElementById('dash-missing-val').innerText = criticalCount;
-    document.getElementById('dash-total-val').innerText = totalToOrderItems;
-    document.getElementById('dash-cost-val').innerText = `₪${totalCost.toFixed(2)}`;
-    updateChartData(); 
-    
-    if (currentUser) {
-        renderMessages(); 
-        renderChatMessages();
-    }
+    const missingEl = document.getElementById('dash-missing-val'); if(missingEl) missingEl.innerText = criticalCount;
+    const totalEl = document.getElementById('dash-total-val'); if(totalEl) totalEl.innerText = totalToOrderItems;
+    const costEl = document.getElementById('dash-cost-val'); if(costEl) costEl.innerText = `₪${totalCost.toFixed(2)}`;
+    updateChartData(); if (currentUser) { renderMessages(); renderChatMessages(); }
 }
 
-let isNotificationOpen = false;
+// ==========================================
+// 4. מערכת צ'אט והודעות צוות
+// ==========================================
+
 function toggleNotificationDropdown() {
-    if (!currentUser) return;
-    const dropdown = document.getElementById('notification-dropdown'); isNotificationOpen = !isNotificationOpen;
+    if (!currentUser) return; const dropdown = document.getElementById('notification-dropdown'); isNotificationOpen = !isNotificationOpen;
     if (isNotificationOpen) { dropdown.classList.remove('hidden'); renderMessages(); } 
     else { dropdown.classList.add('hidden'); teamMessages.forEach(m => { if (!m.readBy.includes(currentUser.name)) m.readBy.push(currentUser.name); }); renderApp(); triggerDebouncedSync(true); }
 }
 
 function renderMessages() {
     const container = document.getElementById('messages-list-container'); if (!container || !currentUser) return; container.innerHTML = '';
-    let unreadCount = 0;
-    const visibleMsgs = teamMessages.filter(m => m.to === "כולם" || m.to === currentUser.name || m.from === currentUser.name);
-
+    let unreadCount = 0; const visibleMsgs = teamMessages.filter(m => m.to === "כולם" || m.to === currentUser.name || m.from === currentUser.name);
     teamMessages.forEach(m => { if ((m.to === "כולם" || m.to === currentUser.name) && !m.readBy.includes(currentUser.name) && m.from !== currentUser.name) unreadCount++; });
     const badge = document.getElementById('unread-badge'); if (unreadCount > 0) { badge.innerText = unreadCount; badge.classList.remove('hidden'); } else badge.classList.add('hidden');
     if (visibleMsgs.length === 0) { container.innerHTML = `<div class="text-slate-300 italic text-center py-3">אין הודעות</div>`; return; }
-    
     visibleMsgs.slice(0, 10).forEach(m => {
         const isRead = m.readBy.includes(currentUser.name) || m.from === currentUser.name;
-        const targetText = m.to !== "כולם" ? ` <span class="text-purple-600 font-bold">(אישי אליך)</span>` : '';
         container.innerHTML += `
             <div class="p-2 border-b text-[11px] hover:bg-slate-50 transition">
-                <div class="flex justify-between text-[9px] text-slate-400"><span>מאת: ${m.from}${targetText}</span><span>${m.date}</span></div>
+                <div class="flex justify-between text-[9px] text-slate-400"><span>מאת: ${m.from}${m.to !== "כולם" ? ' <b class="text-purple-600">(אישי)</b>':''}</span><span>${m.date}</span></div>
                 <p class="${isRead ? 'text-slate-400' : 'text-slate-900 font-bold'}">${m.text}</p>
                 <button onclick="replyToMessage('${m.from}')" class="text-blue-500 font-bold text-[10px] mt-1 block">↩️ השב בפרטי</button>
-                    </div>
+            </div>
         `;
     });
 }
 
-function replyToMessage(senderName) {
-    document.getElementById('notification-dropdown').classList.add('hidden'); isNotificationOpen = false;
-    const select = document.getElementById('chat-target-select'); if(select) select.value = senderName;
-    toggleFloatingChat(true);
-}
-
-let isChatOpen = false;
-function toggleFloatingChat(forceOpen = false) {
-    if (!currentUser) return;
-    const win = document.getElementById('floating-chat-window'); isChatOpen = forceOpen ? true : !isChatOpen;
-    if (isChatOpen) { win.classList.remove('hidden'); renderChatMessages(); } else win.classList.add('hidden');
-}
-
+function replyToMessage(senderName) { document.getElementById('notification-dropdown').classList.add('hidden'); isNotificationOpen = false; const select = document.getElementById('chat-target-select'); if(select) select.value = senderName; toggleFloatingChat(true); }
+function toggleFloatingChat(forceOpen = false) { if (!currentUser) return; const win = document.getElementById('floating-chat-window'); isChatOpen = forceOpen ? true : !isChatOpen; if (isChatOpen) { win.classList.remove('hidden'); renderChatMessages(); } else win.classList.add('hidden'); }
 function sendChatMessage() {
     const inp = document.getElementById('chat-text-input'); const text = inp.value.trim(); if (!text || !currentUser) return;
     const target = document.getElementById('chat-target-select').value;
@@ -297,13 +281,10 @@ function sendChatMessage() {
 function renderChatMessages() {
     const container = document.getElementById('chat-messages-container'); if (!container || !currentUser) return; container.innerHTML = '';
     const visibleMsgs = teamMessages.filter(m => m.to === "כולם" || m.to === currentUser.name || m.from === currentUser.name);
-    
     visibleMsgs.forEach(m => {
-        const isPrivate = m.to !== "כולם";
-        const badgeLabel = isPrivate ? `<span class="bg-purple-100 text-purple-700 px-1 rounded text-[8px]">אישי אל: ${m.to}</span>` : '<span class="bg-slate-100 text-slate-600 px-1 rounded text-[8px]">לכולם</span>';
         container.innerHTML += `
             <div class="p-2 border rounded-xl bg-white mb-1.5 relative shadow-sm text-slate-800">
-                <div class="flex justify-between text-[9px] text-slate-400 mb-0.5"><span><b>${m.from}</b> ${badgeLabel}</span><span>${m.date}</span></div>
+                <div class="flex justify-between text-[9px] text-slate-400 mb-0.5"><span><b>${m.from}</b> <span class="text-slate-400">${m.to === 'כולם' ? 'לכולם' : 'פרטי אל: ' + m.to}</span></span><span>${m.date}</span></div>
                 <p class="font-medium pr-3">${m.text}</p>
                 <button onclick="deleteMessage('${m.id}')" class="absolute left-1 top-1 text-red-400 opacity-50 hover:opacity-100">✕</button>
             </div>
@@ -311,14 +292,16 @@ function renderChatMessages() {
     });
 }
 
-function deleteMessage(id) { teamMessages = teamMessages.filter(m => m.id !== id); renderApp(); triggerDebouncedSync(true); }
+// ==========================================
+// 5. מרכז הפקת דוחות ושיתוף קומפקטי
+// ==========================================
 
-function generateOriginalTextShort() {
+function toggleSharePopover() { document.getElementById('share-popover').classList.toggle('hidden'); }
+function generateOrderTextShort() {
     let txt = `דוח הזמנת מלאי - עלי שיח\nהרשימה המלאה הועתקה ללוח.\n\nמוצרים חסרים דחופים (כמות 0):\n`;
     for (const [cat, items] of Object.entries(appData)) { items.forEach(i => { if (i.existing === 0) txt += `• ${i.name} (מומלץ: ${i.recommended})\n`; }); }
     return txt;
 }
-
 function generateOrderTextFull() {
     let txt = `📦 *דוח מלאי חודשי מלא - עלי שיח* 📦\n\n`;
     for (const [cat, items] of Object.entries(appData)) {
@@ -333,7 +316,7 @@ function exportData(type) {
     if (type === 'copy') { navigator.clipboard.writeText(fullText); showToast("הרשימה המלאה הועתקה!", "📋"); } 
     else if (type === 'whatsapp') { window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(fullText)}`, '_blank'); } 
     else if (type === 'email') {
-        navigator.clipboard.writeText(fullText); const shortText = generateOriginalTextShort();
+        navigator.clipboard.writeText(fullText); const shortText = generateOrderTextShort();
         window.location.href = `mailto:?subject=${encodeURIComponent('הזמנת מלאי - עלי שיח')}&body=${encodeURIComponent(shortText)}`;
     } else if (type === 'csv') {
         let csv = "data:text/csv;charset=utf-8,\uFEFFקטגוריה,מוצר,קיים,מומלץ,להזמנה\n";
@@ -342,97 +325,9 @@ function exportData(type) {
     }
 }
 
-function toggleSharePopover() { document.getElementById('share-popover').classList.toggle('hidden'); }
-
-function openAICenter() { if (!currentUser) return; document.getElementById('ai-center-modal').classList.remove('hidden'); document.getElementById('ai-center-modal').classList.add('flex'); buildAILists(); }
-function closeAICenter() { document.getElementById('ai-center-modal').classList.add('hidden'); document.getElementById('ai-center-modal').classList.remove('flex'); }
-function setAITab(tab) { activeAITab = tab; ['procure', 'recipes', 'receipt', 'chat'].forEach(t => { document.getElementById(`tab-ai-${t}`).className = t === tab ? "px-4 py-2 rounded-lg bg-white text-purple-900 shadow-sm" : "px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-200"; document.getElementById(`panel-ai-${t}`).classList.toggle('hidden', t !== tab); }); }
-
-function buildAILists() {
-    const vegContainer = document.getElementById('matrix-vegetables'); if (!vegContainer) return; vegContainer.innerHTML = '';
-    for (const [name, state] of Object.entries(vegetableMatrix)) {
-        let cls = state === 1 ? "bg-blue-600 text-white font-bold shadow-sm" : "bg-white text-slate-700 border-slate-200";
-        let text = state === 1 ? "🔵 חובה להשתמש" : "🔘 אפשר להשתמש";
-        vegContainer.innerHTML += `<button onclick="toggleMatrixItem('veg', '${name}')" class="w-full text-right p-1.5 rounded-lg border text-[10px] mb-1 flex justify-between items-center ${cls}"><span>${name}</span><span>${text}</span></button>`;
-    }
-    const toolContainer = document.getElementById('matrix-tools'); if (!toolContainer) return; toolContainer.innerHTML = '';
-    for (const [name, state] of Object.entries(toolMatrix)) {
-        let cls = state === 1 ? "bg-purple-600 text-white font-bold shadow-sm" : "bg-white text-slate-700 border-slate-200";
-        let text = state === 1 ? "🟣 חובה להשתמש" : "🔘 אפשר להשתמש";
-        toolContainer.innerHTML += `<button onclick="toggleMatrixItem('tool', '${name}')" class="w-full text-right p-1.5 rounded-lg border text-[10px] mb-1 flex justify-between items-center ${cls}"><span>${name}</span><span>${text}</span></button>`;
-    }
-}
-
-function toggleMatrixItem(type, name) { if (type === 'veg') vegetableMatrix[name] = vegetableMatrix[name] === 1 ? 0 : 1; else toolMatrix[name] = toolMatrix[name] === 1 ? 0 : 1; buildAILists(); }
-if(typeof addCustomVegetable === 'undefined') { window.addCustomVegetable = function() { let name = prompt("הזן שם ירק:"); if (name) { vegetableMatrix[name] = 0; buildAILists(); } } }
-
-function cycleRecipeTime() {
-    recipeTimeMode = (recipeTimeMode + 1) % 3; const btn = document.getElementById('time-cycle-btn');
-    if (recipeTimeMode === 0) btn.innerText = "⏱️ זמן: מהיר (עד 20 דק')";
-    else if (recipeTimeMode === 1) btn.innerText = "⏱️ זמן: בינוני (עד 45 דק')";
-    else btn.innerText = "⏱️ זמן: איטי (ללא הגבלת זמן)";
-}
-
-function getCurrentlyVisibleProducts() {
-    let products = [];
-    for (const [cat, items] of Object.entries(appData)) {
-        items.forEach(i => {
-            const matchesSearch = i.name.toLowerCase().includes(searchQuery) || (i.notes && i.notes.toLowerCase().includes(searchQuery));
-            const toOrder = calculateToOrder(i); let visible = true;
-            if (activeFilter === 'to-order' && toOrder === 0) visible = false;
-            if (activeFilter === 'in-stock' && toOrder > 0) visible = false;
-            if (matchesSearch && visible) products.push({ name: i.name, existing: i.existing, recommended: i.recommended, notes: i.notes });
-        });
-    } return products;
-}
-
-async function callGeminiAPI(contents) {
-    const key = localStorage.getItem('aliSiach_gemini_key'); if (!key) { alert("⚠️ חסר מפתח Gemini API בהגדרות!"); return null; }
-    try {
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: contents })
-        });
-        const data = await res.json(); return data.candidates?.[0]?.content?.parts?.[0]?.text || "שגיאה בניתוח.";
-    } catch (err) { return "תקלת תקשורת מול שרתי AI."; }
-}
-
-async function runAIProcurementAnalysis() {
-    const out = document.getElementById('ai-procure-output'); out.classList.remove('hidden'); out.innerText = "🤖 מנתח מגמות רכש חודשיות...";
-    let prompt = `השווה בין כמויות חודש קודם ('orderedLastMonth') למצב הקיים בדירה כרגע ('existing') וזהה מוצרים בחריגת קצב שימוש מוגבר או פריטים ששוכבים במלאי סתם. תן המלצות קצרות ויעילות לחיסכון ברכש החודשי.\n\nנתונים:\n${JSON.stringify(appData)}`;
-    out.innerText = await callGeminiAPI([{ parts: [{ text: prompt }] }]);
-}
-
-async function generateAdvancedAIRecipe() {
-    const out = document.getElementById('ai-recipe-output'); out.classList.remove('hidden'); out.innerText = "🤖 בונה מתכון מותאם אישית...";
-    const visibleProducts = getCurrentlyVisibleProducts(); const dishInput = document.getElementById('ai-recipe-dish-input').value.trim();
-    const timeLabels = ["מהיר (עד 20 דקות)", "בינוני (עד 45 דקות)", "איטי (ללא הגבלת זמן)"];
-
-    let prompt = `הצע מתכון קל וטעים ל-6 דיירים בעלי שיח בהתבסס על ההגבלות הבאות:\n`;
-    prompt += `סוג פנייה: ${dishInput ? `המצרך המבוקש המפורש הוא ${dishInput}` : 'בחירה חופשית ורעיונות שלך לפי המלאי'}\n`;
-    prompt += `זמן הכנה נדרש קשיח: ${timeLabels[recipeTimeMode]}\n\n`;
-    prompt += `חוקי מטבח קשיחים של הדירה: בישול בשרי, ללא שימוש במעבד מזון, חיתוך בסכין בלבד, שימוש בשמן קנולה בלבד, חסור שימוש מוחלט בסויה או כמון.\n\n`;
-    prompt += `קשר סינון נוכחי (השתמש אך ורק במוצרים אלו שנמצאים כעת על המסך תחת הסינון של המדריך!): ${JSON.stringify(visibleProducts)}\n\n`;
-    prompt += `מטריצת ירקות (0=אפשר, 1=חייב להשתמש): ${JSON.stringify(vegetableMatrix)}\n`;
-    prompt += `מטריצת כלי מטבח זמינים (0=אפשר, 1=חייב להשתמש): ${JSON.stringify(toolMatrix)}\n\n`;
-    prompt += `הצג את הוראות ההכנה בצורה פשוטה וברורה למדריכים, ובשורה האחרונה בהחלט תתתן שדרוג/האק מהיר למנה [Upgrade/Hack].`;
-    
-    out.innerText = await callGeminiAPI([{ parts: [{ text: prompt }] }]);
-}
-
-function handleReceiptUpload(e) { const file = e.target.files[0]; if (!file) return; receiptMimeType = file.type; document.getElementById('receipt-file-name').innerText = file.name; const reader = new FileReader(); reader.onload = function(evt) { base64ReceiptImage = evt.target.result.split(',')[1]; }; reader.readAsDataURL(file); }
-async function analyzeReceiptWithAI() {
-    const out = document.getElementById('ai-receipt-output'); out.classList.remove('hidden'); out.innerText = "🤖 סורק ומפענח את צילום הקבלה המולטימודלית...";
-    if (!base64ReceiptImage) { out.innerText = "⚠️ יש לבחור קובץ תמונה של קבלה."; return; }
-    let systemPrompt = `אתה סורק קבלות חכם של עלי שיח. קרא את פריטי המזון בקבלה המצורפת, השווה אותם מול דוח חסרי המלאי של הדירה: ${JSON.stringify(appData)}\nהחזר פלט קצר המפרט מה תואם, ובסוף הפלט החזר בצורה נקייה קוד JSON המכיל את רשימת השינויים המומלצת לעדכון המלאי בצורה הבאה: {"UPDATE_QTY": {"שם הקטגוריה": [{"itemName": "שם המוצר המדויק מהדוח", "addQty": 5}]}}`;
-    const text = await callGeminiAPI([{ parts: [{ inlineData: { mimeType: receiptMimeType, data: base64ReceiptImage } }, { text: systemPrompt }] }]); out.innerHTML = `<div class="whitespace-pre-line">${text}</div>`;
-    try { const match = text.match(/\{"UPDATE_QTY":[\s\S]*?\}/); if (match) { const jsonUpdate = JSON.parse(match[0]); out.innerHTML += `<div class="p-3 bg-emerald-50 border rounded-xl mt-2 flex justify-between items-center"><span class="font-bold text-emerald-950">📦 זוהו כמויות חדשות בקבלה. לעדכן את הטבלה אוטומטית?</span><button onclick='applyReceiptQuantities(${JSON.stringify(jsonUpdate.UPDATE_QTY)})' class="px-3 py-1.5 bg-emerald-600 text-white font-black rounded-lg">אשר ועדכן מלאי</button></div>`; } } catch(e) {}
-}
-function applyReceiptQuantities(updateData) { for (const [cat, items] of Object.entries(updateData)) { if (appData[cat]) { items.forEach(uItem => { let match = appData[cat].find(i => i.name === uItem.itemName); if (match) { match.existing = (parseFloat(match.existing) || 0) + (parseFloat(uItem.addQty) || 0); } }); } } renderApp(); triggerDebouncedSync(true); showToast("Mlay Updated!", "💾"); document.getElementById('ai-receipt-output').classList.add('hidden'); }
-
-async function sendFreeTextAIQuery() { const inp = document.getElementById('ai-chat-input'); const q = inp.value.trim(); if (!q) return; const cb = document.getElementById('ai-chat-box'); cb.innerHTML += `<div class="text-left bg-blue-100 p-2 rounded-xl mb-1 max-w-[80%] ml-auto"><b>אתה:</b> ${q}</div>`; inp.value = ''; let systemContext = `אתה עוזר הניהול והמטבח הרשמי של דירת המדריכים בעלי שיח. ענה על השאלה הבאה בצורה קצרה ופרקטית לצוות השטח:\nQuestion: ${q}`; const reply = await callGeminiAPI([{ parts: [{ text: systemContext }] }]); cb.innerHTML += `<div class="text-right bg-purple-100 p-2 rounded-xl mb-2 max-w-[80%] mr-auto"><b>AI:</b> ${reply}</div>`; cb.scrollTop = cb.scrollHeight; }
-
-function toggleSettingsModal() { if (!currentUser) return; const m = document.getElementById('settings-modal'); m.classList.toggle('hidden'); m.classList.toggle('flex'); renderAdminTeamList(); }
-function renderAdminTeamList() { const c = document.getElementById('admin-team-list'); if (c) c.innerHTML = ''; teamMembers.forEach(m => { if(c) c.innerHTML += `<div class="p-1 bg-white border rounded-lg mb-1 font-bold">👤 ${m.name} (${m.role})</div>`; }); }
+// ==========================================
+// 6. פאנלים חכמים (ספירה מהירה, עריכה, בינה מלאכותית)
+// ==========================================
 
 function startWalkthroughMode() {
     if (!currentUser) return; walkthroughItems = []; for (const cat in appData) { appData[cat].forEach((item, idx) => { walkthroughItems.push({ ...item, cat, origIdx: idx }); }); }
@@ -465,8 +360,63 @@ function saveProductModalData() {
     item.price = parseFloat(document.getElementById('modal-prod-price').value) || 0; item.recommended = parseFloat(document.getElementById('modal-prod-recommended').value) || 0;
     item.notes = document.getElementById('modal-prod-notes').value.trim(); closeProductModal(); renderApp(); triggerDebouncedSync(true);
 }
+
+function openAICenter() { if (!currentUser) return; document.getElementById('ai-center-modal').classList.remove('hidden'); document.getElementById('ai-center-modal').classList.add('flex'); buildAILists(); }
+// הגדרת פונקציית סגירת המרכז שהייתה חסרה
+function closeAICenter() { document.getElementById('ai-center-modal').classList.add('hidden'); document.getElementById('ai-center-modal').classList.remove('flex'); }
+function setAITab(tab) { activeAITab = tab; ['procure', 'recipes', 'receipt', 'chat'].forEach(t => { document.getElementById(`tab-ai-${t}`).className = t === tab ? "px-4 py-2 rounded-lg bg-white text-purple-900 shadow-sm" : "px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-200"; document.getElementById(`panel-ai-${t}`).classList.toggle('hidden', t !== tab); }); }
+
+function buildAILists() {
+    const vegContainer = document.getElementById('matrix-vegetables'); if (!vegContainer) return; vegContainer.innerHTML = '';
+    for (const [name, state] of Object.entries(vegetableMatrix)) {
+        let cls = state === 1 ? "bg-blue-600 text-white font-bold shadow-sm" : "bg-white text-slate-700 border-slate-200";
+        vegContainer.innerHTML += `<button onclick="toggleMatrixItem('veg', '${name}')" class="w-full text-right p-1.5 rounded-lg border text-[10px] mb-1 flex justify-between items-center ${cls}"><span>${name}</span><span>${state===1?'🔵 חובה':'🔘 אפשר'}</span></button>`;
+    }
+    const toolContainer = document.getElementById('matrix-tools'); if (!toolContainer) return; toolContainer.innerHTML = '';
+    for (const [name, state] of Object.entries(toolMatrix)) {
+        let cls = state === 1 ? "bg-purple-600 text-white font-bold shadow-sm" : "bg-white text-slate-700 border-slate-200";
+        toolContainer.innerHTML += `<button onclick="toggleMatrixItem('tool', '${name}')" class="w-full text-right p-1.5 rounded-lg border text-[10px] mb-1 flex justify-between items-center ${cls}"><span>${name}</span><span>${state===1?'🟣 חובה':'🔘 אפשר'}</span></button>`;
+    }
+}
+function toggleMatrixItem(type, name) { if (type === 'veg') vegetableMatrix[name] = vegetableMatrix[name] === 1 ? 0 : 1; else toolMatrix[name] = toolMatrix[name] === 1 ? 0 : 1; buildAILists(); }
+function addCustomVegetable() { let name = prompt("הזן שם ירק:"); if (name) { vegetableMatrix[name] = 0; buildAILists(); } }
+function cycleRecipeTime() {
+    recipeTimeMode = (recipeTimeMode + 1) % 3; const btn = document.getElementById('time-cycle-btn');
+    if (recipeTimeMode === 0) btn.innerText = "⏱️ זמן: מהיר (עד 20 דק')";
+    else if (recipeTimeMode === 1) btn.innerText = "⏱️ זמן: בינוני (עד 45 דק')";
+    else btn.innerText = "⏱️ זמן: איטי (ללא הגבלת זמן)";
+}
+
+function handleReceiptUpload(e) { const file = e.target.files[0]; if (!file) return; receiptMimeType = file.type; document.getElementById('receipt-file-name').innerText = file.name; const reader = new FileReader(); reader.onload = function(evt) { base64ReceiptImage = evt.target.result.split(',')[1]; }; reader.readAsDataURL(file); }
+
+async function runAIProcurementAnalysis() {
+    const out = document.getElementById('ai-procure-output'); out.classList.remove('hidden'); out.innerText = "🤖 מנתח מגמות רכש חודשיות...";
+    let prompt = `השווה בין כמויות חודש קודם למצב הקיים וזהה חריגות צריכה. תן המלצות לחיסכון ברכש.\nנתונים:\n${JSON.stringify(appData)}`;
+    out.innerText = await callGeminiAPI([{ parts: [{ text: prompt }] }]);
+}
+async function generateAdvancedAIRecipe() {
+    const out = document.getElementById('ai-recipe-output'); out.classList.remove('hidden'); out.innerText = "🤖 בונה מתכון מותאם אישית...";
+    const visibleProducts = getCurrentlyVisibleProducts(); const dishInput = document.getElementById('ai-recipe-dish-input').value.trim();
+    const timeLabels = ["מהיר (עד 20 דקות)", "בינוני (עד 45 דקות)", "איטי (ללא הגבלת זמן)"];
+    let prompt = `הצע מתכון ל-6 דיירים בעלי שיח. תוצר מבוקש: ${dishInput || 'חופשי'}. זמן: ${timeLabels[recipeTimeMode]}. חוקים: בשרי, סכין בלבד, שמן קנולה בלבד, ללא סויה/כמון. מוצרים גלויים: ${JSON.stringify(visibleProducts)}. ירקות: ${JSON.stringify(vegetableMatrix)}. כלים: ${JSON.stringify(toolMatrix)}. בסוף תן שדרוג מהיר בשורה אחת [Upgrade/Hack].`;
+    out.innerText = await callGeminiAPI([{ parts: [{ text: prompt }] }]);
+}
+async function analyzeReceiptWithAI() {
+    const out = document.getElementById('ai-receipt-output'); out.classList.remove('hidden'); out.innerText = "🤖 סורק ומפענח את צילום הקבלה...";
+    if (!base64ReceiptImage) { out.innerText = "⚠️ יש לבחור קובץ תמונה של קבלה."; return; }
+    let systemPrompt = `קרא את פריטי המזון בקבלה והשווה לחסרי המלאי: ${JSON.stringify(appData)}. החזר פלט קצר וקוד JSON לעדכון בצורה הבאה: {"UPDATE_QTY": {"שם הקטגוריה": [{"itemName": "שם המוצר", "addQty": 5}]}}`;
+    const text = await callGeminiAPI([{ parts: [{ inlineData: { mimeType: receiptMimeType, data: base64ReceiptImage } }, { text: systemPrompt }] }]); out.innerHTML = `<div class="whitespace-pre-line">${text}</div>`;
+    try { const match = text.match(/\{"UPDATE_QTY":[\s\S]*?\}/); if (match) { const jsonUpdate = JSON.parse(match[0]); out.innerHTML += `<div class="p-3 bg-emerald-50 border rounded-xl mt-2 flex justify-between items-center"><span class="font-bold text-emerald-950">📦 לעדכן כמויות אוטומטית?</span><button onclick='applyReceiptQuantities(${JSON.stringify(jsonUpdate.UPDATE_QTY)})' class="px-3 py-1.5 bg-emerald-600 text-white font-black rounded-lg">אשר ועדכן מלאי</button></div>`; } } catch(e) {}
+}
+function applyReceiptQuantities(updateData) { for (const [cat, items] of Object.entries(updateData)) { if (appData[cat]) { items.forEach(uItem => { let match = appData[cat].find(i => i.name === uItem.itemName); if (match) { match.existing = (parseFloat(match.existing) || 0) + (parseFloat(uItem.addQty) || 0); } }); } } renderApp(); triggerDebouncedSync(true); showToast("המלאי עודכן בהצלחה!", "💾"); document.getElementById('ai-receipt-output').classList.add('hidden'); }
+async function sendFreeTextAIQuery() { const inp = document.getElementById('ai-chat-input'); const q = inp.value.trim(); if (!q) return; const cb = document.getElementById('ai-chat-box'); cb.innerHTML += `<div class="text-left bg-blue-100 p-2 rounded-xl mb-1 max-w-[80%] ml-auto"><b>אתה:</b> ${q}</div>`; inp.value = ''; let systemContext = `ענה בקצר ופרקטי למדריך בדירת עלי שיח: ${q}`; const reply = await callGeminiAPI([{ parts: [{ text: systemContext }] }]); cb.innerHTML += `<div class="text-right bg-purple-100 p-2 rounded-xl mb-2 max-w-[80%] mr-auto"><b>AI:</b> ${reply}</div>`; cb.scrollTop = cb.scrollHeight; }
+
+function toggleSettingsModal() { if (!currentUser) return; const m = document.getElementById('settings-modal'); if(m) m.classList.toggle('hidden'); renderAdminTeamList(); }
+function renderAdminTeamList() { const c = document.getElementById('admin-team-list'); if (c) c.innerHTML = ''; teamMembers.forEach(m => { if(c) c.innerHTML += `<div class="p-1 bg-white border rounded-lg mb-1 font-bold">👤 ${m.name} (${m.role})</div>`; }); }
+
 function showToast(msg, icon = "✨") {
-    const t = document.getElementById('toast'); document.getElementById('toast-message').innerText = msg; document.getElementById('toast-icon').innerText = icon;
+    const t = document.getElementById('toast'); if(!t) return;
+    document.getElementById('toast-message').innerText = msg; document.getElementById('toast-icon').innerText = icon;
     t.classList.remove('translate-y-20', 'opacity-0'); t.classList.add('translate-y-0', 'opacity-100');
     setTimeout(() => { t.classList.remove('translate-y-0', 'opacity-100'); t.classList.add('translate-y-20', 'opacity-0'); }, 3000);
 }
