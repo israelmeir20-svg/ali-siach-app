@@ -1,4 +1,4 @@
-// אפליקציית עלי שיח - מודול AI חכם ומחולל מתכונים
+// אפליקציית עלי שיח - מודול AI חכם ומחולל מתכונים (מתוקן)
 window.activeAITab = 'procure';
 window.base64ReceiptImage = null;
 window.receiptMimeType = null;
@@ -29,7 +29,6 @@ function toggleMatrixPanel(type) {
 }
 window.toggleMatrixPanel = toggleMatrixPanel;
 
-// בניית לחצנים אינטראקטיביים אמיתיים עם אימוג'ים מוגדרים (סעיף א)
 function buildAILists() {
     const vegContainer = document.getElementById('matrix-vegetables'); if (!vegContainer) return; vegContainer.innerHTML = '';
     for (const [name, state] of Object.entries(window.vegetableMatrix)) {
@@ -60,6 +59,7 @@ function buildAILists() {
         toolContainer.appendChild(buttonNode);
     }
 }
+window.buildAILists = buildAILists;
 
 function cycleMatrixState(type, name) {
     if (type === 'veg') {
