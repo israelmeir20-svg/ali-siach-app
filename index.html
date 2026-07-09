@@ -6,14 +6,13 @@
     <title>עלי שיח - ניהול מלאי ומעקב חכם</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body class="text-slate-800 antialiased min-h-screen flex flex-col">
 
     <div id="login-screen" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl p-6 shadow-2xl max-w-sm w-full space-y-4 border text-center">
             <div id="test-diagnostic-error" class="hidden text-right bg-red-600 text-white text-xs p-3 rounded-xl font-bold whitespace-pre-line leading-relaxed shadow-inner"></div>
-            
             <span class="text-5xl block">📦</span>
             <h2 class="text-xl font-black text-slate-900">מערכת מלאי - עלי שיח</h2>
             <p class="text-xs text-slate-500 font-bold">בחר את שמך והזן את קוד ה-PIN האישי שלך</p>
@@ -144,6 +143,12 @@
                         <div class="flex items-center gap-2">
                             <button onclick="cycleRecipeTime()" id="time-cycle-btn" class="px-4 py-2 rounded-xl border font-black bg-emerald-50 border-emerald-300 text-emerald-700 text-xs">⏱️ זמן: מהיר (עד 20 דק')</button>
                         </div>
+                        
+                        <div class="border rounded-2xl p-3 bg-slate-50 space-y-2">
+                            <span class="font-black text-slate-700 block border-b pb-1">🥫 בחירה ידנית ממוצרי המזווה הנוכחיים:</span>
+                            <div id="pantry-manual-selection-container" class="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto p-1 bg-white rounded-xl border"></div>
+                        </div>
+
                         <button onclick="generateAdvancedAIRecipe()" class="w-full py-2.5 bg-emerald-600 text-white font-black rounded-xl shadow-sm">ייצר מתכון מותאם קשר</button>
                         <div id="ai-recipe-output" class="hidden whitespace-pre-line bg-slate-50 p-4 rounded-xl border leading-relaxed font-semibold"></div>
                     </div>
@@ -152,13 +157,16 @@
                         <div>
                             <div class="flex justify-between items-center border-b pb-1 mb-1 font-black text-slate-700">
                                 <span>🍅 ניהול ירקות</span>
-                                <button onclick="addCustomVegetable()" class="text-blue-600 text-[10px]">+ הוסף</button>
+                                <button onclick="addCustomMatrixItem('veg')" class="text-blue-600 text-[10px]">+ הוסף</button>
                             </div>
-                            <div id="matrix-vegetables" class="space-y-1"></div>
+                            <div id="matrix-vegetables" class="flex flex-wrap gap-2 pt-1"></div>
                         </div>
                         <div>
-                            <div class="border-b pb-1 mb-1 font-black text-slate-700">🍳 כלי מטבח בדירה</div>
-                            <div id="matrix-tools" class="space-y-1"></div>
+                            <div class="flex justify-between items-center border-b pb-1 mb-1 font-black text-slate-700">
+                                <span>🍳 כלי מטבח בדירה</span>
+                                <button onclick="addCustomMatrixItem('tool')" class="text-blue-600 text-[10px]">+ הוסף</button>
+                            </div>
+                            <div id="matrix-tools" class="flex flex-wrap gap-2 pt-1"></div>
                         </div>
                     </div>
                 </div>
@@ -185,11 +193,9 @@
     </div>
 
     <button onclick="toggleFloatingChat()" class="fixed bottom-4 left-4 w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-2xl z-50 text-xl">💬</button>
-    
     <div id="floating-chat-window" class="hidden fixed bottom-18 left-4 w-80 h-96 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden">
         <div class="p-3 bg-blue-600 text-white flex justify-between items-center"><h3 class="text-xs font-black">💬 צ'אט ועדכוני דירה</h3><button onclick="toggleFloatingChat()" class="text-xs font-bold">✕</button></div>
         <div id="chat-messages-container" class="flex-1 p-3 overflow-y-auto space-y-2 bg-slate-50 text-[11px]"></div>
-        
         <div class="p-2 border-t bg-white flex flex-col gap-1.5">
             <div class="flex gap-1 items-center">
                 <span class="text-[10px] font-bold text-slate-400">אל:</span>
@@ -211,7 +217,8 @@
                 <div class="border-l"><span class="block text-slate-400 font-bold text-[11px]">קיים בדירה:</span><div class="flex items-center justify-center gap-2 mt-1"><button onclick="adjustWtQty(-0.5)" class="w-7 h-7 rounded-lg bg-white border font-black shadow-sm">-</button><span id="wt-item-qty" class="text-xl font-black text-slate-900">0</span><button onclick="adjustWtQty(0.5)" class="w-7 h-7 rounded-lg bg-white border font-black shadow-sm">+</button></div></div>
                 <div class="flex flex-col justify-center items-center"><span class="block text-slate-400 font-bold text-[11px]">יעד מומלץ:</span><span id="wt-item-target" class="text-xl font-black text-slate-600">0</span></div>
             </div>
-            <div class="flex gap-2 pt-2"><button onclick="walkthroughPrev()" class="flex-1 py-2 rounded-xl border font-bold text-slate-700 bg-slate-50">⬅️ קודם</button><button onclick="walkthroughNext()" class="flex-1 py-2 rounded-xl bg-blue-600 text-white font-black shadow-md">הבא ➡️</button></div>
+            <div class="flex gap-2 pt-2"><button onclick="walkthroughPrev()" class="flex-1 py-2 rounded-xl border font-bold text-slate-700 bg-slate-50">⬅️ קודם (→)</button><button onclick="walkthroughNext()" class="flex-1 py-2 rounded-xl bg-blue-600 text-white font-black shadow-md">הבא (←) ➡️</button></div>
+            <p class="text-[10px] text-slate-400 font-bold">ניתן לניווט מלא באמצעות חיצי המקלדת (↑↓ לשינוי כמות)</p>
         </div>
     </div>
 
@@ -253,5 +260,6 @@
     </div>
 
     <script src="app.js"></script>
+    <script src="ai.js"></script>
 </body>
 </html>
