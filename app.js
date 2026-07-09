@@ -11,7 +11,8 @@ let searchQuery = '';
 let walkthroughItems = [];
 let walkthroughIndex = 0;
 let myChart = null;
-let activeEdit = null; // תוקן משתנה חופשי
+let activeEdit = null; 
+let viewMode = localStorage.getItem('aliSiachViewMode') || 'grid'; 
 
 // רכיב זיכרון משלים לקבלות (ייקרא על ידי ai.js)
 let lastAnalyzedReceiptData = null;
@@ -53,7 +54,7 @@ window.onunhandledrejection = function(event) {
     }
 };
 
-// טעינה וגיבוי מקומי כולל מטריצות ה-AI (נפתרה בעיית אובדן המצב)
+// טעינה וגיבוי מקומי כולל מטריצות ה-AI
 function loadLocalBackupData() {
     try {
         const cached = localStorage.getItem('aliSiachLocalCache');
@@ -70,7 +71,6 @@ function loadLocalBackupData() {
         }
     } catch (e) { console.error(e); }
     
-    // נתוני ברירת מחדל ראשוניים
     appData = {
         "טואלטיקה וניקיון": [
             { name: "אבקת כביסה", existing: 1, recommended: 3, price: 39, orderedLastMonth: 2, notes: "יום שני" },
@@ -151,12 +151,11 @@ function handleLogin() {
     } else { alert("PIN שגוי!"); }
 }
 
-// ניקוי מלא ומניעת זליגת הרשאות UI (תוקן הבאג האבטחתי)
 function handleLogout() { 
     currentUser = null; 
     document.getElementById('login-pin-input').value = ''; 
     document.getElementById('login-screen').classList.remove('hidden'); 
-    document.getElementById('admin-management-section').classList.add('hidden'); // הסתרה מוחלטת
+    document.getElementById('admin-management-section').classList.add('hidden'); 
     renderApp(); 
 }
 
@@ -199,7 +198,15 @@ function setFilter(type) {
     renderApp();
 }
 
-// בניית אפליקציה חדשה: תצוגת קוביות (Cards) מלאה הפותרת את באג א' ובאג ד'
+function setViewMode(mode) {
+    viewMode = mode;
+    localStorage.setItem('aliSiachViewMode', mode);
+    ['grid', 'table'].forEach(m => {
+        document.getElementById(`view-${m}-btn`).className = m === mode ? "px-3 py-1.5 rounded-lg bg-blue-600 text-white shadow-sm" : "px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-200";
+    });
+    renderApp();
+}
+
 function renderApp() {
     const container = document.getElementById('inventory-container'); if (!container) return; container.innerHTML = '';
     let criticalCount = 0, totalToOrderItems = 0, totalCost = 0;
@@ -217,62 +224,105 @@ function renderApp() {
         if (filtered.length === 0 && searchQuery !== '') continue;
 
         const catSection = document.createElement('div');
-        catSection.className = "space-y-3";
+        catSection.className = "space-y-3 bg-white border border-slate-200 p-4 rounded-3xl shadow-sm";
         
-        // כותרת קטגוריה
-        const headerDiv = document.createElement('div');
-        headerDiv.className = "flex justify-between items-center border-b pb-2 px-1";
-        headerDiv.innerHTML = `<h2 class="text-sm font-black text-slate-900 border-r-4 border-blue-600 pr-2">${catName}</h2><span class="bg-slate-100 text-slate-600 text-[10px] font-black px-2 py-0.5 rounded-md">${filtered.length} פריטים</span>`;
-        catSection.appendChild(headerDiv);
+        catSection.innerHTML = `
+            <div class="flex justify-between items-center border-b pb-2 px-1">
+                <h2 class="text-sm font-black text-slate-900 border-r-4 border-blue-600 pr-2">${catName}</h2>
+                <span class="bg-slate-100 text-slate-600 text-[10px] font-black px-2 py-0.5 rounded-md">${filtered.length} פריטים</span>
+            </div>
+        `;
 
-        // גריד קוביות (Grid System)
-        const gridContainer = document.createElement('div');
-        gridContainer.className = "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4";
+        if (viewMode === 'grid') {
+            const gridContainer = document.createElement('div');
+            gridContainer.className = "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 pt-2";
 
-        filtered.forEach(item => {
-            const toOrder = calculateToOrder(item); 
-            const origIndex = items.findIndex(i => i.name === item.name); 
-            const isMissing = item.existing === 0;
-            
-            let cardBorder = isMissing ? "border-red-300 bg-red-50/20" : toOrder > 0 ? "border-amber-300 bg-amber-50/10" : "border-slate-200 bg-white";
-            
-            const itemCard = document.createElement('div');
-            itemCard.className = `border rounded-2xl p-4 shadow-sm flex flex-col justify-between transition hover:shadow-md ${cardBorder}`;
-            
-            // תוכן ויזואלי פנימי של הקוביה
-            itemCard.innerHTML = `
-                <div class="space-y-2">
+            filtered.forEach(item => {
+                const toOrder = calculateToOrder(item);
+                const origIndex = items.findIndex(i => i.name === item.name);
+                
+                const itemCard = document.createElement('div');
+                itemCard.className = `border-2 rounded-2xl p-5 shadow-sm flex flex-col justify-between transition hover:shadow-md min-h-[240px] bg-white ${item.existing === 0 ? 'border-red-300 bg-red-50/5' : 'border-slate-200'}`;
+                
+                itemCard.innerHTML = `
                     <div class="flex justify-between items-start">
-                        <span class="text-base font-black text-slate-900">${getEmoji(item.name)} ${item.name}</span>
-                        <button class="text-slate-400 hover:text-blue-600 text-xs edit-modal-trigger">✏️</button>
+                        <span class="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">₪${item.price || 0}</span>
+                        <button class="text-slate-400 hover:text-blue-600 text-sm edit-modal-trigger">✏️</button>
                     </div>
-                    <div class="grid grid-cols-2 gap-1 text-[11px] text-slate-500 font-semibold">
-                        <div>יעד מומלץ: <span class="text-slate-800 font-bold">${item.recommended}</span></div>
-                        <div>חודש קודם: <span class="text-slate-800 font-bold">${item.orderedLastMonth || 0}</span></div>
-                        <div>מחיר יחידה: <span class="text-slate-800 font-bold">₪${item.price || 0}</span></div>
-                        <div class="${toOrder > 0 ? 'text-amber-600 font-bold' : 'text-slate-400'}">להזמנה: <span>${toOrder || '-'}</span></div>
+                    
+                    <div class="flex flex-col items-center justify-center flex-1 my-3 space-y-1">
+                        <h3 class="text-lg font-black text-slate-900 text-center leading-tight">${item.name}</h3>
+                        <span class="text-5xl select-none block pt-1">${getEmoji(item.name)}</span>
                     </div>
-                    ${item.notes ? `<p class="text-[10px] bg-slate-100/80 p-1.5 rounded-lg text-slate-600 truncate font-medium">💡 ${item.notes}</p>` : ''}
-                </div>
-                <div class="flex items-center justify-between border-t pt-3 mt-3">
-                    <span class="text-[10px] font-black text-slate-400">קיים בדירה:</span>
-                    <div class="flex items-center gap-2">
-                        <button class="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-black shadow-sm text-slate-700 active:scale-90 transition minus-btn">-</button>
-                        <span class="w-8 text-center font-black text-blue-700 text-base">${item.existing}</span>
-                        <button class="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-black shadow-sm text-slate-700 active:scale-90 transition plus-btn">+</button>
+
+                    <div class="grid grid-cols-2 gap-2 border-t pt-3 text-[11px] text-center font-bold">
+                        <div class="p-1 rounded-lg data-existing">קיים: <span class="block text-sm font-black">${item.existing}</span></div>
+                        <div class="p-1 rounded-lg data-recommended">יעד: <span class="block text-sm font-black">${item.recommended}</span></div>
+                        <div class="p-1 rounded-lg data-lastmonth">קודם: <span class="block text-sm font-black">${item.orderedLastMonth || 0}</span></div>
+                        <div class="p-1 rounded-lg ${toOrder > 0 ? 'data-toorder-active' : 'data-toorder'}">להזמנה: <span class="block text-sm font-black">${toOrder || '-'}</span></div>
                     </div>
-                </div>
+                    
+                    <div class="flex items-center justify-between mt-3 border-t pt-2 gap-2">
+                        <button class="w-8 h-8 rounded-lg border font-black bg-slate-50 text-slate-700 minus-btn">-</button>
+                        ${item.notes ? `<span class="text-[9px] text-slate-400 truncate max-w-[100px]" title="${item.notes}">💡 ${item.notes}</span>` : '<span class="flex-1"></span>'}
+                        <button class="w-8 h-8 rounded-lg border font-black bg-slate-50 text-slate-700 plus-btn">+</button>
+                    </div>
+                `;
+
+                itemCard.querySelector('.minus-btn').onclick = () => adjustQuantity(catName, origIndex, -0.5);
+                itemCard.querySelector('.plus-btn').onclick = () => adjustQuantity(catName, origIndex, 0.5);
+                itemCard.querySelector('.edit-modal-trigger').onclick = () => openProductModal(catName, origIndex);
+                gridContainer.appendChild(itemCard);
+            });
+            catSection.appendChild(gridContainer);
+        } else {
+            const tableWrapper = document.createElement('div');
+            tableWrapper.className = "overflow-x-auto pt-2";
+            let rowsHtml = '';
+
+            filtered.forEach(item => {
+                const toOrder = calculateToOrder(item);
+                const origIndex = items.findIndex(i => i.name === item.name);
+                rowsHtml += `
+                    <tr class="border-b text-xs font-bold text-slate-700 hover:bg-slate-50 transition">
+                        <td class="p-3 text-slate-900 text-sm font-black max-w-xs">${item.name}</td>
+                        <td class="p-3 data-existing text-center text-sm font-black">${item.existing}</td>
+                        <td class="p-3 data-recommended text-center">${item.recommended}</td>
+                        <td class="p-3 data-lastmonth text-center font-medium italic">${item.orderedLastMonth || 0}</td>
+                        <td class="p-3 text-center text-sm font-black ${toOrder > 0 ? 'data-toorder-active' : 'data-toorder'}">${toOrder || '-'}</td>
+                        <td class="p-3 text-slate-500 text-center">₪${item.price || 0}</td>
+                        <td class="p-3 text-slate-400 font-medium max-w-xs truncate">${item.notes || '-'}</td>
+                        <td class="p-3 text-center">
+                            <div class="flex justify-center gap-1">
+                                <button onclick="adjustQuantity('${catName}', ${origIndex}, -0.5)" class="px-2 py-1 bg-slate-100 border rounded font-black">-</button>
+                                <button onclick="adjustQuantity('${catName}', ${origIndex}, 0.5)" class="px-2 py-1 bg-slate-100 border rounded font-black">+</button>
+                                <button onclick="openProductModal('${catName}', ${origIndex})" class="px-2 py-1 bg-blue-50 text-blue-600 rounded">✏️</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tableWrapper.innerHTML = `
+                <table class="w-full text-right border-separate border-spacing-0">
+                    <thead>
+                        <tr class="text-[11px] font-black text-slate-500 bg-slate-50 border-b">
+                            <th class="p-3 border-b">שם המצרך</th>
+                            <th class="p-3 border-b text-center bg-blue-100/60 text-blue-900">קיים בדירה</th>
+                            <th class="p-3 border-b text-center bg-slate-200/60 text-slate-800">יעד מומלץ</th>
+                            <th class="p-3 border-b text-center bg-purple-100/60 text-purple-900">חודש קודם</th>
+                            <th class="p-3 border-b text-center bg-amber-100/60 text-amber-900">להזמנה</th>
+                            <th class="p-3 border-b text-center">מחיר</th>
+                            <th class="p-3 border-b">הערות תפריט</th>
+                            <th class="p-3 border-b text-center">פעולות</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rowsHtml}</tbody>
+                </table>
             `;
+            catSection.appendChild(tableWrapper);
+        }
 
-            // חיבור אירועים דינמי ללא Quote Clashing
-            itemCard.querySelector('.minus-btn').onclick = () => adjustQuantity(catName, origIndex, -0.5);
-            itemCard.querySelector('.plus-btn').onclick = () => adjustQuantity(catName, origIndex, 0.5);
-            itemCard.querySelector('.edit-modal-trigger').onclick = () => openProductModal(catName, origIndex);
-
-            gridContainer.appendChild(itemCard);
-        });
-
-        catSection.appendChild(gridContainer);
         container.appendChild(catSection);
     }
     
@@ -280,14 +330,52 @@ function renderApp() {
     document.getElementById('dash-total-val').innerText = totalToOrderItems;
     document.getElementById('dash-cost-val').innerText = `₪${totalCost.toFixed(2)}`;
     updateChartData(); 
-    
-    if (currentUser) {
-        renderMessages(); 
-        renderChatMessages();
-    }
+    if (currentUser) { renderMessages(); renderChatMessages(); }
 }
 
-// פונקציות מסך ספירת מלאי מונחה מקלדת (פתרון באג ב')
+function renderAdminTeamList() {
+    const c = document.getElementById('admin-team-list'); if (!c) return; c.innerHTML = '';
+    teamMembers.forEach((m, idx) => {
+        const row = document.createElement('div');
+        row.className = "flex justify-between items-center p-1.5 bg-white border rounded-lg mb-1 font-bold text-[11px]";
+        row.innerHTML = `
+            <span>👤 ${m.name} (${m.role === 'admin' ? 'מנהל' : 'מדריך'})</span>
+            <button class="text-red-500 hover:text-red-700 px-1 text-xs remove-user-btn">❌ מחק</button>
+        `;
+        row.querySelector('.remove-user-btn').onclick = () => {
+            if (currentUser && currentUser.name === m.name) { alert("אינך יכול למחוק את עצמך!"); return; }
+            teamMembers.splice(idx, 1);
+            renderAdminTeamList();
+            buildUserLoginSelect();
+            triggerDebouncedSync(true);
+            showToast("איש צוות הוסר", "👤");
+        };
+        c.appendChild(row);
+    });
+}
+
+function addNewTeamMember() {
+    const nameInp = document.getElementById('new-user-name');
+    const pinInp = document.getElementById('new-user-pin');
+    const roleSel = document.getElementById('new-user-role');
+    
+    const name = nameInp.value.trim();
+    const pin = pinInp.value.trim();
+    const role = roleSel.value;
+    
+    if (!name || pin.length !== 4) { alert("הזן שם עובד וקוד PIN בן 4 ספרות בדיוק!"); return; }
+    if (teamMembers.some(m => m.name === name)) { alert("שם עובד זה כבר קיים במערכת!"); return; }
+    
+    teamMembers.push({ name, pin, role });
+    nameInp.value = '';
+    pinInp.value = '';
+    
+    renderAdminTeamList();
+    buildUserLoginSelect();
+    triggerDebouncedSync(true);
+    showToast("איש צוות חדש נוסף בהצלחה!", "✨");
+}
+
 function startWalkthroughMode() {
     if (!currentUser) return; walkthroughItems = []; 
     for (const cat in appData) { appData[cat].forEach((item, idx) => { walkthroughItems.push({ ...item, cat, origIdx: idx }); }); }
@@ -316,7 +404,6 @@ function adjustWtQty(amt) {
 function walkthroughNext() { if (walkthroughIndex < walkthroughItems.length - 1) { walkthroughIndex++; showWalkthroughItem(); } else { closeWalkthroughMode(); showToast("ספירת המלאי הושלמה!", "🏁"); } }
 function walkthroughPrev() { if (walkthroughIndex > 0) { walkthroughIndex--; showWalkthroughItem(); } }
 
-// מאזין אירועי מקלדת גלובלי ייעודי לספירה (באג ב')
 document.addEventListener('keydown', function(e) {
     const wtScreen = document.getElementById('walkthrough-screen');
     if (wtScreen && wtScreen.classList.contains('flex')) {
@@ -327,7 +414,6 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-// צ'אט, התראות ופונקציות ייצוא בסיסיות
 let isNotificationOpen = false;
 function toggleNotificationDropdown() {
     if (!currentUser) return;
@@ -434,7 +520,6 @@ function saveProductModalData() {
 }
 
 function toggleSettingsModal() { if (!currentUser) return; const m = document.getElementById('settings-modal'); m.classList.toggle('hidden'); m.classList.toggle('flex'); renderAdminTeamList(); }
-function renderAdminTeamList() { const c = document.getElementById('admin-team-list'); if (c) c.innerHTML = ''; teamMembers.forEach(m => { if(c) c.innerHTML += `<div class="p-1 bg-white border rounded-lg mb-1 font-bold">👤 ${m.name} (${m.role})</div>`; }); }
 
 function toggleDarkMode() { isDarkMode = !isDarkMode; localStorage.setItem('aliSiachDarkMode', isDarkMode); applyDarkModeStyles(); }
 function applyDarkModeStyles() {
