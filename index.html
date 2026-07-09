@@ -5,18 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>עלי שיח - ניהול מלאי ומעקב חכם</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- שילוב ספריית הגרפים הרשמית Chart.js ומנוע האייקונים -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&display=swap');
         body { font-family: 'Assistant', sans-serif; background-color: #f8fafc; transition: background-color 0.3s, color 0.3s; }
-        .sticky-thead th { position: sticky; top: 64px; z-index: 20; box-shadow: 0 2px 2px -1px rgba(0,0,0,0.05); }
+        
+        /* תיקון קשיח לנעילת כותרות הטבלה למניעת חפיפת שורות */
+        .sticky-thead th { position: sticky; top: 64px; z-index: 20; background-color: #f8fafc !important; box-shadow: 0 2px 2px -1px rgba(0,0,0,0.05); }
+        
         body.dark-mode { background-color: #0f172a; color: #e2e8f0; }
         body.dark-mode nav, body.dark-mode .bg-white { background-color: #1e293b; color: #e2e8f0; border-color: #334155; }
         body.dark-mode input, body.dark-mode select { background-color: #334155; color: #ffffff; border-color: #475569; }
         body.dark-mode tr:hover { background-color: #334155 !important; }
         body.dark-mode .bg-slate-50, body.dark-mode .bg-slate-100 { background-color: #334155; color: #e2e8f0; }
-        body.dark-mode th { background-color: #1e293b !important; color: #94a3b8; }
+        body.dark-mode .sticky-thead th { background-color: #1e293b !important; color: #94a3b8; }
         body.dark-mode .text-slate-900 { color: #ffffff; }
     </style>
 </head>
@@ -76,12 +78,12 @@
             </div>
         </div>
     </nav>
+
     <!-- מסך אפליקציה ראשי -->
     <main class="flex-1 max-w-7xl w-full mx-auto p-4 space-y-4">
         
         <!-- דשבורד גרפי וחזותי עליון מתקדם -->
         <div id="dashboard-area" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <!-- כרטיסי נתונים -->
             <div class="space-y-3">
                 <div id="dash-card-missing" class="bg-white border p-4 rounded-2xl shadow-sm flex items-center justify-between border-r-4 border-r-red-500">
                     <div><span class="text-[10px] font-bold text-slate-400 block">מוצרים חסרים (כמות 0)</span><span id="dash-missing-val" class="text-xl font-black text-slate-900">0</span></div>
@@ -96,7 +98,6 @@
                     <span class="text-2xl">💰</span>
                 </div>
             </div>
-            <!-- מכולת גרף חלוקת קטגוריות -->
             <div class="bg-white border p-3 rounded-2xl shadow-sm col-span-1 md:col-span-2 h-56 flex flex-col justify-between">
                 <span class="text-[10px] font-black text-slate-400 block border-b pb-1">📈 התפלגות חסרי מלאי לפי קטגוריות</span>
                 <div class="flex-1 relative mt-1">
@@ -134,16 +135,14 @@
         <div id="inventory-container" class="space-y-6"></div>
     </main>
 
-    <!-- מרכז בינה מלאכותית מורחב (AI Control Hub Modal) -->
+    <!-- מרכז בינה מלאכותית מורחב -->
     <div id="ai-center-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-4xl w-full shadow-2xl overflow-hidden flex flex-col border h-[85vh]">
-            <!-- כותרת המודל -->
+        <div class="bg-white rounded-3xl max-w-4xl w-full shadow-2xl overflow-hidden flex flex-col h-[85vh]">
             <div class="p-4 bg-purple-900 text-white flex justify-between items-center">
                 <div class="flex items-center gap-2"><span>🧠</span><h2 class="text-sm font-black">מרכז בקרה ותפעול חכם AI - עלי שיח</h2></div>
                 <button onclick="closeAICenter()" class="text-purple-200 hover:text-white font-bold text-xs">סגור</button>
             </div>
             
-            <!-- תפריט פנימי לניווט בין פונקציות ה-AI -->
             <div class="bg-slate-100 p-2 flex gap-1 border-b text-xs font-bold">
                 <button id="tab-ai-procure" onclick="setAITab('procure')" class="px-4 py-2 rounded-lg bg-white text-purple-900 shadow-sm">📋 המלצות רכש וחיסכון</button>
                 <button id="tab-ai-recipes" onclick="setAITab('recipes')" class="px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-200">🍳 מחולל מתכונים מתקדם</button>
@@ -151,14 +150,9 @@
                 <button id="tab-ai-chat" onclick="setAITab('chat')" class="px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-200">💬 עוזר חופשי לצוות</button>
             </div>
 
-            <!-- תוכן הלשוניות -->
-            <div class="flex-1 overflow-y-auto p-4 space-y-4 text-xs">
-                
+            <div class="p-4 overflow-y-auto space-y-4 flex-1 text-xs">
                 <!-- לשונית 1: המלצות רכש -->
                 <div id="panel-ai-procure" class="space-y-3">
-                    <div class="bg-purple-50 p-3 rounded-xl border border-purple-100">
-                        <p class="font-bold text-purple-950">מערכת הניתוח תסרוק כעת את נתוני "חודש קודם" מול המלאי הקיים, תחשב חריגות ותציע דרכי חיסכון בהזמנה הנוכחית.</p>
-                    </div>
                     <button onclick="runAIProcurementAnalysis()" class="w-full py-2.5 bg-purple-600 text-white font-black rounded-xl shadow-md">הפעל ניתוח מלאי מגמתי</button>
                     <div id="ai-procure-output" class="hidden whitespace-pre-line bg-slate-50 p-4 rounded-xl border leading-relaxed font-semibold"></div>
                 </div>
@@ -168,27 +162,26 @@
                     <div class="md:col-span-2 space-y-3">
                         <div class="space-y-1">
                             <label class="font-black text-slate-700">שם התוצר המבוקש (השאר ריק לבחירה חופשית):</label>
-                            <input type="text" id="ai-recipe-dish-input" placeholder="למשל: מרק ירקות עשיר, שקשוקה, פסטה בסיר אחד..." class="w-full p-2.5 border rounded-xl font-bold">
+                            <input type="text" id="ai-recipe-dish-input" placeholder="למשל: מרק ירקות, פסטה..." class="w-full p-2.5 border rounded-xl font-bold">
                         </div>
-                        <div class="flex gap-2">
-                            <button onclick="setRecipeTime('fast')" id="time-fast" class="px-3 py-2 rounded-xl border font-bold bg-emerald-50 border-emerald-300 text-emerald-700">⏱️ מהיר (חצי שעה)</button>
-                            <button onclick="setRecipeTime('medium')" id="time-medium" class="px-3 py-2 rounded-xl border font-bold text-slate-600">🍲 מושקע (לערב/שבת)</button>
+                        <div class="flex items-center gap-2">
+                            <!-- כפתור אימוג'י שעון משולש מצבים -->
+                            <button onclick="cycleRecipeTime()" id="time-cycle-btn" class="px-4 py-2 rounded-xl border font-black bg-emerald-50 border-emerald-300 text-emerald-700 text-xs">⏱️ זמן: מהיר (עד 20 דק')</button>
                         </div>
                         <button onclick="generateAdvancedAIRecipe()" class="w-full py-2.5 bg-emerald-600 text-white font-black rounded-xl shadow-sm">ייצר מתכון מותאם קשר</button>
                         <div id="ai-recipe-output" class="hidden whitespace-pre-line bg-slate-50 p-4 rounded-xl border leading-relaxed font-semibold"></div>
                     </div>
                     
-                    <!-- סיידבר הגדרות הירקות והכלים של הדירה -->
                     <div class="bg-slate-50 p-3 rounded-2xl border space-y-4 max-h-[55vh] overflow-y-auto">
                         <div>
                             <div class="flex justify-between items-center border-b pb-1 mb-1 font-black text-slate-700">
-                                <span>🍅 ניהול ירקות זמינים</span>
-                                <button onclick="addCustomVegetable()" class="text-blue-600 text-[10px]">+ הוסף ירק</button>
+                                <span>🍅 ניהול ירקות</span>
+                                <button onclick="addCustomVegetable()" class="text-blue-600 text-[10px]">+ הוסף</button>
                             </div>
                             <div id="matrix-vegetables" class="space-y-1"></div>
                         </div>
                         <div>
-                            <div class="border-b pb-1 mb-1 font-black text-slate-700">🍳 פרופיל כלי מטבח בדירה</div>
+                            <div class="border-b pb-1 mb-1 font-black text-slate-700">🍳 כלי מטבח בדירה</div>
                             <div id="matrix-tools" class="space-y-1"></div>
                         </div>
                     </div>
@@ -196,15 +189,12 @@
 
                 <!-- לשונית 3: סורק קבלות חכם -->
                 <div id="panel-ai-receipt" class="hidden space-y-3">
-                    <div class="bg-blue-50 p-3 rounded-xl border border-blue-100">
-                        <p class="font-bold text-blue-950">העלה צילום של קבלת הקנייה האחרונה. ה-AI יסרוק אותה, ישווה אותה מול חסרי המלאי של הדירה ויאפשר לעדכן את כמויות המלאי באפליקציה אוטומטית.</p>
-                    </div>
                     <div class="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 p-6 rounded-xl bg-slate-50">
                         <input type="file" id="receipt-file-input" accept="image/*" class="hidden" onchange="handleReceiptUpload(event)">
-                        <button onclick="document.getElementById('receipt-file-input').click()" class="px-4 py-2 bg-slate-200 text-slate-700 font-black rounded-xl hover:bg-slate-300 transition">📁 בחר צילום קבלה</button>
+                        <button onclick="document.getElementById('receipt-file-input').click()" class="px-4 py-2 bg-slate-200 text-slate-700 font-black rounded-xl">📁 בחר צילום קבלה</button>
                         <span id="receipt-file-name" class="mt-2 text-[10px] font-bold text-slate-500">לא נבחר קובץ</span>
                     </div>
-                    <button onclick="analyzeReceiptWithAI()" class="w-full py-2.5 bg-blue-600 text-white font-black rounded-xl shadow-md">הפעל סורק קבלות ומאמת מלאי</button>
+                    <button onclick="analyzeReceiptWithAI()" class="w-full py-2.5 bg-blue-600 text-white font-black rounded-xl shadow-md">הפעל סורק קבלות</button>
                     <div id="ai-receipt-output" class="hidden bg-slate-50 p-4 rounded-xl border space-y-3 font-semibold"></div>
                 </div>
 
@@ -212,82 +202,79 @@
                 <div id="panel-ai-chat" class="hidden flex flex-col h-[50vh] border rounded-2xl bg-slate-50 overflow-hidden">
                     <div id="ai-chat-box" class="flex-1 p-3 overflow-y-auto space-y-2 font-medium"></div>
                     <div class="p-2 border-t bg-white flex gap-1">
-                        <input type="text" id="ai-chat-input" placeholder="שאל את ה-AI כל שאלה תפעולית או מקצועית לגבי הדירה..." class="w-full p-2 border rounded-xl font-bold focus:outline-none">
+                        <input type="text" id="ai-chat-input" placeholder="שאל את ה-AI שאלה חופשית..." class="w-full p-2 border rounded-xl font-bold focus:outline-none">
                         <button onclick="sendFreeTextAIQuery()" class="px-4 py-2 bg-purple-600 text-white font-black rounded-xl">שאל</button>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
 
-    <!-- כפתור צ'אט, הגדרות מנהל וטוסטים קבועים מהגרסה הקודמת -->
+    <!-- כפתור הודעות צף -->
     <button onclick="toggleFloatingChat()" class="fixed bottom-4 left-4 w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-2xl z-50 text-xl">💬</button>
+    
     <div id="floating-chat-window" class="hidden fixed bottom-18 left-4 w-80 h-96 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden">
         <div class="p-3 bg-blue-600 text-white flex justify-between items-center"><h3 class="text-xs font-black">💬 צ'אט ועדכוני דירה</h3><button onclick="toggleFloatingChat()" class="text-xs font-bold">✕</button></div>
         <div id="chat-messages-container" class="flex-1 p-3 overflow-y-auto space-y-2 bg-slate-50 text-[11px]"></div>
-        <div class="p-2 border-t bg-white flex gap-1"><input type="text" id="chat-text-input" placeholder="כתוב עדכון..." class="w-full p-2 border rounded-xl text-xs font-bold focus:outline-none"><button onclick="sendChatMessage()" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-xl">שלח</button></div>
-    </div>
-    <div id="settings-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden flex flex-col border max-h-[85vh]">
-            <div class="p-4 bg-slate-900 text-white flex justify-between items-center"><div class="flex items-center gap-2"><span>⚙️</span><h2 class="text-sm font-black">הגדרות מערכת</h2></div><button onclick="toggleSettingsModal()" class="text-slate-400 font-bold text-xs">סגור</button></div>
-            <div class="p-4 overflow-y-auto space-y-4 flex-1 text-xs">
-                <div class="space-y-2 bg-slate-50 p-3 rounded-2xl border">
-                    <h3 class="font-black text-slate-800 border-b pb-1">👤 פרופיל משתמש</h3>
-                    <div class="flex items-center justify-between pt-1"><span class="font-bold text-slate-600">מצב לילה (Dark Mode):</span><button onclick="toggleDarkMode()" id="dark-mode-toggle-btn" class="px-3 py-1 rounded-lg bg-slate-200 text-slate-700 font-bold">כבוי</button></div>
-                </div>
-                <div class="space-y-2"><h3 class="font-black text-blue-600 border-b pb-1">🌐 חיבור ענן</h3><div class="flex gap-1"><input type="text" id="cloud-url-input" class="w-full p-2 border rounded-xl font-mono text-[10px]"><button onclick="saveCloudUrl()" class="px-3 bg-blue-600 text-white font-bold rounded-xl">שמור</button></div></div>
-                <div class="space-y-2 pt-1"><h3 class="font-black text-emerald-600 border-b pb-1">🤖 מפתח Gemini API:</h3><div class="flex gap-1"><input type="password" id="gemini-key-input" class="w-full p-2 border rounded-xl font-mono text-[10px]"><button onclick="saveGeminiKey()" class="px-3 bg-emerald-600 text-white font-bold rounded-xl">שמור</button></div></div>
-                <div id="admin-management-section" class="space-y-2 pt-1 hidden">
-                    <h3 class="font-black text-purple-600 border-b pb-1">👥 ניהול צוות (מנהל)</h3>
-                    <div id="admin-team-list" class="space-y-1 max-h-24 overflow-y-auto bg-slate-50 p-2 rounded-xl border"></div>
-                </div>
+        
+        <!-- ממשק שליחה עם ניתוב למדריכים ספציפיים -->
+        <div class="p-2 border-t bg-white flex flex-col gap-1.5">
+            <div class="flex gap-1 items-center">
+                <span class="text-[10px] font-bold text-slate-400">אל:</span>
+                <select id="chat-target-select" class="flex-1 p-1 rounded-lg border text-[10px] font-bold bg-slate-50"></select>
+            </div>
+            <div class="flex gap-1">
+                <input type="text" id="chat-text-input" placeholder="כתוב הודעה..." class="w-full p-2 border rounded-xl text-xs font-bold focus:outline-none">
+                <button onclick="sendChatMessage()" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-xl">שלח</button>
             </div>
         </div>
     </div>
 
-    <div id="product-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl space-y-3 border text-xs">
-            <h3 class="text-sm font-black text-slate-900 border-b pb-1">✏️ עריכת מצרך</h3>
-            <div class="space-y-2">
-                <div><label class="block font-bold text-slate-400">שם המצרך:</label><input type="text" id="modal-prod-name" readonly class="w-full p-2 rounded-xl bg-slate-50 border font-bold text-slate-500"></div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div><label class="block font-bold text-slate-400">מחיר:</label><input type="number" id="modal-prod-price" class="w-full p-2 rounded-xl border font-bold"></div>
-                    <div><label class="block font-bold text-slate-400">יעד מומלץ:</label><input type="number" id="modal-prod-recommended" class="w-full p-2 rounded-xl border font-bold"></div>
-                </div>
-                <div><label class="block font-bold text-slate-400">הערות תפריט:</label><input type="text" id="modal-prod-notes" class="w-full p-2 rounded-xl border font-bold"></div>
+    <div id="walkthrough-screen" class="fixed inset-0 bg-slate-900/80 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 shadow-2xl max-w-sm w-full space-y-4 text-center border relative">
+            <button onclick="closeWalkthroughMode()" class="absolute top-4 left-4 font-black text-sm text-slate-400">✕</button>
+            <div class="space-y-1"><span id="wt-cat-title" class="bg-blue-50 text-blue-700 font-black px-3 py-1 rounded-full text-[9px]">קטגוריה</span><h3 id="wt-item-name" class="text-lg font-black text-slate-900 pt-1">-</h3></div>
+            <span id="wt-item-emoji" class="text-6xl block my-2 select-none">📦</span>
+            <div class="bg-slate-50 p-3 rounded-2xl grid grid-cols-2 gap-2 border">
+                <div class="border-l"><span class="block text-slate-400 font-bold text-[11px]">קיים בדירה:</span><div class="flex items-center justify-center gap-2 mt-1"><button onclick="adjustWtQty(-0.5)" class="w-7 h-7 rounded-lg bg-white border font-black shadow-sm">-</button><span id="wt-item-qty" class="text-xl font-black text-slate-900">0</span><button onclick="adjustWtQty(0.5)" class="w-7 h-7 rounded-lg bg-white border font-black shadow-sm">+</button></div></div>
+                <div class="flex flex-col justify-center items-center"><span class="block text-slate-400 font-bold text-[11px]">יעד מומלץ:</span><span id="wt-item-target" class="text-xl font-black text-slate-600">0</span></div>
             </div>
-            <div class="flex gap-2 pt-2"><button id="modal-prod-save-btn" class="flex-1 py-2 rounded-xl bg-blue-600 text-white font-black">שמור</button><button onclick="closeProductModal()" class="px-4 py-2 rounded-xl bg-slate-100 border text-slate-600 font-bold">ביטול</button></div>
+            <div class="flex gap-2 pt-2"><button onclick="walkthroughPrev()" class="flex-1 py-2 rounded-xl border font-bold text-slate-700 bg-slate-50">⬅️ קודם</button><button onclick="walkthroughNext()" class="flex-1 py-2 rounded-xl bg-blue-600 text-white font-black shadow-md">הבא ➡️</button></div>
         </div>
     </div>
 
-    <!-- טוסט -->
     <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 transform bg-slate-900 text-white px-4 py-2.5 rounded-2xl flex items-center gap-2 shadow-2xl transition duration-300 translate-y-20 opacity-0 z-50 text-xs font-bold"><span id="toast-icon">✨</span><span id="toast-message">הודעה</span></div>
 
     <script>
-        // תצורות קבועות ומבני נתונים
-        let appData = {}, teamMembers = [], teamMessages = [], currentUser = null, cloudUrl = localStorage.getItem('aliSiachCloudUrl') || "", saveTimeout = null, isDarkMode = localStorage.getItem('aliSiachDarkMode') === 'true';
-        let activeFilter = 'all', searchQuery = '', walkthroughItems = [], walkthroughIndex = 0, selectedRecipeTime = 'fast', activeAITab = 'procure', base64ReceiptImage = null, receiptMimeType = null;
-        let myChart = null; // ייצוג הגרף החזותי של Chart.js
+        const emojiMap = {
+            "אבקת כביסה": "🧺", "אמה": "🧽", "ברזלית": "🧽", "דאורדורנט": "🧴", "כרית ניקוי": "🧽", "מבשם אוויר": "💨",
+            "מסיר אבנית": "🧪", "מסיר כתמים": "🧪", "מסיר שומנים": "🔥", "מרכך כביסה": "🧼", "משחת שיניים": "🪥", "משמיד חרקים": "🪰",
+            "משמיד עובש": "🧪", "נוזל לניקוי רצפות": "🧼", "נייר טואלט": "🧻", "שמפו": "🧴", "שקיות אשפה": "🗑️", "תרסיס אקונומיקה": "🧴",
+            "אורז פרסי": "🍛", "פסטה": "🍝", "קוסקוס": "🍛", "פירורי לחם": "🍞", "רסק עגבניות": "🥫", "טונה": "🐟", "מלפפונים בחומץ": "🥒",
+            "חומוס": "🥫", "פטריות": "🍄", "גפילטע פיש": "🐟", "קטשופ": "🍅", "טחינה": "🍯", "שמן קנולה": "🍾", "מיץ ענבים": "🍇",
+            "קפה טסטר צ'ויס": "☕", "קפה נמס": "☕", "קורנפלקס": "🥣", "ופלים": "🍫", "עוגיות אוריאו": "🍪", "ערגליות": "🍪", "קולה": "🥤", "סודה": "🍾"
+        };
 
-        // מטריצות הגדרה עצמאיות עבור הירקות וכלי המטבח של הדירה (מצב 0 = אפשר, מצב 1 = חייב)
+        function getEmoji(name) { for (const [key, value] of Object.entries(emojiMap)) { if (name.includes(key)) return value; } return "📦"; }
+
+        let appData = {}, teamMembers = [], teamMessages = [], currentUser = null, cloudUrl = localStorage.getItem('aliSiachCloudUrl') || "", saveTimeout = null, isDarkMode = localStorage.getItem('aliSiachDarkMode') === 'true';
+        let activeFilter = 'all', searchQuery = '', walkthroughItems = [], walkthroughIndex = 0, activeAITab = 'procure', base64ReceiptImage = null, receiptMimeType = null, myChart = null;
+        
+        let recipeTimeMode = 0; // 0=מהיר, 1=בינוני, 2=איטי
         let vegetableMatrix = { "עגבניה": 0, "מלפפון": 0, "גזר": 0, "קולרבי": 0, "תפו\"א": 0, "כרוב": 0, "בצל": 0, "דלורית": 0, "פלפל": 0 };
         let toolMatrix = { "מחבת ללא מכסה בשרית": 0, "סיר שטוח עם מכסה בשרי": 0, "סיר קטן גבוה עם מכסה בשרי": 0, "סיר רגיל עם מכסה בשרי": 0, "סכין בשרית": 0, "סכין חלבית": 0, "פומפייה": 0, "תנור בשרי": 0, "טוסטר חלבי": 0, "כיריים": 0, "מיניבר": 0 };
-
-        function calculateToOrder(item) { let req = (parseFloat(item.recommended) || 0) - (parseFloat(item.existing) || 0); return req > 0 ? req : 0; }
 
         function loadLocalBackupData() {
             try {
                 const cached = localStorage.getItem('aliSiachLocalCache');
                 if (cached) {
                     const parsed = JSON.parse(cached);
-                    if (parsed && typeof parsed === 'object' && parsed.appData && Array.isArray(parsed.teamMembers)) {
+                    if (parsed && parsed.appData && Array.isArray(parsed.teamMembers) && parsed.teamMembers.length > 0) {
                         appData = parsed.appData; teamMembers = parsed.teamMembers; teamMessages = parsed.teamMessages || []; return;
                     }
                 }
-            } catch (e) { localStorage.removeItem('aliSiachLocalCache'); }
-            
-            // מלאי התחלתי מובנה
+            } catch (e) { console.error(e); }
+            localStorage.removeItem('aliSiachLocalCache');
             appData = {
                 "טואלטיקה וניקיון": [
                     { name: "אבקת כביסה", existing: 1, recommended: 3, price: 39, orderedLastMonth: 2, notes: "יום שני" },
@@ -300,63 +287,233 @@
                     { name: "טונה", existing: 12, recommended: 12, price: 5, orderedLastMonth: 12, notes: "" }
                 ]
             };
-            teamMembers = [{ name: "בצלאל", pin: "1234", role: "admin" }, { name: "אבריימי", pin: "1111", role: "staff" }];
-            teamMessages = [{ id: "msg_1", from: "מערכת", to: "כולם", text: "ברוכים הבאים!", date: "8.7.2026", readBy: [] }];
+            teamMembers = [
+                { name: "בצלאל", pin: "1234", role: "admin" }, { name: "אסתי", pin: "5678", role: "admin" }, { name: "אבריימי", pin: "1111", role: "staff" }, { name: "יהודה", pin: "2222", role: "staff" }
+            ];
+            teamMessages = [{ id: "msg_1", from: "מערכת", to: "כולם", text: "ברוכים הבאים למערכת המשותפת!", date: "8.7.2026", readBy: [] }];
         }
 
         function init() {
-            loadLocalBackupData(); applyDarkModeStyles(); buildUserLoginSelect(); renderApp(); initChart(); buildAILists();
-            if (cloudUrl) { document.getElementById('cloud-url-input').value = cloudUrl; fetchCloudData(); }
+            loadLocalBackupData(); applyDarkModeStyles(); setupRecipeDefaults(); buildUserLoginSelect(); renderApp(); initChart(); buildAILists(); buildChatTargetSelect();
         }
 
-        // אתחול ספריית הגרפים החזותית (Chart.js Horizontal Bar)
         function initChart() {
-            const ctx = document.getElementById('categoryChart');
-            if (!ctx) return;
+            const ctx = document.getElementById('categoryChart'); if (!ctx) return;
             if (myChart) myChart.destroy();
-            
             myChart = new Chart(ctx, {
                 type: 'bar',
-                data: { labels: [], datasets: [{ label: 'פריטים להזמנה לחסר (יח\')', data: [], backgroundColor: 'rgba(147, 51, 234, 0.6)', borderColor: 'rgb(147, 51, 234)', borderWidth: 1 }] },
+                data: { labels: [], datasets: [{ label: 'פריטים לחסר', data: [], backgroundColor: 'rgba(147, 51, 234, 0.6)', borderColor: 'rgb(147, 51, 234)', borderWidth: 1 }] },
                 options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { display: false } } } }
             });
             updateChartData();
         }
 
         function updateChartData() {
-            if (!myChart) return;
-            let labels = [], data = [];
-            for (const [cat, items] of Object.entries(appData)) {
-                let sum = 0; items.forEach(i => { sum += calculateToOrder(i); });
-                labels.push(cat); data.push(sum);
-            }
+            if (!myChart) return; let labels = [], data = [];
+            for (const [cat, items] of Object.entries(appData)) { let sum = 0; items.forEach(i => { sum += ((i.recommended || 0) - (i.existing || 0) > 0) ? ((i.recommended || 0) - (i.existing || 0)) : 0; }); labels.push(cat); data.push(sum); }
             myChart.data.labels = labels; myChart.data.datasets[0].data = data; myChart.update();
         }
 
-        // תיקון כפתור המייל (Executive Summary Setup to avoid length overflow)
-        function generateOrderTextShort() {
-            let txt = `דוח הזמנת מלאי - עלי שיח\nהרשימה המלאה הועתקה ללוח הגזירים (Clipboard). \n\nפריטים דחופים ביותר לחסר:\n`;
-            for (const [cat, items] of Object.entries(appData)) {
-                items.forEach(i => { if (i.existing === 0) txt += `• ${i.name} (נדרש: ${i.recommended})\n`; });
-            }
-            return txt;
+        function buildChatTargetSelect() {
+            const s = document.getElementById('chat-target-select'); if (!s) return; s.innerHTML = '<option value="כולם">📢 כולם (כל הצוות)</option>';
+            teamMembers.forEach(m => { s.innerHTML += `<option value="${m.name}">👤 ${m.name}</option>`; });
         }
 
-        function exportData(type) {
-            const fullText = generateOrderTextFull();
-            if (type === 'copy') {
-                navigator.clipboard.writeText(fullText); showToast("הרשימה המלאה הועתקה ללוח!", "📋");
-            } else if (type === 'whatsapp') {
-                window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(fullText)}`, '_blank');
-            } else if (type === 'email') {
-                navigator.clipboard.writeText(fullText); // העתקת המלא למקרה הצורך
-                const shortText = generateOrderTextShort();
-                window.location.href = `mailto:?subject=${encodeURIComponent('הזמנת מלאי דירה - עלי שיח')}&body=${encodeURIComponent(shortText)}`;
-            } else if (type === 'csv') {
-                let csv = "data:text/csv;charset=utf-8,\uFEFFקטגוריה,מוצר,קיים,מומלץ,להזמנה\n";
-                for (const [cat, items] of Object.entries(appData)) { items.forEach(i => { csv += `"${cat}","${i.name}",${i.existing},${i.recommended},${calculateToOrder(i)}\n`; }); }
-                const dl = document.createElement("a"); dl.setAttribute("href", encodeURI(csv)); dl.setAttribute("download", "מלאי.csv"); dl.click();
+        function buildUserLoginSelect() {
+            const select = document.getElementById('login-user-select'); if (!select) return; select.innerHTML = '';
+            teamMembers.forEach(m => { select.innerHTML += `<option value="${m.name}">${m.name} (${m.role === 'admin' ? 'מנהל' : 'מדריך'})</option>`; });
+        }
+
+        function handleLogin() {
+            const selectedName = document.getElementById('login-user-select').value; const inputPin = document.getElementById('login-pin-input').value;
+            const user = teamMembers.find(m => m.name === selectedName && m.pin === inputPin);
+            if (user) { currentUser = user; document.getElementById('login-screen').classList.add('hidden'); document.getElementById('current-user-display').innerText = user.name; if (user.role === 'admin') document.getElementById('admin-management-section').classList.remove('hidden'); renderApp(); } else { alert("PIN שגוי!"); }
+        }
+
+        function handleLogout() { currentUser = null; document.getElementById('login-pin-input').value = ''; document.getElementById('login-screen').classList.remove('hidden'); }
+
+        async function fetchCloudData() {
+            if (!cloudUrl || !navigator.onLine) return;
+            try {
+                const res = await fetch(cloudUrl); const data = await res.json();
+                if (data.success) {
+                    if (data.appData && Object.keys(data.appData).length > 0) appData = data.appData; if (data.teamMembers && data.teamMembers.length > 0) teamMembers = data.teamMembers; if (data.teamMessages) teamMessages = data.teamMessages;
+                    localStorage.setItem('aliSiachLocalCache', JSON.stringify({ appData, teamMembers, teamMessages })); buildUserLoginSelect(); buildChatTargetSelect(); renderApp();
+                }
+            } catch (e) { console.log(e); }
+        }
+
+        function triggerDebouncedSync(immediate = false) {
+            localStorage.setItem('aliSiachLocalCache', JSON.stringify({ appData, teamMembers, teamMessages }));
+            if (saveTimeout) clearTimeout(saveTimeout); if (immediate) syncWithCloud(); else saveTimeout = setTimeout(syncWithCloud, 1500);
+        }
+
+        async function syncWithCloud() {
+            if (!cloudUrl || !navigator.onLine) return;
+            try { await fetch(cloudUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ appData, teamMembers, teamMessages }) }); } catch (e) { console.log(e); }
+        }
+
+        function saveCloudUrl() { cloudUrl = document.getElementById('cloud-url-input').value.trim(); localStorage.setItem('aliSiachCloudUrl', cloudUrl); fetchCloudData(); showToast("הוגדר ענן!", "💾"); }
+        function saveGeminiKey() { localStorage.setItem('aliSiach_gemini_key', document.getElementById('gemini-key-input').value.trim()); showToast("הוגדר מפתח AI!", "🤖"); }
+
+        function adjustQuantity(category, index, change) {
+            const item = appData[category][index]; let val = (parseFloat(item.existing) || 0) + change; item.existing = val < 0 ? 0 : Math.round(val * 2) / 2;
+            renderApp(); triggerDebouncedSync();
+        }
+
+        function filterInventory() { searchQuery = document.getElementById('search-bar').value.toLowerCase(); renderApp(); }
+        function setFilter(type) {
+            activeFilter = type; ['all', 'to-order', 'in-stock'].forEach(t => { document.getElementById(`filter-${t}`).className = t === type ? "px-3 py-1.5 rounded-lg bg-white text-blue-600 shadow-sm" : "px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-200"; });
+            renderApp();
+        }
+
+        function renderApp() {
+            const container = document.getElementById('inventory-container'); if (!container) return; container.innerHTML = '';
+            let criticalCount = 0, totalToOrderItems = 0, totalCost = 0;
+
+            for (const [catName, items] of Object.entries(appData)) {
+                const filtered = items.filter(item => {
+                    const matchesSearch = item.name.toLowerCase().includes(searchQuery) || (item.notes && item.notes.toLowerCase().includes(searchQuery));
+                    const toOrder = calculateToOrder(item);
+                    if (item.existing === 0) criticalCount++;
+                    if (toOrder > 0) { totalToOrderItems += toOrder; totalCost += toOrder * (item.price || 0); }
+                    if (activeFilter === 'to-order') return matchesSearch && toOrder > 0;
+                    if (activeFilter === 'in-stock') return matchesSearch && toOrder === 0;
+                    return matchesSearch;
+                });
+                if (filtered.length === 0 && searchQuery !== '') continue;
+
+                const catSection = document.createElement('div');
+                catSection.className = "bg-white border rounded-3xl p-4 shadow-sm space-y-2 overflow-hidden";
+                let tableRows = '';
+                filtered.forEach(item => {
+                    const toOrder = calculateToOrder(item); const origIndex = items.findIndex(i => i.name === item.name); const isMissing = item.existing === 0;
+                    let rowBg = isMissing ? "bg-red-50/30" : toOrder > 0 ? "bg-amber-50/10" : "even:bg-slate-50/40";
+                    tableRows += `
+                        <tr class="border-b text-xs text-right font-medium ${rowBg} hover:bg-slate-50/80 transition">
+                            <td class="p-3 text-slate-900 font-bold max-w-xs">${getEmoji(item.name)} ${item.name}</td>
+                            <td class="p-3 bg-blue-50/30 dark:bg-blue-900/10 w-32">
+                                <div class="flex items-center gap-1">
+                                    <button onclick="adjustQuantity('${catName}', ${origIndex}, -0.5)" class="w-5 h-5 rounded-md bg-white border flex items-center justify-center font-black shadow-sm">-</button>
+                                    <span class="w-8 text-center font-black text-blue-700 dark:text-blue-400 text-sm">${item.existing}</span>
+                                    <button onclick="adjustQuantity('${catName}', ${origIndex}, 0.5)" class="w-5 h-5 rounded-md bg-white border flex items-center justify-center font-black shadow-sm">+</button>
+                                </div>
+                            </td>
+                            <td class="p-3 bg-slate-100/50 dark:bg-slate-800/10 font-bold text-slate-600">${item.recommended}</td>
+                            <td class="p-3 bg-purple-50/30 dark:bg-purple-900/10 italic text-purple-700 dark:text-purple-400 font-bold">${item.orderedLastMonth || 0}</td>
+                            <td class="p-3 bg-amber-50/40 dark:bg-amber-900/10 font-black text-sm ${toOrder > 0 ? 'text-amber-600' : 'text-slate-300'}">${toOrder || '-'}</td>
+                            <td class="p-3 text-slate-500">₪${item.price || 0}</td>
+                            <td class="p-3 text-slate-400 font-bold max-w-xs truncate">${item.notes || '-'}</td>
+                            <td class="p-3 text-center"><button onclick="openProductModal('${catName}', ${origIndex})" class="text-blue-500 hover:underline font-bold">✏️</button></td>
+                        </tr>
+                    `;
+                });
+
+                catSection.innerHTML = `
+                    <div class="flex justify-between items-center border-b pb-2 px-1">
+                        <h2 class="text-xs font-black text-slate-900 border-r-4 border-blue-600 pr-2">${catName}</h2>
+                        <span class="bg-slate-100 text-slate-600 text-[10px] font-black px-2 py-0.5 rounded-md">${filtered.length} פריטים</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right border-separate border-spacing-0">
+                            <thead>
+                                <tr class="sticky-thead text-[11px] font-black text-slate-400 border-b bg-slate-50">
+                                    <th class="p-3">שם המצרך</th>
+                                    <th class="p-3 bg-blue-50/50 text-blue-800">קיים בדירה</th>
+                                    <th class="p-3 bg-slate-100 text-slate-700">יעד מומלץ</th>
+                                    <th class="p-3 bg-purple-50 text-purple-800">חודש קודם</th>
+                                    <th class="p-3 bg-amber-50 text-amber-800">להזמנה</th>
+                                    <th class="p-3">מחיר</th>
+                                    <th class="p-3">הערות תפריט</th>
+                                    <th class="p-3 text-center">פעולות</th>
+                                </tr>
+                            </thead>
+                            <tbody>${tableRows}</tbody>
+                        </table>
+                    </div>
+                `; container.appendChild(catSection);
             }
+            document.getElementById('dash-missing-val').innerText = criticalCount;
+            document.getElementById('dash-total-val').innerText = totalToOrderItems;
+            document.getElementById('dash-cost-val').innerText = `₪${totalCost.toFixed(2)}`;
+            updateChartData(); renderMessages(); renderChatMessages();
+        }
+
+        // מערכת ניתוב הודעות חכמה למדריכים ספציפיים (Facebook / Targeted)
+        let isNotificationOpen = false;
+        function toggleNotificationDropdown() {
+            const dropdown = document.getElementById('notification-dropdown'); isNotificationOpen = !isNotificationOpen;
+            if (isNotificationOpen) { dropdown.classList.remove('hidden'); renderMessages(); } 
+            else { dropdown.classList.add('hidden'); if (currentUser) { teamMessages.forEach(m => { if (!m.readBy.includes(currentUser.name)) m.readBy.push(currentUser.name); }); renderApp(); triggerDebouncedSync(true); } }
+        }
+
+        function renderMessages() {
+            const container = document.getElementById('messages-list-container'); if (!container || !currentUser) return; container.innerHTML = '';
+            let unreadCount = 0;
+            
+            // סינון להצגת הודעות רלוונטיות בלבד
+            const visibleMsgs = teamMessages.filter(m => m.to === "כולם" || m.to === currentUser.name || m.from === currentUser.name);
+
+            teamMessages.forEach(m => { if ((m.to === "כולם" || m.to === currentUser.name) && !m.readBy.includes(currentUser.name) && m.from !== currentUser.name) unreadCount++; });
+            const badge = document.getElementById('unread-badge'); if (unreadCount > 0) { badge.innerText = unreadCount; badge.classList.remove('hidden'); } else badge.classList.add('hidden');
+            if (visibleMsgs.length === 0) { container.innerHTML = `<div class="text-slate-300 italic text-center py-3">אין הודעות</div>`; return; }
+            
+            visibleMsgs.slice(0, 10).forEach(m => {
+                const isRead = m.readBy.includes(currentUser.name) || m.from === currentUser.name;
+                const targetText = m.to !== "כולם" ? ` <span class="text-purple-600 font-bold">(פרטי אליך)</span>` : '';
+                container.innerHTML += `
+                    <div class="p-2 border-b text-[11px] hover:bg-slate-50 transition">
+                        <div class="flex justify-between text-[9px] text-slate-400"><span>מאת: ${m.from}${targetText}</span><span>${m.date}</span></div>
+                        <p class="${isRead ? 'text-slate-400' : 'text-slate-900 font-bold'}">${m.text}</p>
+                        <button onclick="replyToMessage('${m.from}')" class="text-blue-500 font-bold text-[10px] mt-1 block">↩️ השב בפרטי</button>
+                    </div>
+                `;
+            });
+        }
+
+        function replyToMessage(senderName) {
+            document.getElementById('notification-dropdown').classList.add('hidden'); isNotificationOpen = false;
+            const select = document.getElementById('chat-target-select'); if(select) select.value = senderName;
+            toggleFloatingChat(true);
+        }
+
+        let isChatOpen = false;
+        function toggleFloatingChat(forceOpen = false) {
+            const win = document.getElementById('floating-chat-window'); isChatOpen = forceOpen ? true : !isChatOpen;
+            if (isChatOpen) { win.classList.remove('hidden'); renderChatMessages(); } else win.classList.add('hidden');
+        }
+
+        function sendChatMessage() {
+            const inp = document.getElementById('chat-text-input'); const text = inp.value.trim(); if (!text || !currentUser) return;
+            const target = document.getElementById('chat-target-select').value;
+            teamMessages.unshift({ id: "msg_" + Date.now(), from: currentUser.name, to: target, text, date: new Date().toLocaleDateString('he-IL'), readBy: [currentUser.name] });
+            inp.value = ''; renderApp(); triggerDebouncedSync(true);
+        }
+
+        function renderChatMessages() {
+            const container = document.getElementById('chat-messages-container'); if (!container || !currentUser) return; container.innerHTML = '';
+            const visibleMsgs = teamMessages.filter(m => m.to === "כולם" || m.to === currentUser.name || m.from === currentUser.name);
+            
+            visibleMsgs.forEach(m => {
+                const isPrivate = m.to !== "כולם";
+                const badgeLabel = isPrivate ? `<span class="bg-purple-100 text-purple-700 px-1 rounded text-[8px]">אישי אל: ${m.to}</span>` : '<span class="bg-slate-100 text-slate-600 px-1 rounded text-[8px]">לכולם</span>';
+                container.innerHTML += `
+                    <div class="p-2 border rounded-xl bg-white mb-1.5 relative shadow-sm text-slate-800">
+                        <div class="flex justify-between text-[9px] text-slate-400 mb-0.5"><span><b>${m.from}</b> ${badgeLabel}</span><span>${m.date}</span></div>
+                        <p class="font-medium pr-3">${m.text}</p>
+                        <button onclick="deleteMessage('${m.id}')" class="absolute left-1 top-1 text-red-400 opacity-50 hover:opacity-100">✕</button>
+                    </div>
+                `;
+            });
+        }
+
+        function deleteMessage(id) { teamMessages = teamMessages.filter(m => m.id !== id); renderApp(); triggerDebouncedSync(true); }
+
+        // שיתוף קומפקטי קצר למניעת קריסות מייל
+        function generateOrderTextShort() {
+            let txt = `דוח הזמנת מלאי - עלי שיח\nהרשימה המלאה הועתקה ללוח.\n\nמוצרים חסרים דחופים (כמות 0):\n`;
+            for (const [cat, items] of Object.entries(appData)) { items.forEach(i => { if (i.existing === 0) txt += `• ${i.name} (מומלץ: ${i.recommended})\n`; }); }
+            return txt;
         }
 
         function generateOrderTextFull() {
@@ -369,7 +526,23 @@
             return txt;
         }
 
-        // פקדי ממשק ה-AI החדשים
+        function exportData(type) {
+            const fullText = generateOrderTextFull(); toggleSharePopover();
+            if (type === 'copy') { navigator.clipboard.writeText(fullText); showToast("הרשימה הועתקה!", "📋"); } 
+            else if (type === 'whatsapp') { window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(fullText)}`, '_blank'); } 
+            else if (type === 'email') {
+                navigator.clipboard.writeText(fullText); const shortText = generateOrderTextShort();
+                window.location.href = `mailto:?subject=${encodeURIComponent('הזמנת מלאי - עלי שיח')}&body=${encodeURIComponent(shortText)}`;
+            } else if (type === 'csv') {
+                let csv = "data:text/csv;charset=utf-8,\uFEFFקטגוריה,מוצר,קיים,מומלץ,להזמנה\n";
+                for (const [cat, items] of Object.entries(appData)) { items.forEach(i => { csv += `"${cat}","${i.name}",${i.existing},${i.recommended},${calculateToOrder(i)}\n`; }); }
+                const dl = document.createElement("a"); dl.setAttribute("href", encodeURI(csv)); dl.setAttribute("download", "מלאי.csv"); dl.click();
+            }
+        }
+
+        function toggleSharePopover() { document.getElementById('share-popover').classList.toggle('hidden'); }
+
+        // פקדי מרכז ה-AI המורחב
         function openAICenter() { document.getElementById('ai-center-modal').classList.remove('hidden'); document.getElementById('ai-center-modal').classList.add('flex'); buildAILists(); }
         function closeAICenter() { document.getElementById('ai-center-modal').classList.add('hidden'); document.getElementById('ai-center-modal').classList.remove('flex'); }
         function setAITab(tab) {
@@ -382,15 +555,15 @@
         function buildAILists() {
             const vegContainer = document.getElementById('matrix-vegetables'); vegContainer.innerHTML = '';
             for (const [name, state] of Object.entries(vegetableMatrix)) {
-                let cls = state === 1 ? "bg-blue-600 text-white font-bold" : "bg-white text-slate-700 border-slate-200";
-                let text = state === 1 ? "🔵 חייב: " : "⚪ אפשר: ";
-                vegContainer.innerHTML += `<button onclick="toggleMatrixItem('veg', '${name}')" class="w-full text-right p-1.5 rounded-lg border text-[10px] mb-1 ${cls}">${text}${name}</button>`;
+                let cls = state === 1 ? "bg-blue-600 text-white font-bold shadow-sm" : "bg-white text-slate-700 border-slate-200";
+                let text = state === 1 ? "🔵 חובה להשתמש" : "🔘 אפשר להשתמש";
+                vegContainer.innerHTML += `<button onclick="toggleMatrixItem('veg', '${name}')" class="w-full text-right p-1.5 rounded-lg border text-[10px] mb-1 flex justify-between items-center ${cls}"><span>${name}</span><span>${text}</span></button>`;
             }
             const toolContainer = document.getElementById('matrix-tools'); toolContainer.innerHTML = '';
             for (const [name, state] of Object.entries(toolMatrix)) {
-                let cls = state === 1 ? "bg-purple-600 text-white font-bold" : "bg-white text-slate-700 border-slate-200";
-                let text = state === 1 ? "🟣 חייב: " : "⚪ אפשר: ";
-                toolContainer.innerHTML += `<button onclick="toggleMatrixItem('tool', '${name}')" class="w-full text-right p-1.5 rounded-lg border text-[10px] mb-1 ${cls}">${text}${name}</button>`;
+                let cls = state === 1 ? "bg-purple-600 text-white font-bold shadow-sm" : "bg-white text-slate-700 border-slate-200";
+                let text = state === 1 ? "🟣 חובה להשתמש" : "🔘 אפשר להשתמש";
+                toolContainer.innerHTML += `<button onclick="toggleMatrixItem('tool', '${name}')" class="w-full text-right p-1.5 rounded-lg border text-[10px] mb-1 flex justify-between items-center ${cls}"><span>${name}</span><span>${text}</span></button>`;
             }
         }
 
@@ -400,25 +573,23 @@
             buildAILists();
         }
 
-        function addCustomVegetable() {
-            let name = prompt("הזן את שם הירק להוספה למטריצה:");
-            if (name) { vegetableMatrix[name] = 0; buildAILists(); }
+        function addCustomVegetable() { let name = prompt("הזן שם ירק:"); if (name) { vegetableMatrix[name] = 0; buildAILists(); } }
+
+        // כפתור אימוג'י שעון תלת-מצבי
+        function cycleRecipeTime() {
+            recipeTimeMode = (recipeTimeMode + 1) % 3;
+            const btn = document.getElementById('time-cycle-btn');
+            if (recipeTimeMode === 0) btn.innerText = "⏱️ זמן: מהיר (עד 20 דק')";
+            else if (recipeTimeMode === 1) btn.innerText = "⏱️ זמן: בינוני (עד 45 דק')";
+            else btn.innerText = "⏱️ זמן: איטי (ללא הגבלת זמן)";
         }
 
-        function setRecipeTime(t) {
-            selectedRecipeTime = t;
-            document.getElementById('time-fast').className = t === 'fast' ? "px-3 py-2 rounded-xl border font-bold bg-emerald-50 border-emerald-300 text-emerald-700" : "px-3 py-2 rounded-xl border font-bold text-slate-600";
-            document.getElementById('time-medium').className = t === 'medium' ? "px-3 py-2 rounded-xl border font-bold bg-emerald-50 border-emerald-300 text-emerald-700" : "px-3 py-2 rounded-xl border font-bold text-slate-600";
-        }
-
-        // פונקציית חילוץ פריטים מסוננים מבוססת DOM לקריאת הקשר אקטיבית
         function getCurrentlyVisibleProducts() {
             let products = [];
             for (const [cat, items] of Object.entries(appData)) {
                 items.forEach(i => {
                     const matchesSearch = i.name.toLowerCase().includes(searchQuery) || (i.notes && i.notes.toLowerCase().includes(searchQuery));
-                    const toOrder = calculateToOrder(i);
-                    let visible = true;
+                    const toOrder = calculateToOrder(i); let visible = true;
                     if (activeFilter === 'to-order' && toOrder === 0) visible = false;
                     if (activeFilter === 'in-stock' && toOrder > 0) visible = false;
                     if (matchesSearch && visible) products.push({ name: i.name, existing: i.existing, recommended: i.recommended, notes: i.notes });
@@ -427,149 +598,95 @@
             return products;
         }
 
-        // מנגנון פנייה מובטח ל-Gemini API הרשמי
         async function callGeminiAPI(contents) {
-            const key = localStorage.getItem('aliSiach_gemini_key');
-            if (!key) { alert("⚠️ שגיאה: חסר מפתח Gemini API בהגדרות המערכת! [Error: Missing Gemini API Key]"); return null; }
+            const key = localStorage.getItem('aliSiach_gemini_key'); if (!key) { alert("⚠️ חסר מפתח Gemini API בהגדרות!"); return null; }
             try {
                 const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: contents })
                 });
-                const data = await res.json();
-                return data.candidates?.[0]?.content?.parts?.[0]?.text || "שגיאה בניתוח הנתונים.";
-            } catch (err) { return "תקלת תקשורת מול שרתי גוגל AI."; }
+                const data = await res.json(); return data.candidates?.[0]?.content?.parts?.[0]?.text || "שגיאה בניתוח.";
+            } catch (err) { return "תקלת תקשורת מול שרתי AI."; }
         }
 
-        // א. המלצות רכש וחיסכון (Last Month vs Existing Data)
         async function runAIProcurementAnalysis() {
             const out = document.getElementById('ai-procure-output'); out.classList.remove('hidden'); out.innerText = "🤖 מנתח מגמות רכש חודשיות...";
-            let prompt = `נתח את רשימת המלאי הבאה של הדירה לעלי שיח. השווה בין כמויות חודש קודם ('orderedLastMonth') למצב הקיים בדירה כרגע ('existing').\n`;
-            prompt += `זהה מוצרים בקצב שימוש מוגבר (בזבוז) או מוצרים שלא נעשה בהם שימוש כלל (הצטברות מיותרת).\n`;
-            prompt += `תן המלצות מעשיות בשורות קצרות וברורות באילו פריטים ניתן לקצץ ואיפה יש להזמין בדחיפות.\n\nנתונים:\n${JSON.stringify(appData)}`;
-            const text = await callGeminiAPI([{ parts: [{ text: prompt }] }]);
-            out.innerText = text;
+            let prompt = `נתח את רשימת המלאי הבאה של הדירה לעלי שיח. השווה בין כמויות חודש קודם ('orderedLastMonth') למצב הקיים בדירה כרגע ('existing').\nזהה מוצרים בקצב שימוש מוגבר או הצטברות מיותרת, ותן המלצות קצרות ויעילות לחיסכון ברכש החודשי.\n\nנתונים:\n${JSON.stringify(appData)}`;
+            out.innerText = await callGeminiAPI([{ parts: [{ text: prompt }] }]);
         }
 
-        // ב. מחולל מתכונים מתקדם (Context-Aware Engine)
+        // מחולל מתכונים מתקדם מבוסס הקשר אקטיבי של מסך הדפדפן (DOM Context)
         async function generateAdvancedAIRecipe() {
             const out = document.getElementById('ai-recipe-output'); out.classList.remove('hidden'); out.innerText = "🤖 בונה מתכון מותאם אישית...";
-            const visibleProducts = getCurrentlyVisibleProducts();
+            const visibleProducts = getCurrentlyVisibleProducts(); // שליחת המוצרים המסוננים על המסך בלבד
             const dishInput = document.getElementById('ai-recipe-dish-input').value.trim();
-            
+            const timeLabels = ["מהיר (עד 20 דקות)", "בינוני (עד 45 דקות)", "איטי (ללא הגבלת זמן)"];
+
             let prompt = `הצע מתכון קל וטעים ל-6 דיירים בעלי שיח בהתבסס על ההגבלות הבאות:\n`;
             prompt += `סוג פנייה: ${dishInput ? `המצרך המבוקש המפורש הוא ${dishInput}` : 'בחירה חופשית ורעיונות שלך לפי המלאי'}\n`;
-            prompt += `זמן הכנה מותר: ${selectedRecipeTime === 'fast' ? 'מהיר עד חצי שעה' : 'מושקע לערב או לשבת'}\n\n`;
+            prompt += `זמן הכנה נדרש קשיח: ${timeLabels[recipeTimeMode]}\n\n`;
             prompt += `חוקי מטבח קשיחים של הדירה: בישול בשרי, ללא שימוש במעבד מזון, חיתוך בסכין בלבד, שימוש בשמן קנולה בלבד, חסור שימוש מוחלט בסויה או כמון.\n\n`;
-            prompt += `קשר סינון נוכחי (השתמש רק במוצרים אלו שנמצאים כעת על המסך תחת הסינון של המדריך): ${JSON.stringify(visibleProducts)}\n\n`;
+            prompt += `קשר סינון נוכחי (השתמש אך ורק במוצרים אלו שנמצאים כעת על המסך תחת הסינון של המדריך! אל תציע מוצרים אחרים מהמלאי הכללי אלא אם המנה דורשת זאת במפורש): ${JSON.stringify(visibleProducts)}\n\n`;
             prompt += `מטריצת ירקות (0=אפשר, 1=חייב להשתמש): ${JSON.stringify(vegetableMatrix)}\n`;
             prompt += `מטריצת כלי מטבח זמינים (0=אפשר, 1=חייב להשתמש): ${JSON.stringify(toolMatrix)}\n\n`;
             prompt += `חובה להציג את הוראות ההכנה בצורה פשוטה וברורה למדריכים, ובשורה האחרונה בהחלט לתת שדרוג/האק מהיר למנה [Upgrade/Hack].`;
             
-            const text = await callGeminiAPI([{ parts: [{ text: prompt }] }]);
-            out.innerText = text;
+            out.innerText = await callGeminiAPI([{ parts: [{ text: prompt }] }]);
         }
 
-        // ג. סורק קבלות מולטימודלי (Vision Processing)
         function handleReceiptUpload(e) {
-            const file = e.target.files[0]; if (!file) return;
-            receiptMimeType = file.type; document.getElementById('receipt-file-name').innerText = file.name;
-            const reader = new FileReader();
-            reader.onload = function(evt) { base64ReceiptImage = evt.target.result.split(',')[1]; };
-            reader.readAsDataURL(file);
+            const file = e.target.files[0]; if (!file) return; receiptMimeType = file.type; document.getElementById('receipt-file-name').innerText = file.name;
+            const reader = new FileReader(); reader.onload = function(evt) { base64ReceiptImage = evt.target.result.split(',')[1]; }; reader.readAsDataURL(file);
         }
 
         async function analyzeReceiptWithAI() {
             const out = document.getElementById('ai-receipt-output'); out.classList.remove('hidden'); out.innerText = "🤖 סורק ומפענח את צילום הקבלה המולטימודלית...";
-            if (!base64ReceiptImage) { out.innerText = "⚠️ שגיאה: יש לבחור קובץ תמונה של קבלה תחילה."; return; }
+            if (!base64ReceiptImage) { out.innerText = "⚠️ יש לבחור קובץ תמונה של קבלה."; return; }
             
-            let systemPrompt = `אתה סורק קבלות חכם של עלי שיח. שלוש משימות קשיחות לפניך:\n`;
-            systemPrompt += `1. קרא את פריטי המזון והמוצרים המופיעים בצילום הקבלה.\n`;
-            systemPrompt += `2. השווה אותם מול דוח חסרי המלאי הבא של הדירה וודא התאמה: ${JSON.stringify(appData)}\n`;
-            systemPrompt += `3. החזר פלט מובנה הכולל רשימת מוצרים שזוהו והאם הם תואמים לחסר. בסוף הפלט החזר בצורה נקייה קוד JSON המכיל את רשימת השינויים המומלצת לעדכון המלאי בצורה הבאה: {"UPDATE_QTY": {"CategoryName": [{"itemName": "שם המוצר", "addQty": 5}]}}\n`;
-            systemPrompt += `החזר את הכל בצורה ברורה לקריאה.`;
+            let systemPrompt = `אתה סורק קבלות חכם של עלי שיח. קרא את פריטי המזון בקבלה המצורפת, השווה אותם מול דוח חסרי המלאי של הדירה: ${JSON.stringify(appData)}\n`;
+            systemPrompt += `החזר פלט קצר המפרט מה תואם, ובסוף הפלט החזר בצורה נקייה קוד JSON המכיל את רשימת השינויים המומלצת לעדכון המלאי בצורה הבאה: {"UPDATE_QTY": {"שם הקטגוריה": [{"itemName": "שם המוצר המדויק מהדוח", "addQty": 5}]}}`;
 
-            const contents = [{
-                parts: [
-                    { inlineData: { mimeType: receiptMimeType, data: base64ReceiptImage } },
-                    { text: systemPrompt }
-                ]
-            }];
-
-            const text = await callGeminiAPI(contents);
+            const text = await callGeminiAPI([{ parts: [{ inlineData: { mimeType: receiptMimeType, data: base64ReceiptImage } }, { text: systemPrompt }] }]);
             out.innerHTML = `<div class="whitespace-pre-line">${text}</div>`;
             
-            // חילוץ קוד ה-JSON לעדכון אוטומטי באישור מדריך
             try {
                 const match = text.match(/\{"UPDATE_QTY":[\s\S]*?\}/);
                 if (match) {
                     const jsonUpdate = JSON.parse(match[0]);
-                    out.innerHTML += `
-                        <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl mt-2 flex justify-between items-center">
-                            <span class="font-bold text-emerald-950">📦 זוהו כמויות חדשות בקבלה. לעדכן את הטבלה אוטומטית?</span>
-                            <button onclick='applyReceiptQuantities(${JSON.stringify(jsonUpdate.UPDATE_QTY)})' class="px-3 py-1.5 bg-emerald-600 text-white font-black rounded-lg">אשר ועדכן מלאי</button>
-                        </div>`;
+                    out.innerHTML += `<div class="p-3 bg-emerald-50 border rounded-xl mt-2 flex justify-between items-center"><span class="font-bold text-emerald-950">📦 זוהו כמויות חדשות בקבלה. לעדכן את הטבלה אוטומטית?</span><button onclick='applyReceiptQuantities(${JSON.stringify(jsonUpdate.UPDATE_QTY)})' class="px-3 py-1.5 bg-emerald-600 text-white font-black rounded-lg">אשר ועדכן מלאי</button></div>`;
                 }
-            } catch(err) { console.log("No structured json found or parse error"); }
+            } catch(e) {}
         }
 
         function applyReceiptQuantities(updateData) {
             for (const [cat, items] of Object.entries(updateData)) {
-                if (appData[cat]) {
-                    items.forEach(uItem => {
-                        let match = appData[cat].find(i => i.name === uItem.itemName);
-                        if (match) { match.existing = (parseFloat(match.existing) || 0) + (parseFloat(uItem.addQty) || 0); }
-                    });
-                }
+                if (appData[cat]) { items.forEach(uItem => { let match = appData[cat].find(i => i.name === uItem.itemName); if (match) { match.existing = (parseFloat(match.existing) || 0) + (parseFloat(uItem.addQty) || 0); } }); }
             }
-            renderApp(); triggerDebouncedSync(true); showToast("המלאי עודכן בהצלחה לפי הקבלה!", "💾");
-            document.getElementById('ai-receipt-output').classList.add('hidden');
+            renderApp(); triggerDebouncedSync(true); showToast("המלאי עודכן בהצלחה!", "💾"); document.getElementById('ai-receipt-output').classList.add('hidden');
         }
 
-        // ד. אפשרות לשאול את ה-AI בנוסח חופשי (Chat Assistant)
         async function sendFreeTextAIQuery() {
             const inp = document.getElementById('ai-chat-input'); const q = inp.value.trim(); if (!q) return;
-            const cb = document.getElementById('ai-chat-box');
-            cb.innerHTML += `<div class="text-left bg-blue-100 p-2 rounded-xl mb-1 max-w-[80%] ml-auto"><b>אתה:</b> ${q}</div>`;
-            inp.value = '';
-            
+            const cb = document.getElementById('ai-chat-box'); cb.innerHTML += `<div class="text-left bg-blue-100 p-2 rounded-xl mb-1 max-w-[80%] ml-auto"><b>אתה:</b> ${q}</div>`; inp.value = '';
             let systemContext = `אתה עוזר הניהול והמטבח הרשמי של דירת המדריכים בעלי שיח. ענה על השאלה הבאה בצורה קצרה ופרקטית לצוות השטח:\nQuestion: ${q}`;
             const reply = await callGeminiAPI([{ parts: [{ text: systemContext }] }]);
-            cb.innerHTML += `<div class="text-right bg-purple-100 p-2 rounded-xl mb-2 max-w-[80%] mr-auto"><b>AI:</b> ${reply}</div>`;
-            cb.scrollTop = cb.scrollHeight;
+            cb.innerHTML += `<div class="text-right bg-purple-100 p-2 rounded-xl mb-2 max-w-[80%] mr-auto"><b>AI:</b> ${reply}</div>`; cb.scrollTop = cb.scrollHeight;
         }
 
-        // פונקציות המערכת הקלאסיות (טבלה, צ'אט, התחברות ומצבים)
         function toggleDarkMode() { isDarkMode = !isDarkMode; localStorage.setItem('aliSiachDarkMode', isDarkMode); applyDarkModeStyles(); }
         function applyDarkModeStyles() {
             const btn = document.getElementById('dark-mode-toggle-btn');
-            if (isDarkMode) { document.body.classList.add('dark-mode'); if(btn) btn.innerText = "פעיל"; } 
-            else { document.body.classList.remove('dark-mode'); if(btn) btn.innerText = "כבוי"; }
+            if (isDarkMode) { document.body.classList.add('dark-mode'); if(btn) btn.innerText = "פעיל"; } else { document.body.classList.remove('dark-mode'); if(btn) btn.innerText = "כבוי"; }
         }
         function updateDashVisibility() {
-            const missing = document.getElementById('chk-dash-missing').checked;
-            const total = document.getElementById('chk-dash-total').checked;
-            const cost = document.getElementById('chk-dash-cost').checked;
-            document.getElementById('dash-card-missing').style.display = missing ? 'flex' : 'none';
-            document.getElementById('dash-card-total').style.display = total ? 'flex' : 'none';
-            document.getElementById('dash-card-cost').style.display = cost ? 'flex' : 'none';
-            document.getElementById('dashboard-area').style.display = (missing || total || cost) ? 'grid' : 'none';
+            const missing = document.getElementById('chk-dash-missing').checked; const total = document.getElementById('chk-dash-total').checked; const cost = document.getElementById('chk-dash-cost').checked;
+            document.getElementById('dash-card-missing').style.display = missing ? 'flex' : 'none'; document.getElementById('dash-card-total').style.display = total ? 'flex' : 'none'; document.getElementById('dash-card-cost').style.display = cost ? 'flex' : 'none';
         }
-        function toggleSettingsModal() { document.getElementById('settings-modal').classList.toggle('hidden'); renderAdminTeamList(); }
+        function toggleSettingsModal() { const m = document.getElementById('settings-modal'); m.classList.toggle('hidden'); m.classList.toggle('flex'); renderAdminTeamList(); }
         function renderAdminTeamList() {
             const c = document.getElementById('admin-team-list'); if (c) c.innerHTML = '';
             teamMembers.forEach(m => { if(c) c.innerHTML += `<div class="p-1 bg-white border rounded-lg mb-1 font-bold">👤 ${m.name} (${m.role})</div>`; });
         }
-        function toggleNotificationDropdown() { document.getElementById('notification-dropdown').classList.toggle('hidden'); }
-        function toggleFloatingChat() { document.getElementById('floating-chat-window').classList.toggle('hidden'); renderChatMessages(); }
-        function sendChatMessage() {
-            const text = document.getElementById('chat-text-input').value.trim(); if(!text || !currentUser) return;
-            teamMessages.unshift({ id:"m_"+Date.now(), from:currentUser.name, text, date:new Date().toLocaleDateString('he-IL'), readBy:[currentUser.name] });
-            document.getElementById('chat-text-input').value=''; renderApp(); triggerDebouncedSync(true);
-        }
-        function renderChatMessages() {
-            const c = document.getElementById('chat-messages-container'); if(!c) return; c.innerHTML='';
-            teamMessages.forEach(m => { c.innerHTML += `<div class="p-1.5 border rounded-lg bg-white mb-1"><b>${m.from}:</b> ${m.text}</div>`; });
-        }
+        
         function startWalkthroughMode() {
             walkthroughItems = []; for (const cat in appData) { appData[cat].forEach((item, idx) => { walkthroughItems.push({ ...item, cat, origIdx: idx }); }); }
             if (walkthroughItems.length === 0) return; walkthroughIndex = 0; showWalkthroughItem();
@@ -592,9 +709,7 @@
             activeEdit = { cat, index }; const item = appData[cat][index];
             document.getElementById('modal-prod-name').value = item.name; document.getElementById('modal-prod-price').value = item.price || 0;
             document.getElementById('modal-prod-recommended').value = item.recommended || 0; document.getElementById('modal-prod-notes').value = item.notes || '';
-            document.getElementById('product-modal').classList.remove('hidden');
-            document.getElementById('product-modal').onclick = null;
-            document.getElementById('modal-prod-save-btn').onclick = saveProductModalData;
+            document.getElementById('product-modal').classList.remove('hidden'); document.getElementById('modal-prod-save-btn').onclick = saveProductModalData;
         }
         function closeProductModal() { document.getElementById('product-modal').classList.add('hidden'); }
         function saveProductModalData() {
@@ -602,7 +717,14 @@
             item.price = parseFloat(document.getElementById('modal-prod-price').value) || 0; item.recommended = parseFloat(document.getElementById('modal-prod-recommended').value) || 0;
             item.notes = document.getElementById('modal-prod-notes').value.trim(); closeProductModal(); renderApp(); triggerDebouncedSync(true);
         }
-        function toggleSharePopover() { document.getElementById('share-popover').classList.toggle('hidden'); }
+        function setupRecipeDefaults() {
+            for (const cat in appData) { appData[cat].forEach(item => { if(item && item.name && !(item.name in vegetableMatrix)) { } }); }
+        }
+        function showToast(msg, icon = "✨") {
+            const t = document.getElementById('toast'); document.getElementById('toast-message').innerText = msg; document.getElementById('toast-icon').innerText = icon;
+            t.classList.remove('translate-y-20', 'opacity-0'); t.classList.add('translate-y-0', 'opacity-100');
+            setTimeout(() => { t.classList.remove('translate-y-0', 'opacity-100'); t.classList.add('translate-y-20', 'opacity-0'); }, 3000);
+        }
 
         window.onload = init;
     </script>
