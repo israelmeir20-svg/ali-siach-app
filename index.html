@@ -6,9 +6,13 @@
     <title>עלי שיח - ניהול מלאי ומעקב</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2 family=Assistant:wght@300;400;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&display=swap');
         body { font-family: 'Assistant', sans-serif; background-color: #f8fafc; transition: background-color 0.3s, color 0.3s; }
+        
+        /* תיקון קשיח לנעילת כותרות הטבלה */
         .sticky-thead th { position: sticky; top: 64px; z-index: 20; box-shadow: 0 2px 2px -1px rgba(0,0,0,0.05); }
+        
+        /* הגדרות מצב לילה ידניות מותאמות אישית לעקיפת מגבלות CDN */
         body.dark-mode { background-color: #0f172a; color: #e2e8f0; }
         body.dark-mode nav, body.dark-mode .bg-white { background-color: #1e293b; color: #e2e8f0; border-color: #334155; }
         body.dark-mode input, body.dark-mode select { background-color: #334155; color: #ffffff; border-color: #475569; }
@@ -57,7 +61,7 @@
                         <span id="unread-badge" class="hidden absolute -top-2 -right-2 bg-red-500 text-white font-black text-[9px] w-4 h-4 rounded-full flex items-center justify-center border border-white shadow-sm">0</span>
                     </button>
 
-                    <div id="notification-dropdown" class="hidden absolute left-0 mt-2 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 flex flex-col overflow-hidden animate-fade-in">
+                    <div id="notification-dropdown" class="hidden absolute left-0 mt-2 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 flex flex-col overflow-hidden">
                         <div class="p-3 bg-slate-50 border-b flex justify-between items-center">
                             <h3 class="text-xs font-black text-slate-900">הודעות שהתקבלו</h3>
                             <button onclick="toggleNotificationDropdown()" class="text-[10px] text-slate-400 hover:text-slate-600 font-bold">סגור</button>
@@ -71,7 +75,6 @@
             </div>
         </div>
     </nav>
-
     <main class="flex-1 max-w-7xl w-full mx-auto p-4 space-y-4">
         
         <div id="dashboard-area" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -98,12 +101,14 @@
 
             <div class="flex items-center gap-3">
                 <button onclick="startWalkthroughMode()" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-black shadow-lg transition transform hover:scale-105 animate-pulse">⏱️ ספירת מלאי מהירה</button>
+                
                 <div class="h-6 w-px bg-slate-200"></div>
+                
                 <div class="relative inline-block">
-                    <button onclick="toggleSharePopover()" class="p-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-black flex items-center gap-1">
+                    <button onclick="toggleSharePopover()" class="p-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-black flex items-center gap-1" title="אפשרויות שיתוף והפקה">
                         <span>📤 שיתוף הדוח</span>
                     </button>
-                    <div id="share-popover" class="hidden absolute left-0 mt-1.5 bg-white border border-slate-200 shadow-xl rounded-xl p-1.5 flex gap-1 z-30 whitespace-nowrap">
+                    <div id="share-popover" class="hidden absolute left-0 mt-1.5 bg-white border border-slate-200 shadow-xl rounded-xl p-1.5 flex gap-1 z-30 animate-fade-in whitespace-nowrap">
                         <button onclick="exportData('copy')" class="px-2.5 py-1 text-[11px] font-bold hover:bg-slate-100 rounded-lg text-slate-700">📋 העתק ללוח</button>
                         <button onclick="exportData('whatsapp')" class="px-2.5 py-1 text-[11px] font-bold hover:bg-emerald-50 rounded-lg text-emerald-700">💬 וואטסאפ</button>
                         <button onclick="exportData('email')" class="px-2.5 py-1 text-[11px] font-bold hover:bg-blue-50 rounded-lg text-blue-700">📧 מייל</button>
@@ -116,9 +121,9 @@
         <div id="inventory-container" class="space-y-6"></div>
     </main>
 
-    <button onclick="toggleFloatingChat()" class="fixed bottom-4 left-4 w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-2xl z-50 hover:bg-blue-700 transition transform hover:scale-110 text-xl">💬</button>
+    <button onclick="toggleFloatingChat()" class="fixed bottom-4 left-4 w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-2xl z-50 hover:bg-blue-700 transition transform hover:scale-110 text-xl" title="צ'אט ועדכוני צוות">💬</button>
 
-    <div id="floating-chat-window" class="hidden fixed bottom-18 left-4 w-80 h-96 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden">
+    <div id="floating-chat-window" class="hidden fixed bottom-18 left-4 w-80 h-96 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden animate-fade-in">
         <div class="p-3 bg-blue-600 text-white flex justify-between items-center">
             <h3 class="text-xs font-black">💬 צ'אט ועדכוני דירה</h3>
             <button onclick="toggleFloatingChat()" class="text-xs font-bold opacity-80 hover:opacity-100">✕</button>
@@ -136,6 +141,7 @@
                 <div class="flex items-center gap-2"><span>⚙️</span><h2 class="text-sm font-black">הגדרות מערכת ופרופיל משתמש</h2></div>
                 <button onclick="toggleSettingsModal()" class="text-slate-400 hover:text-white font-bold text-xs">סגור</button>
             </div>
+            
             <div class="p-4 overflow-y-auto space-y-4 flex-1 text-xs">
                 <div class="space-y-2 bg-slate-50 p-3 rounded-2xl border">
                     <h3 class="font-black text-slate-800 border-b pb-1">👤 פרופיל הגדרות משתמש</h3>
@@ -152,6 +158,7 @@
                         </div>
                     </div>
                 </div>
+
                 <div class="space-y-2">
                     <h3 class="font-black text-blue-600 border-b pb-1">🌐 חיבור וסנכרון ענן</h3>
                     <div class="space-y-1">
@@ -161,6 +168,7 @@
                         </div>
                     </div>
                 </div>
+
                 <div class="space-y-2 pt-1">
                     <h3 class="font-black text-emerald-600 border-b pb-1">🤖 מנוע יצירת מתכונים AI</h3>
                     <div class="space-y-1">
@@ -170,6 +178,7 @@
                         </div>
                     </div>
                 </div>
+
                 <div id="admin-management-section" class="space-y-2 pt-1 hidden">
                     <h3 class="font-black text-purple-600 border-b pb-1">👥 ניהול צוות ומדריכים (מנהל)</h3>
                     <div id="admin-team-list" class="space-y-1 max-h-24 overflow-y-auto bg-slate-50 p-2 rounded-xl border"></div>
@@ -265,7 +274,6 @@
     <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 transform bg-slate-900 text-white px-4 py-2.5 rounded-2xl flex items-center gap-2 shadow-2xl transition duration-300 translate-y-20 opacity-0 z-50 text-xs font-bold">
         <span id="toast-icon">✨</span><span id="toast-message">הודעה</span>
     </div>
-
     <script>
         const emojiMap = {
             "אבקת כביסה": "🧺", "אמה": "🧽", "ברזלית": "🧽", "דאורדורנט": "🧴", "כרית ניקוי": "🧽", "מבשם אוויר": "💨",
@@ -285,43 +293,60 @@
         let appData = {}, teamMembers = [], teamMessages = [], currentUser = null, cloudUrl = localStorage.getItem('aliSiachCloudUrl') || "", saveTimeout = null, isDarkMode = localStorage.getItem('aliSiachDarkMode') === 'true';
         let activeFilter = 'all', searchQuery = '', walkthroughItems = [], walkthroughIndex = 0, selectedRecipeTime = 'fast', ingredientStates = {};
 
+        // תיקון קריטי: הגנה הרמטית מפני נתוני מטמון משובשים כדי למנוע נעילת משתמשים
         function loadLocalBackupData() {
             try {
                 const cached = localStorage.getItem('aliSiachLocalCache');
                 if (cached) {
                     const parsed = JSON.parse(cached);
-                    if (parsed && typeof parsed === 'object' && parsed.appData && Array.isArray(parsed.teamMembers)) {
-                        appData = parsed.appData; teamMembers = parsed.teamMembers; teamMessages = parsed.teamMessages || [];
+                    if (parsed && typeof parsed === 'object' && parsed.appData && Array.isArray(parsed.teamMembers) && parsed.teamMembers.length > 0) {
+                        appData = parsed.appData; 
+                        teamMembers = parsed.teamMembers; 
+                        teamMessages = parsed.teamMessages || [];
                         return;
                     }
                 }
             } catch (e) {
-                console.error("Cache parsing error, resetting memory", e);
-                localStorage.removeItem('aliSiachLocalCache');
+                console.error("Local storage error, resetting cache", e);
             }
             
+            localStorage.removeItem('aliSiachLocalCache');
             appData = {
                 "טואלטיקה וניקיון": [
                     { name: "אבקת כביסה", existing: 1, recommended: 3, price: 39, orderedLastMonth: 2, notes: "6 קילו" },
                     { name: "אמה (נוזל כלים)", existing: 3, recommended: 3, price: 7.2, orderedLastMonth: 3, notes: "" },
-                    { name: "ברזלית", existing: 0, recommended: 2, price: 4.5, orderedLastMonth: 2, notes: "" }
+                    { name: "ברזלית", existing: 0, recommended: 2, price: 4.5, orderedLastMonth: 2, notes: "" },
+                    { name: "נייר טואלט", existing: 2, recommended: 4, price: 32, orderedLastMonth: 3, notes: "חבילה" }
                 ],
                 "מוצרים יבשים ושימורים": [
                     { name: "אורז פרסי", existing: 4, recommended: 5, price: 13, orderedLastMonth: 5, notes: "שבת" },
                     { name: "פסטה", existing: 2, recommended: 4, price: 6, orderedLastMonth: 4, notes: "יום שישי" },
-                    { name: "טונה", existing: 12, recommended: 12, price: 5, orderedLastMonth: 12, notes: "3 קופסאות לשבוע" }
+                    { name: "טונה", existing: 12, recommended: 12, price: 5, orderedLastMonth: 12, notes: "3 קופסאות לשבוע" },
+                    { name: "שמן קנולה", existing: 2, recommended: 6, price: 9, orderedLastMonth: 4, notes: "טיגון ובישול" }
+                ],
+                "ממתקים ושתייה": [
+                    { name: "קורנפלקס", existing: 1, recommended: 3, price: 16, orderedLastMonth: 2, notes: "ארוחת בוקר" },
+                    { name: "ופלים", existing: 4, recommended: 6, price: 5, orderedLastMonth: 5, notes: "" },
+                    { name: "קולה", existing: 0, recommended: 4, price: 36, orderedLastMonth: 4, notes: "פפסי מקס לשבת" }
                 ]
             };
             teamMembers = [
-                { name: "בצלאל", pin: "1234", role: "admin" }, { name: "אבריימי", pin: "1111", role: "staff" }, { name: "יהודה", pin: "2222", role: "staff" }
+                { name: "בצלאל", pin: "1234", role: "admin" }, { name: "אסתי", pin: "5678", role: "admin" }, { name: "אבריימי", pin: "1111", role: "staff" }, { name: "יהודה", pin: "2222", role: "staff" }
             ];
-            teamMessages = [{ id: "msg_1", from: "מערכת", to: "כולם", text: "ברוכים הבאים למערכת המשותפת!", date: "8.7.2026", readBy: [] }];
+            teamMessages = [{ id: "msg_1", from: "מערכת", to: "כולם", text: "ברוכים הבאים למערכת המשותפת של עלי שיח!", date: "8.7.2026", readBy: [] }];
         }
 
         async function init() {
-            loadLocalBackupData(); applyDarkModeStyles(); setupRecipeDefaults(); buildUserLoginSelect(); renderApp();
-            if (cloudUrl) { document.getElementById('cloud-url-input').value = cloudUrl; await fetchCloudData(); }
-            window.addEventListener('online', () => { showToast("החיבור חזר, מסנכרן...", "🌐"); triggerDebouncedSync(true); });
+            loadLocalBackupData(); 
+            applyDarkModeStyles();
+            setupRecipeDefaults();
+            buildUserLoginSelect();
+            renderApp();
+            if (cloudUrl) { 
+                document.getElementById('cloud-url-input').value = cloudUrl; 
+                await fetchCloudData(); 
+            }
+            window.addEventListener('online', () => { showToast("החיבור חזר, מסנכרן נתונים...", "🌐"); triggerDebouncedSync(true); });
         }
 
         function toggleDarkMode() { isDarkMode = !isDarkMode; localStorage.setItem('aliSiachDarkMode', isDarkMode); applyDarkModeStyles(); }
@@ -337,7 +362,7 @@
         }
         function buildUserLoginSelect() {
             const select = document.getElementById('login-user-select'); if (!select) return; select.innerHTML = '';
-            teamMembers.forEach(m => { select.innerHTML += `<option value="${m.name}">${m.name}</option>`; });
+            teamMembers.forEach(m => { select.innerHTML += `<option value="${m.name}">${m.name} (${m.role === 'admin' ? 'מנהל' : 'מדריך'})</option>`; });
         }
         function handleLogin() {
             const selectedName = document.getElementById('login-user-select').value;
@@ -348,7 +373,7 @@
                 document.getElementById('current-user-display').innerText = user.name;
                 if (user.role === 'admin') document.getElementById('admin-management-section').classList.remove('hidden');
                 renderApp();
-            } else { alert("PIN שגוי!"); }
+            } else { alert("קוד PIN שגוי!"); }
         }
         function handleLogout() { currentUser = null; document.getElementById('login-pin-input').value = ''; document.getElementById('login-screen').classList.remove('hidden'); }
 
@@ -594,6 +619,16 @@
                 ic.innerHTML += `<button onclick="rotateIngredientState('${name}')" class="px-2 py-1 rounded-lg border text-[10px] ${cls}">${pfx}${name}</button>`;
             }
         }
+        function setupRecipeDefaults() {
+            freshVegetables.forEach(v => { ingredientStates[v] = 0; });
+            if (appData && typeof appData === 'object') {
+                for (const cat in appData) {
+                    if (Array.isArray(appData[cat])) {
+                        appData[cat].forEach(item => { if(item && item.name) ingredientStates[item.name] = (item.existing > 0) ? 0 : 2; });
+                    }
+                }
+            }
+        }
         async function generateAIRecipe() {
             const loader = document.getElementById('recipe-ai-loader'); const content = document.getElementById('recipe-ai-content');
             document.getElementById('recipe-ai-box').classList.remove('hidden'); loader.classList.remove('hidden'); content.innerText = '';
@@ -611,8 +646,6 @@
             t.classList.remove('translate-y-20', 'opacity-0'); t.classList.add('translate-y-0', 'opacity-100');
             setTimeout(() => { t.classList.remove('translate-y-0', 'opacity-100'); t.classList.add('translate-y-20', 'opacity-0'); }, 3000);
         }
-
-        init();
     </script>
 </body>
 </html>
