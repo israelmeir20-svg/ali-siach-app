@@ -20,7 +20,6 @@ window.messageCenterTab = 'received';
 let dragSourceCategory = null;
 let dragSourceIndex = null;
 
-// הרחבת מילון האימוג'ים כולל מוצרי המטריצה
 const emojiMap = {
     "אבקת כביסה": "🧺", "אמה": "🧽", "ברזלית": "🧽", "דאורדורנט": "🧴", "כרית ניקוי": "🧽", "מבשם אוויר": "💨",
     "מסיר אבנית": "🧪", "מסיר כתמים": "🧪", "מסיר שומנים": "🔥", "מרכך כביסה": "🧼", "משחת שיניים": "🪥", "משמיד חרקים": "🪰",
@@ -35,28 +34,13 @@ function getEmoji(name) {
     for (const [key, value] of Object.entries(emojiMap)) { if (name.includes(key)) return value; } 
     return "📦"; 
 }
+window.getEmoji = getEmoji;
 
 function calculateToOrder(item) { 
     let req = (parseFloat(item.recommended) || 0) - (parseFloat(item.existing) || 0); 
     return req > 0 ? req : 0; 
 }
-
-// לוכדי שגיאות
-window.onerror = function(msg, url, line, col, error) {
-    const errBox = document.getElementById('test-diagnostic-error');
-    if (errBox) {
-        errBox.innerText = `🚨 שגיאת מערכת:\n${msg}\nשורה: ${line}`;
-        errBox.classList.remove('hidden');
-    }
-    return false;
-};
-window.onunhandledrejection = function(event) {
-    const errBox = document.getElementById('test-diagnostic-error');
-    if (errBox) {
-        errBox.innerText = `🚨 תקלה אסינכרונית:\n${event.reason}`;
-        errBox.classList.remove('hidden');
-    }
-};
+window.calculateToOrder = calculateToOrder;
 
 function loadLocalBackupData() {
     try {
@@ -149,6 +133,7 @@ function handleLogin() {
         renderApp(); 
     } else { alert("PIN שגוי!"); }
 }
+window.handleLogin = handleLogin;
 
 function handleLogout() { 
     window.currentUser = null; 
@@ -157,6 +142,7 @@ function handleLogout() {
     document.getElementById('admin-management-section').classList.add('hidden'); 
     renderApp(); 
 }
+window.handleLogout = handleLogout;
 
 async function fetchCloudData() {
     if (!window.cloudUrl || !navigator.onLine) return;
@@ -177,6 +163,7 @@ function triggerDebouncedSync(immediate = false) {
     if (window.saveTimeout) clearTimeout(window.saveTimeout); 
     if (immediate) syncWithCloud(); else window.saveTimeout = setTimeout(syncWithCloud, 1500);
 }
+window.triggerDebouncedSync = triggerDebouncedSync;
 
 async function syncWithCloud() {
     if (!window.cloudUrl || !navigator.onLine) return;
@@ -184,7 +171,9 @@ async function syncWithCloud() {
 }
 
 function saveCloudUrl() { window.cloudUrl = document.getElementById('cloud-url-input').value.trim(); localStorage.setItem('aliSiachCloudUrl', window.cloudUrl); fetchCloudData(); showToast("הוגדר ענן!", "💾"); }
+window.saveCloudUrl = saveCloudUrl;
 function saveGeminiKey() { localStorage.setItem('aliSiach_gemini_key', document.getElementById('gemini-key-input').value.trim()); showToast("הוגדר מפתח AI!", "🤖"); }
+window.saveGeminiKey = saveGeminiKey;
 
 function updateItemValue(category, index, field, value) {
     const item = window.appData[category][index];
@@ -198,12 +187,16 @@ function updateItemValue(category, index, field, value) {
         triggerDebouncedSync();
     }
 }
+window.updateItemValue = updateItemValue;
 
 function filterInventory() { window.searchQuery = document.getElementById('search-bar').value.toLowerCase(); renderApp(); }
+window.filterInventory = filterInventory;
+
 function setFilter(type) {
     window.activeFilter = type; ['all', 'to-order', 'in-stock'].forEach(t => { document.getElementById(`filter-${t}`).className = t === type ? "px-3 py-1.5 rounded-lg bg-white dark:bg-slate-600 text-blue-600 dark:text-white shadow-sm" : "px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"; });
     renderApp();
 }
+window.setFilter = setFilter;
 
 function setDayFilter(day) {
     window.activeDayFilter = day;
@@ -212,19 +205,23 @@ function setDayFilter(day) {
     });
     renderApp();
 }
+window.setDayFilter = setDayFilter;
 
 function setSortMode(mode) { window.activeSortMode = mode; localStorage.setItem('aliSiachSortMode', mode); renderApp(); }
- ZarקMode = null; 
-function setViewMode(mode) { window.viewMode = mode; localStorage.setItem('aliSiachViewMode', mode); renderApp(); }
+window.setSortMode = setSortMode;
 
+function setViewMode(mode) { window.viewMode = mode; localStorage.setItem('aliSiachViewMode', mode); renderApp(); }
+window.setViewMode = setViewMode;
+
+// החלפת הלחצנים לפי דרישה בסימנים מופשטים (סעיף ב)
 function createQtyControllerHtml(category, origIndex, field, currentValue) {
     return `
         <div class="flex items-center justify-center gap-1 bg-slate-50 dark:bg-slate-900 p-1 rounded-xl border dark:border-slate-700 mx-auto max-w-[210px]">
-            <button onclick="updateItemValue('${category}', ${origIndex}, '${field}', ${currentValue - 1})" class="w-6 h-6 text-xs bg-white dark:bg-slate-700 border rounded font-black shadow-sm">-1</button>
-            <button onclick="updateItemValue('${category}', ${origIndex}, '${field}', ${currentValue - 0.5})" class="w-7 h-6 text-xs bg-white dark:bg-slate-700 border rounded font-black shadow-sm">-0.5</button>
-            <input type="number" step="0.5" min="0" value="${currentValue}" onchange="updateItemValue('${category}', ${origIndex}, '${field}', this.value)" class="w-10 text-center font-black text-xs bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-400 p-0.5 rounded border">
-            <button onclick="updateItemValue('${category}', ${origIndex}, '${field}', ${currentValue + 0.5})" class="w-7 h-6 text-xs bg-white dark:bg-slate-700 border rounded font-black shadow-sm">+0.5</button>
-            <button onclick="updateItemValue('${category}', ${origIndex}, '${field}', ${currentValue + 1})" class="w-6 h-6 text-xs bg-white dark:bg-slate-700 border rounded font-black shadow-sm">+1</button>
+            <button onclick="window.updateItemValue('${category}', ${origIndex}, '${field}', ${currentValue - 1})" class="w-6 h-6 text-xs bg-white dark:bg-slate-700 border rounded font-black shadow-sm hover:bg-red-50 text-slate-700 dark:text-white" title="הורד 1">-</button>
+            <button onclick="window.updateItemValue('${category}', ${origIndex}, '${field}', ${currentValue - 0.5})" class="w-6 h-6 text-xs bg-white dark:bg-slate-700 border rounded font-black shadow-sm hover:bg-red-50 text-slate-700 dark:text-white" title="הורד 0.5">▼</button>
+            <input type="number" step="0.5" min="0" value="${currentValue}" onchange="window.updateItemValue('${category}', ${origIndex}, '${field}', this.value)" class="w-12 text-center font-black text-xs bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-400 p-0.5 rounded border">
+            <button onclick="window.updateItemValue('${category}', ${origIndex}, '${field}', ${currentValue + 0.5})" class="w-6 h-6 text-xs bg-white dark:bg-slate-700 border rounded font-black shadow-sm hover:bg-green-50 text-slate-700 dark:text-white" title="הוסף 0.5">▲</button>
+            <button onclick="window.updateItemValue('${category}', ${origIndex}, '${field}', ${currentValue + 1})" class="w-6 h-6 text-xs bg-white dark:bg-slate-700 border rounded font-black shadow-sm hover:bg-green-50 text-slate-700 dark:text-white" title="הוסף 1">+</button>
         </div>
     `;
 }
@@ -356,6 +353,7 @@ function renderApp() {
     }
     renderAppStats(criticalCount, totalToOrderItems, totalCost);
 }
+window.renderApp = renderApp;
 
 function renderAppStats(criticalCount, totalToOrderItems, totalCost) {
     document.getElementById('dash-missing-val').innerText = criticalCount;
@@ -384,6 +382,8 @@ function handleDropReorder(e, targetCategory, targetIndex) {
 }
 
 function setMessageCenterTab(tab) { window.messageCenterTab = tab; setMessageCenterTabUI(); renderMessages(); }
+window.setMessageCenterTab = setMessageCenterTab;
+
 function setMessageCenterTabUI() {
     let tab = window.messageCenterTab;
     document.getElementById('msg-tab-received').className = tab === 'received' ? "px-2 py-1 rounded bg-white dark:bg-slate-600 shadow-sm text-slate-800 dark:text-white" : "px-2 py-1 rounded text-slate-500 dark:text-slate-300";
@@ -414,6 +414,7 @@ function renderMessages() {
         container.appendChild(item);
     });
 }
+window.renderMessages = renderMessages;
 
 function deleteMessageComplete(id) { window.teamMessages = window.teamMessages.filter(m => m.id !== id); renderMessages(); triggerDebouncedSync(true); }
 
@@ -441,22 +442,27 @@ function addNewTeamMember() {
     window.teamMembers.push({ name, pin, role }); nameInp.value = ''; pinInp.value = '';
     renderAdminTeamList(); buildUserLoginSelect(); triggerDebouncedSync(true); showToast("איש צוות נוסף!");
 }
+window.addNewTeamMember = addNewTeamMember;
 
 function openAddProductModal() {
     const select = document.getElementById('add-prod-category'); if (!select) return; select.innerHTML = '';
     Object.keys(window.appData).forEach(cat => { select.innerHTML += `<option value="${cat}">${cat}</option>`; });
     document.getElementById('add-product-modal').classList.remove('hidden'); document.getElementById('add-product-modal').classList.add('flex');
 }
+window.openAddProductModal = openAddProductModal;
 function closeAddProductModal() { document.getElementById('add-product-modal').classList.add('hidden'); document.getElementById('add-product-modal').classList.remove('flex'); }
+window.closeAddProductModal = closeAddProductModal;
 function submitNewProduct() {
     const name = document.getElementById('add-prod-name').value.trim(); const cat = document.getElementById('add-prod-category').value;
     const price = parseFloat(document.getElementById('add-prod-price').value) || 0; const rec = parseFloat(document.getElementById('add-prod-recommended').value) || 0;
     if (!name) return; window.appData[cat].push({ name, existing: 0, recommended: rec, price, orderedLastMonth: 0, notes: "", days: "כל הימים", changesCount: 0 });
     closeAddProductModal(); document.getElementById('add-prod-name').value = ''; renderApp(); triggerDebouncedSync(true);
 }
+window.submitNewProduct = submitNewProduct;
 function deleteProductComplete(category, index) {
     if (confirm("למחוק פריט זה?")) { window.appData[category].splice(index, 1); renderApp(); triggerDebouncedSync(true); }
 }
+window.deleteProductComplete = deleteProductComplete;
 
 function startWalkthroughMode() {
     if (!window.currentUser) return; window.walkthroughItems = []; 
@@ -464,7 +470,9 @@ function startWalkthroughMode() {
     if (window.walkthroughItems.length === 0) return; window.walkthroughIndex = 0; showWalkthroughItem();
     document.getElementById('walkthrough-screen').classList.remove('hidden'); document.getElementById('walkthrough-screen').classList.add('flex');
 }
+window.startWalkthroughMode = startWalkthroughMode;
 function closeWalkthroughMode() { document.getElementById('walkthrough-screen').classList.add('hidden'); document.getElementById('walkthrough-screen').classList.remove('flex'); renderApp(); }
+window.closeWalkthroughMode = closeWalkthroughMode;
 function showWalkthroughItem() {
     const item = window.walkthroughItems[window.walkthroughIndex]; const real = window.appData[item.cat][item.origIdx];
     document.getElementById('wt-cat-title').innerText = item.cat; document.getElementById('wt-item-emoji').innerText = getEmoji(real.name);
@@ -474,6 +482,12 @@ function adjustWtQty(amt) {
     const item = window.walkthroughItems[window.walkthroughIndex]; const real = window.appData[item.cat][item.origIdx];
     let v = (parseFloat(real.existing) || 0) + amt; real.existing = v < 0 ? 0 : Math.round(v * 2) / 2; showWalkthroughItem(); triggerDebouncedSync();
 }
+window.adjustWtQty = adjustWtQty;
+function walkthroughNext() { if (window.walkthroughIndex < window.walkthroughItems.length - 1) { window.walkthroughIndex++; showWalkthroughItem(); } else { closeWalkthroughMode(); showToast("הושלם!"); } }
+window.walkthroughNext = walkthroughNext;
+function walkthroughPrev() { if (window.walkthroughIndex > 0) { window.walkthroughIndex--; showWalkthroughItem(); } }
+window.walkthroughPrev = walkthroughPrev;
+
 document.addEventListener('keydown', function(e) {
     const wtScreen = document.getElementById('walkthrough-screen');
     if (wtScreen && wtScreen.classList.contains('flex')) {
@@ -485,6 +499,7 @@ document.addEventListener('keydown', function(e) {
 });
 
 function toggleDarkMode() { window.isDarkMode = !window.isDarkMode; localStorage.setItem('aliSiachDarkMode', window.isDarkMode); applyDarkModeStyles(); }
+window.toggleDarkMode = toggleDarkMode;
 function applyDarkModeStyles() {
     const btn = document.getElementById('dark-mode-toggle-btn');
     if (window.isDarkMode) { document.documentElement.classList.add('dark'); document.body.classList.add('dark-mode'); if(btn) btn.innerText = "פעיל"; } 
@@ -499,7 +514,9 @@ function openProductModal(cat, index) {
     document.querySelectorAll('.day-chk').forEach(chk => { chk.checked = item.days && item.days.includes(chk.value); });
     document.getElementById('product-modal').classList.remove('hidden');
 }
+window.openProductModal = openProductModal;
 function closeProductModal() { document.getElementById('product-modal').classList.add('hidden'); }
+window.closeProductModal = closeProductModal;
 function saveProductModalData() {
     if (!window.activeEdit) return; const item = window.appData[window.activeEdit.cat][window.activeEdit.index];
     item.price = parseFloat(document.getElementById('modal-prod-price').value) || 0; item.recommended = parseFloat(document.getElementById('modal-prod-recommended').value) || 0;
@@ -509,13 +526,18 @@ function saveProductModalData() {
     item.days = customDays ? customDays : (selectedDays.length > 0 ? selectedDays.join(', ') : 'כל הימים');
     closeProductModal(); renderApp(); triggerDebouncedSync(true);
 }
+window.saveProductModalData = saveProductModalData;
 
 function toggleSettingsModal() { if (!window.currentUser) return; const m = document.getElementById('settings-modal'); m.classList.toggle('hidden'); m.classList.toggle('flex'); renderAdminTeamList(); }
-function walkthroughNext() { if (window.walkthroughIndex < window.walkthroughItems.length - 1) { window.walkthroughIndex++; showWalkthroughItem(); } else { closeWalkthroughMode(); showToast("הושלם!"); } }
-function walkthroughPrev() { if (window.walkthroughIndex > 0) { window.walkthroughIndex--; showWalkthroughItem(); } }
+window.toggleSettingsModal = toggleSettingsModal;
 function toggleFloatingChat(forceOpen = false) { if (!window.currentUser) return; const win = document.getElementById('floating-chat-window'); isChatOpen = forceOpen ? true : !isChatOpen; if (isChatOpen) { win.classList.remove('hidden'); renderChatMessages(); } else win.classList.add('hidden'); }
+window.toggleFloatingChat = toggleFloatingChat;
 function sendChatMessage() { const inp = document.getElementById('chat-text-input'); const text = inp.value.trim(); if (!text || !window.currentUser) return; const target = document.getElementById('chat-target-select').value; window.teamMessages.unshift({ id: "msg_" + Date.now(), from: window.currentUser.name, to: target, text, date: new Date().toLocaleDateString('he-IL'), readBy: [window.currentUser.name] }); inp.value = ''; renderApp(); triggerDebouncedSync(true); }
+window.sendChatMessage = sendChatMessage;
 function renderChatMessages() { const container = document.getElementById('chat-messages-container'); if (!container || !window.currentUser) return; container.innerHTML = ''; window.teamMessages.filter(m => m.to === "כולם" || m.to === window.currentUser.name || m.from === window.currentUser.name).forEach(m => { container.innerHTML += `<div class="p-2 border rounded-xl bg-white mb-1 shadow-sm text-slate-800"><div class="text-[9px] text-slate-400"><b>${m.from}</b></div><p>${m.text}</p></div>`; }); }
+function toggleNotificationDropdown() { if (!window.currentUser) return; const dropdown = document.getElementById('notification-dropdown'); isNotificationOpen = !isNotificationOpen; if (isNotificationOpen) { dropdown.classList.remove('hidden'); renderMessages(); } else { dropdown.classList.add('hidden'); window.teamMessages.forEach(m => { if (!m.readBy.includes(window.currentUser.name)) m.readBy.push(window.currentUser.name); }); renderApp(); triggerDebouncedSync(true); } }
+window.toggleNotificationDropdown = toggleNotificationDropdown;
 function showToast(msg, icon = "✨") { const t = document.getElementById('toast'); document.getElementById('toast-message').innerText = msg; document.getElementById('toast-icon').innerText = icon; t.classList.remove('translate-y-20', 'opacity-0'); t.classList.add('translate-y-0', 'opacity-100'); setTimeout(() => { t.classList.remove('translate-y-0', 'opacity-100'); t.classList.add('translate-y-20', 'opacity-0'); }, 3000); }
+window.showToast = showToast;
 
 window.onload = init;
