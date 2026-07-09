@@ -1,4 +1,4 @@
-// אפליקציית עלי שיח - ניהול מלאי מרכזי
+// אפליקציית עלי שיח - ניהול מלאי מרכזי (גרסה מתוקנת ויציבה)
 window.appData = {};
 window.teamMembers = [];
 window.teamMessages = [];
@@ -213,15 +213,15 @@ window.setSortMode = setSortMode;
 function setViewMode(mode) { window.viewMode = mode; localStorage.setItem('aliSiachViewMode', mode); renderApp(); }
 window.setViewMode = setViewMode;
 
-// החלפת הלחצנים לפי דרישה בסימנים מופשטים (סעיף ב)
+// המרת הכפתורים לסמלים נקיים ללא מספרי טקסט מבלבלים (סעיף ב)
 function createQtyControllerHtml(category, origIndex, field, currentValue) {
     return `
         <div class="flex items-center justify-center gap-1 bg-slate-50 dark:bg-slate-900 p-1 rounded-xl border dark:border-slate-700 mx-auto max-w-[210px]">
-            <button onclick="window.updateItemValue('${category}', ${origIndex}, '${field}', ${currentValue - 1})" class="w-6 h-6 text-xs bg-white dark:bg-slate-700 border rounded font-black shadow-sm hover:bg-red-50 text-slate-700 dark:text-white" title="הורד 1">-</button>
-            <button onclick="window.updateItemValue('${category}', ${origIndex}, '${field}', ${currentValue - 0.5})" class="w-6 h-6 text-xs bg-white dark:bg-slate-700 border rounded font-black shadow-sm hover:bg-red-50 text-slate-700 dark:text-white" title="הורד 0.5">▼</button>
-            <input type="number" step="0.5" min="0" value="${currentValue}" onchange="window.updateItemValue('${category}', ${origIndex}, '${field}', this.value)" class="w-12 text-center font-black text-xs bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-400 p-0.5 rounded border">
-            <button onclick="window.updateItemValue('${category}', ${origIndex}, '${field}', ${currentValue + 0.5})" class="w-6 h-6 text-xs bg-white dark:bg-slate-700 border rounded font-black shadow-sm hover:bg-green-50 text-slate-700 dark:text-white" title="הוסף 0.5">▲</button>
-            <button onclick="window.updateItemValue('${category}', ${origIndex}, '${field}', ${currentValue + 1})" class="w-6 h-6 text-xs bg-white dark:bg-slate-700 border rounded font-black shadow-sm hover:bg-green-50 text-slate-700 dark:text-white" title="הוסף 1">+</button>
+            <button onclick="window.updateItemValue('${category}', ${origIndex}, '${field}', ${currentValue - 1})" class="w-6 h-6 text-xs bg-white dark:bg-slate-700 border dark:border-slate-600 rounded font-black shadow-sm hover:bg-red-50 text-slate-700 dark:text-white" title="הורד 1">▼</button>
+            <button onclick="window.updateItemValue('${category}', ${origIndex}, '${field}', ${currentValue - 0.5})" class="w-6 h-6 text-xs bg-white dark:bg-slate-700 border dark:border-slate-600 rounded font-black shadow-sm hover:bg-red-50 text-slate-700 dark:text-white" title="הורד 0.5">-</button>
+            <input type="number" step="0.5" min="0" value="${currentValue}" onchange="window.updateItemValue('${category}', ${origIndex}, '${field}', this.value)" class="w-12 text-center font-black text-xs bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-400 p-0.5 rounded border dark:border-slate-600">
+            <button onclick="window.updateItemValue('${category}', ${origIndex}, '${field}', ${currentValue + 0.5})" class="w-6 h-6 text-xs bg-white dark:bg-slate-700 border dark:border-slate-600 rounded font-black shadow-sm hover:bg-green-50 text-slate-700 dark:text-white" title="הוסף 0.5">+</button>
+            <button onclick="window.updateItemValue('${category}', ${origIndex}, '${field}', ${currentValue + 1})" class="w-6 h-6 text-xs bg-white dark:bg-slate-700 border dark:border-slate-600 rounded font-black shadow-sm hover:bg-green-50 text-slate-700 dark:text-white" title="הוסף 1">▲</button>
         </div>
     `;
 }
@@ -483,7 +483,7 @@ function adjustWtQty(amt) {
     let v = (parseFloat(real.existing) || 0) + amt; real.existing = v < 0 ? 0 : Math.round(v * 2) / 2; showWalkthroughItem(); triggerDebouncedSync();
 }
 window.adjustWtQty = adjustWtQty;
-function walkthroughNext() { if (window.walkthroughIndex < window.walkthroughItems.length - 1) { window.walkthroughIndex++; showWalkthroughItem(); } else { closeWalkthroughMode(); showToast("הושלם!"); } }
+function walkthroughNext() { if (window.walkthroughIndex < window.walkthroughItems.length - 1) { window.walkthroughIndex++; showWalkthroughItem(); } else { closeWalkthroughMode(); showToast("ספירת המלאי הושלמה!", "🏁"); } }
 window.walkthroughNext = walkthroughNext;
 function walkthroughPrev() { if (window.walkthroughIndex > 0) { window.walkthroughIndex--; showWalkthroughItem(); } }
 window.walkthroughPrev = walkthroughPrev;
