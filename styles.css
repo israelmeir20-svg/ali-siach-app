@@ -1,0 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&display=swap');
+
+body { 
+    font-family: 'Assistant', sans-serif; 
+    background-color: #f8fafc; 
+    transition: background-color 0.3s, color 0.3s; 
+}
+
+/* קיבוע קשיח ואטום של כותרות הטבלה למניעת דריסת שורות בזמן גלילה */
+.sticky-th { 
+    position: sticky; 
+    top: 64px; 
+    z-index: 20; 
+    background-color: #ffffff !important; 
+    box-shadow: 0 2px 2px -1px rgba(0,0,0,0.05); 
+}
+
+/* הגדרות ומטריצת צבעים עבור מצב לילה (Dark Mode) */
+body.dark-mode { 
+    background-color: #0f172a; 
+    color: #e2e8f0; 
+}
+body.dark-mode nav, body.dark-mode .bg-white { 
+    background-color: #1e293b; 
+    color: #e2e8f0; 
+    border-color: #334155; 
+}
+body.dark-mode input, body.dark-mode select { 
+    background-color: #334155; 
+    color: #ffffff; 
+    border-color: #475569; 
+}
+body.dark-mode tr:hover { 
+    background-color: #334155 !important; 
+}
+body.dark-mode .bg-slate-50, body.dark-mode .bg-slate-100 { 
+    background-color: #334155; 
+    color: #e2e8f0; 
+}
+body.dark-mode .sticky-th { 
+    background-color: #1e293b !important; 
+    color: #94a3b8; 
+}
+body.dark-mode .text-slate-900 { 
+    color: #ffffff; 
+}
