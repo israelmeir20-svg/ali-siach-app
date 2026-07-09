@@ -1,4 +1,4 @@
-// אפליקציית עלי שיח - ניהול מלאי מרכזי (גרסה מתוקנת ויציבה)
+// אפליקציית עלי שיח - ניהול מלאי מרכזי (גרסה יציבה ומסונכרנת)
 window.appData = {};
 window.teamMembers = [];
 window.teamMessages = [];
@@ -16,6 +16,10 @@ window.myChart = null;
 window.activeEdit = null; 
 window.viewMode = localStorage.getItem('aliSiachViewMode') || 'grid'; 
 window.messageCenterTab = 'received';
+
+// הצהרה מפורשת על משתני מצב הממשק למניעת ReferenceError (פתרון באג מרכז הודעות)
+window.isNotificationOpen = false;
+window.isChatOpen = false;
 
 let dragSourceCategory = null;
 let dragSourceIndex = null;
@@ -213,7 +217,7 @@ window.setSortMode = setSortMode;
 function setViewMode(mode) { window.viewMode = mode; localStorage.setItem('aliSiachViewMode', mode); renderApp(); }
 window.setViewMode = setViewMode;
 
-// המרת הכפתורים לסמלים נקיים ללא מספרי טקסט מבלבלים (סעיף ב)
+// יישום שינוי הלחצנים הבלתי מבלבלים: ▼ ו- - להורדה, + ו- ▲ להעלאה (סעיף ב)
 function createQtyControllerHtml(category, origIndex, field, currentValue) {
     return `
         <div class="flex items-center justify-center gap-1 bg-slate-50 dark:bg-slate-900 p-1 rounded-xl border dark:border-slate-700 mx-auto max-w-[210px]">
@@ -535,8 +539,24 @@ window.toggleFloatingChat = toggleFloatingChat;
 function sendChatMessage() { const inp = document.getElementById('chat-text-input'); const text = inp.value.trim(); if (!text || !window.currentUser) return; const target = document.getElementById('chat-target-select').value; window.teamMessages.unshift({ id: "msg_" + Date.now(), from: window.currentUser.name, to: target, text, date: new Date().toLocaleDateString('he-IL'), readBy: [window.currentUser.name] }); inp.value = ''; renderApp(); triggerDebouncedSync(true); }
 window.sendChatMessage = sendChatMessage;
 function renderChatMessages() { const container = document.getElementById('chat-messages-container'); if (!container || !window.currentUser) return; container.innerHTML = ''; window.teamMessages.filter(m => m.to === "כולם" || m.to === window.currentUser.name || m.from === window.currentUser.name).forEach(m => { container.innerHTML += `<div class="p-2 border rounded-xl bg-white mb-1 shadow-sm text-slate-800"><div class="text-[9px] text-slate-400"><b>${m.from}</b></div><p>${m.text}</p></div>`; }); }
-function toggleNotificationDropdown() { if (!window.currentUser) return; const dropdown = document.getElementById('notification-dropdown'); isNotificationOpen = !isNotificationOpen; if (isNotificationOpen) { dropdown.classList.remove('hidden'); renderMessages(); } else { dropdown.classList.add('hidden'); window.teamMessages.forEach(m => { if (!m.readBy.includes(window.currentUser.name)) m.readBy.push(window.currentUser.name); }); renderApp(); triggerDebouncedSync(true); } }
+
+// פתרון באג לחצן מרכז ההודעות
+function toggleNotificationDropdown() { 
+    if (!window.currentUser) return; 
+    const dropdown = document.getElementById('notification-dropdown'); 
+    window.isNotificationOpen = !window.isNotificationOpen; 
+    if (window.isNotificationOpen) { 
+        dropdown.classList.remove('hidden'); 
+        renderMessages(); 
+    } else { 
+        dropdown.classList.add('hidden'); 
+        window.teamMessages.forEach(m => { if (!m.readBy.includes(window.currentUser.name)) m.readBy.push(window.currentUser.name); }); 
+        renderApp(); 
+        triggerDebouncedSync(true); 
+    } 
+}
 window.toggleNotificationDropdown = toggleNotificationDropdown;
+
 function showToast(msg, icon = "✨") { const t = document.getElementById('toast'); document.getElementById('toast-message').innerText = msg; document.getElementById('toast-icon').innerText = icon; t.classList.remove('translate-y-20', 'opacity-0'); t.classList.add('translate-y-0', 'opacity-100'); setTimeout(() => { t.classList.remove('translate-y-0', 'opacity-100'); t.classList.add('translate-y-20', 'opacity-0'); }, 3000); }
 window.showToast = showToast;
 
