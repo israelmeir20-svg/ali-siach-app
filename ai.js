@@ -1,4 +1,4 @@
-// אפליקציית עלי שיח - מודול AI חכם ומחולל מתכונים (מתוקן)
+// אפליקציית עלי שיח - מודול AI חכם ומחולל מתכונים (גרסה סופית)
 window.activeAITab = 'procure';
 window.base64ReceiptImage = null;
 window.receiptMimeType = null;
@@ -12,6 +12,7 @@ if (!window.toolMatrix) {
 }
 window.manualPantrySelections = {};
 
+// פונקציית פתיחה/סגירה של תפריט הירקות והכלים הקורס
 function toggleMatrixPanel(type) {
     const panelId = type === 'veg' ? 'panel-vegetables-content' : 'panel-tools-content';
     const arrowId = type === 'veg' ? 'veg-panel-arrow' : 'tool-panel-arrow';
@@ -29,16 +30,23 @@ function toggleMatrixPanel(type) {
 }
 window.toggleMatrixPanel = toggleMatrixPanel;
 
+// בניית לחצנים מוגדלים ב-35% עם צבעוניות חזקה שאינה נדרסת על ידי Tailwind (סעיף א)
 function buildAILists() {
     const vegContainer = document.getElementById('matrix-vegetables'); if (!vegContainer) return; vegContainer.innerHTML = '';
     for (const [name, state] of Object.entries(window.vegetableMatrix)) {
-        let stateClass = state === 1 ? "matrix-circle-must" : state === 2 ? "matrix-circle-forbidden" : "matrix-circle-available";
+        // קביעת קוד צבע מפורש לכל מצב
+        let bgStyle = state === 1 ? "background-color: #fef2f2 !important; border: 4px solid #ef4444 !important;" : 
+                      state === 2 ? "background-color: #f1f5f9 !important; border: 4px solid #94a3b8 !important; opacity: 0.35;" : 
+                                    "background-color: #ecfdf5 !important; border: 4px solid #10b981 !important;";
         
         const buttonNode = document.createElement('button');
         buttonNode.type = "button";
-        buttonNode.className = `matrix-circle ${stateClass} cursor-pointer hover:scale-105 active:scale-95 transition-transform`;
+        buttonNode.style = `${bgStyle} width: 64px !important; height: 64px !important; font-size: 2rem !important; border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center; transition: transform 0.15s;`;
+        buttonNode.className = "hover:scale-110 active:scale-95 shadow-md";
         buttonNode.innerHTML = window.getEmoji(name).trim();
-        buttonNode.onclick = () => cycleMatrixState('veg', name);
+        
+        // צימוד אירוע הלחיצה ישירות לאלמנט ה-DOM
+        buttonNode.onclick = () => window.cycleMatrixState('veg', name);
         vegContainer.appendChild(buttonNode);
     }
 
@@ -49,13 +57,17 @@ function buildAILists() {
         "תנור בשרי": "♨️", "טוסטר חלבי": "🥪", "כיריים": "🔥", "מיניבר": "🚰"
     };
     for (const [name, state] of Object.entries(window.toolMatrix)) {
-        let stateClass = state === 1 ? "matrix-circle-must" : state === 2 ? "matrix-circle-forbidden" : "matrix-circle-available";
+        let bgStyle = state === 1 ? "background-color: #fef2f2 !important; border: 4px solid #ef4444 !important;" : 
+                      state === 2 ? "background-color: #f1f5f9 !important; border: 4px solid #94a3b8 !important; opacity: 0.35;" : 
+                                    "background-color: #ecfdf5 !important; border: 4px solid #10b981 !important;";
         
         const buttonNode = document.createElement('button');
         buttonNode.type = "button";
-        buttonNode.className = `matrix-circle ${stateClass} cursor-pointer hover:scale-105 active:scale-95 transition-transform`;
+        buttonNode.style = `${bgStyle} width: 64px !important; height: 64px !important; font-size: 2rem !important; border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center; transition: transform 0.15s;`;
+        buttonNode.className = "hover:scale-110 active:scale-95 shadow-md";
         buttonNode.innerHTML = toolEmojis[name] || "🔧";
-        buttonNode.onclick = () => cycleMatrixState('tool', name);
+        
+        buttonNode.onclick = () => window.cycleMatrixState('tool', name);
         toolContainer.appendChild(buttonNode);
     }
 }
@@ -67,7 +79,7 @@ function cycleMatrixState(type, name) {
     } else {
         window.toolMatrix[name] = (window.toolMatrix[name] + 1) % 3;
     }
-    buildAILists();
+    buildAILists(); // רינדור מחדש מיידי של הלחצנים עם הצבע החדש
     window.triggerDebouncedSync();
 }
 window.cycleMatrixState = cycleMatrixState;
