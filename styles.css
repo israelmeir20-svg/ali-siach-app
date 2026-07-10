@@ -1,96 +1,88 @@
-/* קובץ סגנונות מאוחד - עלי שיח */
+@import url('https://fonts.googleapis.com/css2?family=Assistant:wght=300;400;600;700;800&display=swap');
 
+body { 
+    font-family: 'Assistant', sans-serif; 
+    background-color: #eef2f5; 
+    transition: background-color 0.3s, color 0.3s; 
+}
+
+/* אפקט כרטיסיות פרימיום בעיצוב החדש */
+.premium-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    box-shadow: 0 4px 12px -1px rgba(0, 0, 0, 0.03), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+}
+
+.dark .premium-card {
+    background: rgba(30, 41, 59, 0.85);
+    border: 1px solid rgba(51, 65, 85, 0.8);
+}
+
+/* צבעי נתונים קבועים להפרדה ויזואלית לפי העיצוב */
 .data-existing {
-    background-color: #eff6ff !important;
-    color: #1e40af !important;
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
 }
 .dark .data-existing {
-    background-color: #1e3a8a !important;
-    color: #93c5fd !important;
+    background-color: #1e293b !important;
+    border: 1px solid #475569 !important;
+    color: #ffffff !important;
 }
 
 .data-recommended {
-    background-color: #f1f5f9 !important;
+    background-color: #f8fafc !important;
     color: #334155 !important;
-}
-.dark .data-recommended {
-    background-color: #334155 !important;
-    color: #cbd5e1 !important;
 }
 
 .data-lastmonth {
-    background-color: #fdf4ff !important;
-    color: #6b21a8 !important;
-}
-.dark .data-lastmonth {
-    background-color: #581c87 !important;
-    color: #f5d0fe !important;
+    background-color: #f8fafc !important;
+    color: #475569 !important;
 }
 
-.data-toorder {
-    background-color: #fffbeb !important;
-    color: #b45309 !important;
-}
 .data-toorder-active {
-    background-color: #fef2f2 !important;
     color: #dc2626 !important;
-    font-weight: 900 !important;
-}
-.dark .data-toorder-active {
-    background-color: #7f1d1d !important;
-    color: #fca5a5 !important;
+    font-weight: 800;
 }
 
-/* סגנונות מערכת הגרירה */
-.draggable-item {
-    cursor: grab;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-.draggable-item:active {
-    cursor: grabbing;
-}
-.drag-over {
-    border: 2px dashed #3b82f6 !important;
-    background-color: #eff6ff !important;
-}
-
-/* מעגלי מטריצת ה-AI */
+/* כפתורי מטריצת האימוג'ים בעיגולים צבעוניים מוגדלים */
 .matrix-circle {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 48px;
-    height: 48px;
+    width: 64px !important;
+    height: 64px !important;
     border-radius: 9999px;
-    font-size: 1.5rem;
+    font-size: 2rem !important;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     user-select: none;
-}
-.matrix-circle-available {
-    border: 3px solid #10b981 !important;
-    background-color: #ecfdf5 !important;
-    box-shadow: 0 0 0 2px #10b981;
-}
-.matrix-circle-must {
-    border: 3px solid #ef4444 !important;
-    background-color: #fef2f2 !important;
-    box-shadow: 0 0 0 2px #ef4444;
-}
-.matrix-circle-forbidden {
-    border: 3px solid #94a3b8 !important;
-    background-color: #f1f5f9 !important;
-    box-shadow: 0 0 0 2px #94a3b8;
-    filter: grayscale(100%);
-    opacity: 0.4;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
-.custom-table th {
-    font-weight: 800;
-    border-bottom: 2px solid #e2e8f0;
+.matrix-circle-available {
+    border: 4px solid #10b981 !important;
+    background-color: #ecfdf5 !important;
 }
-.dark .custom-table th {
-    border-bottom: 2px solid #475569;
+.matrix-circle-must {
+    border: 4px solid #ef4444 !important;
+    background-color: #fef2f2 !important;
+}
+.matrix-circle-forbidden {
+    border: 4px solid #94a3b8 !important;
+    background-color: #f1f5f9 !important;
+    opacity: 0.35;
+}
+
+/* עיצוב שורות טבלה צפות */
+.table-row-floating {
+    background: #ffffff;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.table-row-floating:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px -2px rgba(0, 0, 0, 0.04);
 }
 
 @keyframes fadeIn {
