@@ -1,4 +1,4 @@
-// אפליקציית עלי שיח - מודול AI חכם ומחולל מתכונים (גרסה סופית ויציבה)
+// אפליקציית עלי שיח - מודול AI חכם (גרסה סופית, מופרדת ומאובטחת)
 window.activeAITab = 'procure';
 window.base64ReceiptImage = null;
 window.receiptMimeType = null;
@@ -12,6 +12,44 @@ if (!window.toolMatrix) {
 }
 window.manualPantrySelections = {};
 
+function openAIRecipesModal() { 
+    if (!window.currentUser) return; 
+    document.getElementById('ai-recipes-modal').classList.remove('hidden'); 
+    document.getElementById('ai-recipes-modal').classList.add('flex'); 
+    buildAILists(); 
+    buildPantryManualSelectionDOM(); 
+}
+window.openAIRecipesModal = openAIRecipesModal;
+
+function openAIReceiptModal() { 
+    if (!window.currentUser) return; 
+    document.getElementById('ai-receipt-modal').classList.remove('hidden'); 
+    document.getElementById('ai-receipt-modal').classList.add('flex'); 
+}
+window.openAIReceiptModal = openAIReceiptModal;
+
+function openAIProcureModal() { 
+    if (!window.currentUser) return; 
+    document.getElementById('ai-procure-modal').classList.remove('hidden'); 
+    document.getElementById('ai-procure-modal').classList.add('flex'); 
+}
+window.openAIProcureModal = openAIProcureModal;
+
+// פתרון באג הפעלת צ'אט ה-AI הסגול המבודד (ב')
+function toggleAIChatWindow() {
+    if (!window.currentUser) return;
+    const win = document.getElementById('ai-chat-window');
+    window.isAIChatOpen = !window.isAIChatOpen;
+    if (window.isAIChatOpen) {
+        win.classList.remove('hidden');
+        win.classList.add('flex');
+    } else {
+        win.classList.add('hidden');
+        win.classList.remove('flex');
+    }
+}
+window.toggleAIChatWindow = toggleAIChatWindow;
+
 function toggleMatrixPanel(type) {
     const panelId = type === 'veg' ? 'panel-vegetables-content' : 'panel-tools-content';
     const arrowId = type === 'veg' ? 'veg-panel-arrow' : 'tool-panel-arrow';
@@ -21,7 +59,7 @@ function toggleMatrixPanel(type) {
     if (panel.classList.contains('hidden')) {
         panel.classList.remove('hidden');
         arrow.innerText = "▲";
-        window.buildAILists(); 
+        buildAILists(); 
     } else {
         panel.classList.add('hidden');
         arrow.innerText = "▼";
@@ -94,7 +132,7 @@ function buildPantryManualSelectionDOM() {
         items.forEach(item => {
             if (window.manualPantrySelections[item.name] === undefined) window.manualPantrySelections[item.name] = true;
             const wrapper = document.createElement('label');
-            wrapper.className = "flex items-center gap-2 p-1.5 bg-white rounded-lg border dark:border-slate-700 text-[10px] font-bold cursor-pointer select-none";
+            wrapper.className = "flex items-center gap-2 p-1.5 bg-white rounded-lg border dark:border-slate-700 text-[10px] font-bold cursor-pointer select-none dark:bg-slate-800 text-slate-800 dark:text-white";
             const chk = document.createElement('input'); chk.type = "checkbox"; chk.checked = window.manualPantrySelections[item.name];
             chk.onchange = (e) => { window.manualPantrySelections[item.name] = e.target.checked; };
             wrapper.appendChild(chk); wrapper.appendChild(document.createTextNode(`${window.getEmoji(item.name)} ${item.name}`));
@@ -103,27 +141,6 @@ function buildPantryManualSelectionDOM() {
     }
 }
 window.buildPantryManualSelectionDOM = buildPantryManualSelectionDOM;
-
-function openAICenter() { 
-    if (!window.currentUser) return; 
-    document.getElementById('ai-center-modal').classList.remove('hidden'); 
-    document.getElementById('ai-center-modal').classList.add('flex'); 
-    buildAILists(); 
-    buildPantryManualSelectionDOM(); 
-}
-window.openAICenter = openAICenter;
-
-function closeAICenter() { document.getElementById('ai-center-modal').classList.add('hidden'); document.getElementById('ai-center-modal').classList.remove('flex'); }
-window.closeAICenter = closeAICenter;
-
-function setAITab(tab) {
-    window.activeAITab = tab;
-    ['procure', 'recipes', 'receipt', 'chat'].forEach(t => {
-        document.getElementById(`tab-ai-${t}`).className = t === tab ? "px-4 py-2 rounded-lg bg-white text-purple-900 shadow-sm" : "px-4 py-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600";
-        document.getElementById(`panel-ai-${t}`).classList.toggle('hidden', t !== tab);
-    });
-}
-window.setAITab = setAITab;
 
 function cycleRecipeTime() {
     window.recipeTimeMode = (window.recipeTimeMode + 1) % 3; const btn = document.getElementById('time-cycle-btn');
@@ -199,9 +216,9 @@ window.analyzeReceiptWithAI = analyzeReceiptWithAI;
 
 async function sendFreeTextAIQuery() {
     const inp = document.getElementById('ai-chat-input'); const q = inp.value.trim(); if (!q) return;
-    const cb = document.getElementById('ai-chat-box'); cb.innerHTML += `<div class="text-left bg-blue-100 p-2 rounded-xl mb-1 max-w-[80%] ml-auto"><b>אתה:</b> ${q}</div>`; inp.value = '';
-    let systemContext = `עוזר ניהול ומטבח בדירת עלי שיח. שאלה: ${q}`;
+    const cb = document.getElementById('ai-chat-box'); cb.innerHTML += `<div class="text-right bg-purple-800 p-2 rounded-xl mb-1 max-w-[80%] mr-auto text-white"><b>אתה:</b> ${q}</div>`; inp.value = '';
+    let systemContext = `עוזר ניהול ומטבח בדירת עלי שיח. ענה בקצרה ובצורה פרקטית למדריכים. שאלה: ${q}`;
     const reply = await callGeminiAPI([{ parts: [{ text: systemContext }] }]);
-    cb.innerHTML += `<div class="text-right bg-purple-100 p-2 rounded-xl mb-2 max-w-[80%] mr-auto"><b>AI:</b> ${reply}</div>`; cb.scrollTop = cb.scrollHeight;
+    cb.innerHTML += `<div class="text-left bg-purple-950 p-2 rounded-xl mb-2 max-w-[80%] ml-auto text-purple-200"><b>AI:</b> ${reply}</div>`; cb.scrollTop = cb.scrollHeight;
 }
 window.sendFreeTextAIQuery = sendFreeTextAIQuery;
