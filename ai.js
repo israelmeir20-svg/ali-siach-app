@@ -1,4 +1,4 @@
-// אפליקציית עלי שיח - מודול AI חכם ומחולל מתכונים (גרסה סופית)
+// אפליקציית עלי שיח - מודול AI חכם ומחולל מתכונים (גרסה סופית ויציבה)
 window.activeAITab = 'procure';
 window.base64ReceiptImage = null;
 window.receiptMimeType = null;
@@ -32,12 +32,14 @@ window.toggleMatrixPanel = toggleMatrixPanel;
 function buildAILists() {
     const vegContainer = document.getElementById('matrix-vegetables'); if (!vegContainer) return; vegContainer.innerHTML = '';
     for (const [name, state] of Object.entries(window.vegetableMatrix)) {
-        let stateClass = state === 1 ? "matrix-circle-must" : state === 2 ? "matrix-circle-forbidden" : "matrix-circle-available";
+        let bgStyle = state === 1 ? "background-color: #fef2f2 !important; border: 4px solid #ef4444 !important;" : 
+                      state === 2 ? "background-color: #f1f5f9 !important; border: 4px solid #94a3b8 !important; opacity: 0.35;" : 
+                                    "background-color: #ecfdf5 !important; border: 4px solid #10b981 !important;";
         
         const buttonNode = document.createElement('button');
         buttonNode.type = "button";
-        buttonNode.className = `matrix-circle ${stateClass} cursor-pointer hover:scale-110 active:scale-95 transition-transform flex items-center justify-center`;
-        buttonNode.style = "width: 64px !important; height: 64px !important; font-size: 2rem !important; border-radius: 9999px; display: inline-flex;";
+        buttonNode.className = "matrix-circle hover:scale-110 active:scale-95 shadow-md";
+        buttonNode.style = `${bgStyle} width: 64px !important; height: 64px !important; font-size: 2rem !important; border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center; transition: transform 0.15s;`;
         buttonNode.innerHTML = window.getEmoji(name).trim();
         buttonNode.onclick = () => window.cycleMatrixState('veg', name);
         vegContainer.appendChild(buttonNode);
@@ -50,12 +52,14 @@ function buildAILists() {
         "תנור בשרי": "♨️", "טוסטר חלבי": "🥪", "כיריים": "🔥", "מיניבר": "🚰"
     };
     for (const [name, state] of Object.entries(window.toolMatrix)) {
-        let stateClass = state === 1 ? "matrix-circle-must" : state === 2 ? "matrix-circle-forbidden" : "matrix-circle-available";
+        let bgStyle = state === 1 ? "background-color: #fef2f2 !important; border: 4px solid #ef4444 !important;" : 
+                      state === 2 ? "background-color: #f1f5f9 !important; border: 4px solid #94a3b8 !important; opacity: 0.35;" : 
+                                    "background-color: #ecfdf5 !important; border: 4px solid #10b981 !important;";
         
         const buttonNode = document.createElement('button');
         buttonNode.type = "button";
-        buttonNode.className = `matrix-circle ${stateClass} cursor-pointer hover:scale-110 active:scale-95 transition-transform flex items-center justify-center`;
-        buttonNode.style = "width: 64px !important; height: 64px !important; font-size: 2rem !important; border-radius: 9999px; display: inline-flex;";
+        buttonNode.className = "matrix-circle hover:scale-110 active:scale-95 shadow-md";
+        buttonNode.style = `${bgStyle} width: 64px !important; height: 64px !important; font-size: 2rem !important; border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center; transition: transform 0.15s;`;
         buttonNode.innerHTML = toolEmojis[name] || "🔧";
         buttonNode.onclick = () => window.cycleMatrixState('tool', name);
         toolContainer.appendChild(buttonNode);
@@ -108,6 +112,9 @@ function openAICenter() {
     buildPantryManualSelectionDOM(); 
 }
 window.openAICenter = openAICenter;
+
+function closeAICenter() { document.getElementById('ai-center-modal').classList.add('hidden'); document.getElementById('ai-center-modal').classList.remove('flex'); }
+window.closeAICenter = closeAICenter;
 
 function setAITab(tab) {
     window.activeAITab = tab;
