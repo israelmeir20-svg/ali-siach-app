@@ -754,7 +754,7 @@ function importBackupFile(e) {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = function(evt) {
+    reader.onload = async function(evt) {
         try {
             const parsed = JSON.parse(evt.target.result);
             if (parsed && parsed.appData) {
@@ -763,18 +763,23 @@ function importBackupFile(e) {
                 if (parsed.teamMessages) window.teamMessages = parsed.teamMessages;
                 if (parsed.vegetableMatrix) window.vegetableMatrix = parsed.vegetableMatrix;
                 if (parsed.toolMatrix) window.toolMatrix = parsed.toolMatrix;
-                
+
                 renderApp();
                 buildUserLoginSelect();
                 buildChatTargetSelect();
                 
-                sendActionToCloud({ action: "SYNC_MESSAGES", teamMessages: window.teamMessages });
-                sendActionToCloud({ action: "SYNC_MEMBERS", teamMembers: window.teamMembers });
-                for (const [cat, items] of Object.entries(window.appData)) {
-                    items.forEach(i => sendActionToCloud({ action: "ADD_PRODUCT", category: cat, product: i }));
-                }
+                // שליחת פקודות סנכרון מרוכזות - בקשת רשת אחת בודדת לכל מחלקה
+                await sendActionToCloud({ action: "SYNC_MESSAGES", teamMessages: window.teamMessages });
+                await sendActionToCloud({ action: "SYNC_MEMBERS", teamMembers: window.teamMembers });
                 
-                alert("נתוני המערכת שוחזרו בהצלחה מתוך קובץ הגיבוי!");
+                // שליחת כל המלאי השלם במכה אחת ללא לולאות מפוצצות בקשות
+                const inventorySynced = await sendActionToCloud({ action: "SYNC_INVENTORY", appData: window.appData });
+                
+                if (inventorySynced) {
+                    alert("נתוני המערכת שוחזרו בהצלחה מתוך קובץ הגיבוי ישירות לתוך גוגל שיטס!");
+                } else {
+                    alert("הנתונים נטענו מקומית אך נכשלו בסנכרון מול גוגל שיטס. בדוק את ה-URL של הענן.");
+                }
                 toggleSettingsModal();
             } else { alert("שגיאה: מבנה קובץ הגיבוי אינו תקין."); }
         } catch(err) { alert("שגיאה בקריאת או פענוח קובץ הגיבוי."); }
@@ -782,7 +787,6 @@ function importBackupFile(e) {
     reader.readAsText(file);
 }
 window.importBackupFile = importBackupFile;
-
 function showToast(msg, icon = "✨") { const t = document.getElementById('toast'); document.getElementById('toast-message').innerText = msg; document.getElementById('toast-icon').innerText = icon; t.classList.remove('translate-y-20', 'opacity-0'); t.classList.add('translate-y-0', 'opacity-100'); setTimeout(() => { t.classList.remove('translate-y-0', 'opacity-100'); t.classList.add('translate-y-20', 'opacity-0'); }, 3000); }
 window.showToast = showToast;
 
