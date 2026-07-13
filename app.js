@@ -1,344 +1,192 @@
-<!DOCTYPE html>
-<html lang="he" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>עלי שיח - ניהול מלאי ומעקב חכם</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        tailwind.config = { darkMode: 'class' }
-    </script>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body class="text-slate-800 dark:text-slate-200 antialiased min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
+// אפליקציית עלי שיח - מודול AI חכם ותפעול מופרד (גרסה סופית, מופרדת ומאובטחת)
+window.activeAITab = 'procure';
+window.base64ReceiptImage = null;
+window.receiptMimeType = null;
+window.recipeTimeMode = 0;
 
-    <!-- מסך התחברות קשיח -->
-    <div id="login-screen" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-2xl max-w-sm w-full space-y-4 border border-slate-200 dark:border-slate-700 text-center">
-            <div id="test-diagnostic-error" class="hidden text-right bg-red-600 text-white text-xs p-3 rounded-xl font-bold whitespace-pre-line shadow-inner"></div>
-            <span class="text-5xl block">📦</span>
-            <h2 class="text-xl font-black text-slate-900 dark:text-white">מערכת מלאי - עלי שיח</h2>
-            <p class="text-xs text-slate-500 dark:text-slate-400 font-bold">בחר את שמך והזן את קוד ה-PIN האישי שלך</p>
-            <div class="space-y-3 pt-2">
-                <select id="login-user-select" class="w-full p-2.5 rounded-xl border bg-slate-50 dark:bg-slate-700 font-black text-sm text-slate-700 dark:text-white focus:outline-none"></select>
-                <input type="password" id="login-pin-input" inputmode="numeric" maxlength="4" placeholder="קוד PIN (4 ספרות)" class="w-full p-2.5 rounded-xl border bg-slate-50 dark:bg-slate-700 text-center font-black tracking-widest text-lg focus:outline-none">
-                <button onclick="window.handleLogin()" class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-sm shadow-md transition">התחבר למערכת</button>
-            </div>
-        </div>
-    </div>
+if (!window.vegetableMatrix) {
+    window.vegetableMatrix = { "עגבניה": 0, "מלפפון": 0, "גזר": 0, "קולרבי": 0, "תפו\"א": 0, "כרוב": 0, "בצל": 0, "דלורית": 0, "פלפל": 0 };
+}
+if (!window.toolMatrix) {
+    window.toolMatrix = { "מחבת ללא מכסה בשרית": 0, "סיר שטוח עם מכסה בשרי": 0, "סיר קטן גבוה עם מכסה בשרי": 0, "סיר רגיל עם מכסה בשרי": 0, "סכין בשרית": 0, "סכין חלבית": 0, "פומפייה": 0, "תנור בשרי": 0, "טוסטר חלבי": 0, "כיריים": 0, "מיניבר": 0 };
+}
+window.manualPantrySelections = {};
 
-    <!-- בר ניווט עליון מודרני -->
-    <nav class="sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/60 dark:border-slate-700 z-40 h-20 flex items-center px-6">
-        <div class="max-w-7xl mx-auto w-full flex items-center justify-between gap-6">
-            
-            <!-- שמאל הניווט: שם משתמש לחיץ להצגת הודעות שהתקבלו בלבד -->
-            <div class="flex items-center gap-4">
-                <button onclick="window.toggleSettingsModal()" class="p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm text-slate-500 hover:bg-slate-100 transition">⚙️</button>
-                
-                <div class="relative">
-                    <button onclick="window.toggleUserDropdown()" class="flex items-center gap-2 p-2.5 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 rounded-2xl shadow-sm text-sm font-black text-slate-800 dark:text-white hover:bg-slate-100 transition">
-                        <span>שלום, </span><span id="current-user-display">-</span>
-                        <span id="unread-badge" class="hidden bg-red-500 text-white font-black text-[9px] w-4.5 h-4.5 rounded-full flex items-center justify-center border border-white">0</span>
-                    </button>
-                    
-                    <!-- חלונית שם המשתמש: מציגה הודעות שהתקבלו בלבד עם אפשרות מחיקה בלבד -->
-                    <div id="user-received-dropdown" class="hidden absolute left-0 mt-2 w-80 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl z-50 flex flex-col overflow-hidden">
-                        <div class="p-3 bg-slate-50 dark:bg-slate-700 border-b dark:border-slate-600 font-black text-xs text-slate-700 dark:text-white">📥 הודעות שהתקבלו בלבד</div>
-                        <div id="user-received-list" class="max-h-64 overflow-y-auto p-2 space-y-2"></div>
-                    </div>
-                </div>
-            </div>
+function openAIRecipesModal() { 
+    if (!window.currentUser) return; 
+    document.getElementById('ai-recipes-modal').classList.remove('hidden'); 
+    document.getElementById('ai-recipes-modal').classList.add('flex'); 
+    buildAILists(); 
+    buildPantryManualSelectionDOM(); 
+}
+window.openAIRecipesModal = openAIRecipesModal;
 
-            <!-- מרכז הניווט: בר חיפוש רחב -->
-            <div class="flex-1 max-w-xl relative flex items-center">
-                <span class="absolute right-4 text-slate-400 text-base">🔍</span>
-                <input type="text" id="search-bar" oninput="window.filterInventory()" placeholder="חיפוש לפי מוצר, קטגוריה, הערה..." class="w-full pr-11 pl-12 py-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold focus:outline-none shadow-inner">
-                <span class="absolute left-4 text-slate-300 font-mono text-xs select-none">| 🔲</span>
-            </div>
+function openAIReceiptModal() { 
+    if (!window.currentUser) return; 
+    document.getElementById('ai-receipt-modal').classList.remove('hidden'); 
+    document.getElementById('ai-receipt-modal').classList.add('flex'); 
+}
+window.openAIReceiptModal = openAIReceiptModal;
 
-            <!-- ימין הניווט: לוגו המערכת -->
-            <div class="flex items-center gap-3">
-                <div class="text-right">
-                    <h1 class="text-base font-black text-slate-900 dark:text-white leading-none tracking-tight">עלי שיח</h1>
-                    <p class="text-[10px] font-bold text-slate-400 pt-0.5">ניהול מלאי</p>
-                </div>
-                <span class="text-3xl bg-amber-50 dark:bg-amber-950/30 p-2 rounded-2xl border border-amber-100 dark:border-amber-900 select-none">🧺</span>
-            </div>
-        </div>
-    </nav>
+function openAIProcureModal() { 
+    if (!window.currentUser) return; 
+    document.getElementById('ai-procure-modal').classList.remove('hidden'); 
+    document.getElementById('ai-procure-modal').classList.add('flex'); 
+}
+window.openAIProcureModal = openAIProcureModal;
 
-    <!-- תוכן ראשי -->
-    <main class="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
-        
-        <!-- דאשבורד נתונים -->
-        <div id="dashboard-area" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-            <div class="lg:col-span-3 flex flex-col justify-between gap-3">
-                <div class="premium-card p-4 rounded-3xl flex items-center justify-between border-r-4 border-r-red-500">
-                    <div class="p-2 bg-red-50 dark:bg-red-950/30 text-xl rounded-2xl">⚠️</div>
-                    <div class="text-left"><span class="text-[10px] font-bold text-slate-400 block">מוצרים חסרים</span><span id="dash-missing-val" class="text-2xl font-black text-slate-900 dark:text-white">0</span></div>
-                </div>
-                <div class="premium-card p-4 rounded-3xl flex items-center justify-between border-r-4 border-r-blue-500">
-                    <div class="p-2 bg-blue-50 dark:bg-blue-950/30 text-xl rounded-2xl">🛒</div>
-                    <div class="text-left"><span class="text-[10px] font-bold text-slate-400 block">פריטים להזמנה</span><span id="dash-total-val" class="text-2xl font-black text-slate-900 dark:text-white">0</span></div>
-                </div>
-                <div class="premium-card p-4 rounded-3xl flex items-center justify-between border-r-4 border-r-emerald-500">
-                    <div class="p-2 bg-emerald-50 dark:bg-emerald-950/30 text-xl rounded-2xl">💰</div>
-                    <div class="text-left"><span class="text-[10px] font-bold text-slate-400 block">עלות משוערת</span><span id="dash-cost-val" class="text-2xl font-black text-slate-900 dark:text-white">₪0</span></div>
-                </div>
-            </div>
+function toggleAIChatWindow() {
+    if (!window.currentUser) return;
+    const win = document.getElementById('ai-chat-window');
+    window.isAIChatOpen = !window.isAIChatOpen;
+    if (window.isAIChatOpen) { win.classList.remove('hidden'); win.classList.add('flex'); } 
+    else { win.classList.add('hidden'); win.classList.remove('flex'); }
+}
+window.toggleAIChatWindow = toggleAIChatWindow;
 
-            <div class="premium-card p-5 rounded-3xl lg:col-span-4 flex flex-col justify-between items-center relative min-h-[180px]">
-                <span class="text-xs font-black text-slate-900 dark:text-white block w-full text-right border-b dark:border-slate-700 pb-1.5 mb-2">סטטוס מלאי</span>
-                <div class="w-full flex-1 flex items-center justify-center gap-4 relative">
-                    <div class="w-28 h-28 relative">
-                        <canvas id="categoryChart"></canvas>
-                    </div>
-                    <div id="chart-legend-labels" class="text-[10px] font-bold space-y-1 text-slate-500 text-right">
-                        <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-red-500"></span> חסר</div>
-                        <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-blue-500"></span> להזמנה</div>
-                        <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> מלאי תקין</div>
-                    </div>
-                </div>
-            </div>
+function toggleMatrixPanel(type) {
+    const panelId = type === 'veg' ? 'panel-vegetables-content' : 'panel-tools-content';
+    const arrowId = type === 'veg' ? 'veg-panel-arrow' : 'tool-panel-arrow';
+    const panel = document.getElementById(panelId);
+    const arrow = document.getElementById(arrowId);
+    if (panel.classList.contains('hidden')) { panel.classList.remove('hidden'); arrow.innerText = "▲"; buildAILists(); } 
+    else { panel.classList.add('hidden'); arrow.innerText = "▼"; }
+}
+window.toggleMatrixPanel = toggleMatrixPanel;
 
-            <div class="premium-card p-5 rounded-3xl lg:col-span-5 flex flex-col justify-between">
-                <span class="text-xs font-black text-slate-900 dark:text-white block text-right border-b dark:border-slate-700 pb-1.5">חוסרים לפי קטגוריות</span>
-                <div id="category-progress-container" class="flex-1 flex flex-col justify-center space-y-3 pt-3"></div>
-            </div>
-        </div>
+function buildAILists() {
+    const vegContainer = document.getElementById('matrix-vegetables'); if (!vegContainer) return; vegContainer.innerHTML = '';
+    for (const [name, state] of Object.entries(window.vegetableMatrix)) {
+        let bgStyle = state === 1 ? "background-color: #fef2f2 !important; border: 4px solid #ef4444 !important;" : 
+                      state === 2 ? "background-color: #f1f5f9 !important; border: 4px solid #94a3b8 !important; opacity: 0.35;" : 
+                                    "background-color: #ecfdf5 !important; border: 4px solid #10b981 !important;";
+        const buttonNode = document.createElement('button');
+        buttonNode.type = "button";
+        buttonNode.className = "matrix-circle hover:scale-110 active:scale-95 shadow-md flex items-center justify-center";
+        buttonNode.style = `${bgStyle} width: 64px !important; height: 64px !important; font-size: 2rem !important; border-radius: 9999px; display: inline-flex;`;
+        buttonNode.innerHTML = window.getEmoji(name).trim();
+        buttonNode.onclick = () => window.cycleMatrixState('veg', name);
+        vegContainer.appendChild(buttonNode);
+    }
 
-        <!-- סרגל כלים מרכזי מאוחד -->
-        <div class="premium-card rounded-3xl p-4 flex flex-col space-y-3">
-            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-                <div class="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-700 p-1 rounded-xl text-xs font-black">
-                    <button id="view-grid-btn" onclick="window.setViewMode('grid')" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-200">⬜ מצב ריבועים</button>
-                    <button id="view-table-btn" onclick="window.setViewMode('table')" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-200">📋 מצב טבלה</button>
-                </div>
+    const toolContainer = document.getElementById('matrix-tools'); if (!toolContainer) return; toolContainer.innerHTML = '';
+    const toolEmojis = { "מחבת ללא מכסה בשרית": "🍳", "סיר שטוח עם מכסה בשרי": "🍲", "סיר קטן גבוה עם מכסה בשרי": "🥣", "סיר רגיל עם מכסה בשרי": "🍲", "סכין בשרית": "🔪", "סכין חלבית": "🍴", "פומפייה": "🧀", "תנור בשרי": "♨️", "טוסטר חלבי": "🥪", "כיריים": "🔥", "מיניבר": "🚰" };
+    for (const [name, state] of Object.entries(window.toolMatrix)) {
+        let bgStyle = state === 1 ? "background-color: #fef2f2 !important; border: 4px solid #ef4444 !important;" : 
+                      state === 2 ? "background-color: #f1f5f9 !important; border: 4px solid #94a3b8 !important; opacity: 0.35;" : 
+                                    "background-color: #ecfdf5 !important; border: 4px solid #10b981 !important;";
+        const buttonNode = document.createElement('button');
+        buttonNode.type = "button";
+        buttonNode.className = "matrix-circle hover:scale-110 active:scale-95 shadow-md flex items-center justify-center";
+        buttonNode.style = `${bgStyle} width: 64px !important; height: 64px !important; font-size: 2rem !important; border-radius: 9999px; display: inline-flex;`;
+        buttonNode.innerHTML = toolEmojis[name] || "🔧";
+        buttonNode.onclick = () => window.cycleMatrixState('tool', name);
+        toolContainer.appendChild(buttonNode);
+    }
+}
+window.buildAILists = buildAILists;
 
-                <div class="relative inline-block text-right">
-                    <button onclick="window.toggleSharePopover()" class="p-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-xl text-xs font-black flex items-center gap-1 border dark:border-slate-600">
-                        <span>📤 שיתוף ויצוא דוח</span>
-                    </button>
-                    <div id="share-popover" class="hidden absolute right-0 mt-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl rounded-xl p-1.5 flex flex-col gap-1 z-30 whitespace-nowrap text-right">
-                        <button onclick="window.exportData('copy')" class="w-full text-right px-3 py-1.5 text-[11px] font-bold hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-700 dark:text-slate-200">📋 העתק טקסט ללוח</button>
-                        <button onclick="window.exportData('whatsapp')" class="w-full text-right px-3 py-1.5 text-[11px] font-bold hover:bg-emerald-50 dark:hover:bg-emerald-950/30 rounded-lg text-emerald-700">💬 שלח בוואטסאפ</button>
-                        <button onclick="window.exportData('download')" class="w-full text-right px-3 py-1.5 text-[11px] font-black hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-lg text-blue-600 dark:text-blue-400 border-t dark:border-slate-700 mt-1">💾 הורד קובץ גיבוי (JSON)</button>
-                    </div>
-                </div>
+function cycleMatrixState(type, name) {
+    if (type === 'veg') { window.vegetableMatrix[name] = (window.vegetableMatrix[name] + 1) % 3; } 
+    else { window.toolMatrix[name] = (window.toolMatrix[name] + 1) % 3; }
+    buildAILists(); window.triggerDebouncedSync();
+}
+window.cycleMatrixState = cycleMatrixState;
 
-                <div class="flex items-center gap-3 justify-center flex-1 w-full md:w-auto">
-                    <button onclick="window.openAddProductModal()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl shadow-sm transition flex items-center gap-1"><span>+ פריט חדש</span></button>
-                    <button onclick="window.startWalkthroughMode()" class="w-full max-w-xs py-2.5 bg-purple-900 hover:bg-purple-950 text-white font-black text-sm rounded-2xl shadow-md transition flex items-center justify-center gap-2">
-                        <span>⏱️ ספירת מלאי מהירה</span>
-                    </button>
-                </div>
+function addCustomMatrixItem(type) {
+    let name = prompt(type === 'veg' ? "הזן שם ירק חדש:" : "הזן שם כלי מטבח חדש:");
+    if (name) {
+        if (type === 'veg') window.vegetableMatrix[name] = 0; else window.toolMatrix[name] = 0;
+        buildAILists(); window.triggerDebouncedSync();
+    }
+}
+window.addCustomMatrixItem = addCustomMatrixItem;
 
-                <div class="flex items-center gap-1.5 text-xs font-bold text-slate-500">
-                    <button id="filter-all" onclick="window.setFilter('all')" class="px-2.5 py-1.5 rounded-xl border dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700">📋 כל הרשימה</button>
-                    <button id="filter-to-order" onclick="window.setFilter('to-order')" class="px-2.5 py-1.5 rounded-xl border dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700">🛒 מוצרים לחסר</button>
-                    <button id="filter-in-stock" onclick="window.setFilter('in-stock')" class="px-2.5 py-1.5 rounded-xl border dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700">✅ מלאי תקין</button>
-                </div>
-            </div>
+function buildPantryManualSelectionDOM() {
+    const container = document.getElementById('pantry-manual-selection-container'); if (!container) return; container.innerHTML = '';
+    for (const [cat, items] of Object.entries(window.appData)) {
+        if (cat === "טואלטיקה וניקיון") continue; 
+        items.forEach(item => {
+            if (window.manualPantrySelections[item.name] === undefined) window.manualPantrySelections[item.name] = true;
+            const wrapper = document.createElement('label');
+            wrapper.className = "flex items-center gap-2 p-1.5 bg-white rounded-lg border dark:border-slate-700 text-[10px] font-bold cursor-pointer select-none dark:bg-slate-800 text-slate-800 dark:text-white";
+            const chk = document.createElement('input'); chk.type = "checkbox"; chk.checked = window.manualPantrySelections[item.name];
+            chk.onchange = (e) => { window.manualPantrySelections[item.name] = e.target.checked; };
+            wrapper.appendChild(chk); wrapper.appendChild(document.createTextNode(`${window.getEmoji(item.name)} ${item.name}`));
+            container.appendChild(wrapper);
+        });
+    }
+}
+window.buildPantryManualSelectionDOM = buildPantryManualSelectionDOM;
 
-            <div class="border-t dark:border-slate-700 pt-2 flex flex-wrap gap-1 justify-center">
-                <button onclick="window.setDayFilter('all')" id="day-filter-all" class="px-3 py-1 rounded-lg text-[11px] font-bold">כל הימים</button>
-                <button onclick="window.setDayFilter('ראשון')" id="day-filter-ראשון" class="px-3 py-1 rounded-lg text-[11px] font-bold">ראשון</button>
-                <button onclick="window.setDayFilter('שני')" id="day-filter-שני" class="px-3 py-1 rounded-lg text-[11px] font-bold">שני</button>
-                <button onclick="window.setDayFilter('שלישי')" id="day-filter-שלישי" class="px-3 py-1 rounded-lg text-[11px] font-bold">שלישי</button>
-                <button onclick="window.setDayFilter('רביעי')" id="day-filter-רביעי" class="px-3 py-1 rounded-lg text-[11px] font-bold">רביעי</button>
-                <button onclick="window.setDayFilter('חמישי')" id="day-filter-חמישי" class="px-3 py-1 rounded-lg text-[11px] font-bold">חמישי</button>
-                <button onclick="window.setDayFilter('שישי')" id="day-filter-שישי" class="px-3 py-1 rounded-lg text-[11px] font-bold">שישי</button>
-                <button onclick="window.setDayFilter('שבת')" id="day-filter-שבת" class="px-3 py-1 rounded-lg text-[11px] font-bold">שבת</button>
-            </div>
-        </div>
+function cycleRecipeTime() {
+    window.recipeTimeMode = (window.recipeTimeMode + 1) % 3; const btn = document.getElementById('time-cycle-btn');
+    if (window.recipeTimeMode === 0) btn.innerText = "⏱️ זמן: מהיר (עד 20 דק')";
+    else if (window.recipeTimeMode === 1) btn.innerText = "⏱️ זמן: בינוני (עד 45 דק')";
+    else btn.innerText = "⏱️ זמן: איטי (ללא הגבלת זמן)";
+}
+window.cycleRecipeTime = cycleRecipeTime;
 
-        <!-- מעטפת עבודה מרכזית -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            <!-- 4 לחצני ה-AI הריבועיים בשמאל -->
-            <div class="lg:col-span-2 grid grid-cols-2 lg:grid-cols-1 gap-3">
-                <button onclick="window.openAIRecipesModal()" class="p-4 bg-purple-100 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-900 rounded-2xl shadow-sm text-center flex flex-col items-center justify-center space-y-1.5 transition hover:scale-105">
-                    <span class="text-2xl">🍳</span><span class="text-[10px] font-black text-purple-900 dark:text-purple-300">מחולל מתכונים</span>
-                </button>
-                <button onclick="window.toggleAIChatWindow()" class="p-4 bg-purple-500 text-white rounded-2xl shadow-sm text-center flex flex-col items-center justify-center space-y-1.5 transition hover:scale-105">
-                    <span class="text-2xl">🧠</span><span class="text-[10px] font-black">עוזר ה-AI לצוות</span>
-                </button>
-                <button onclick="window.openAIReceiptModal()" class="p-4 bg-slate-800 text-white rounded-2xl shadow-sm text-center flex flex-col items-center justify-center space-y-1.5 transition hover:scale-105">
-                    <span class="text-2xl">🔲</span><span class="text-[10px] font-black">סורק קבלות</span>
-                </button>
-                <button onclick="window.openAIProcureModal()" class="p-4 bg-amber-100 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 rounded-2xl shadow-sm text-center flex flex-col items-center justify-center space-y-1.5 transition hover:scale-105">
-                    <span class="text-2xl">💡</span><span class="text-[10px] font-black text-amber-900 dark:text-amber-300">המלצות רכש</span>
-                </button>
-            </div>
-            <!-- מכולת המלאי המרכזית מימין -->
-            <div id="inventory-container" class="lg:col-span-10 space-y-6"></div>
-        </div>
-    </main>
+function getCurrentlyVisibleProducts() {
+    let products = [];
+    for (const [cat, items] of Object.entries(window.appData)) {
+        items.forEach(i => {
+            const matchesSearch = i.name.toLowerCase().includes(window.searchQuery) || (i.notes && i.notes.toLowerCase().includes(window.searchQuery));
+            let matchesDay = window.activeDayFilter === 'all' || (i.days && (i.days.includes(window.activeDayFilter) || i.days.includes("כל הימים")));
+            const toOrder = window.calculateToOrder(i); let visible = true;
+            if (window.activeFilter === 'to-order' && toOrder === 0) visible = false;
+            if (window.activeFilter === 'in-stock' && toOrder > 0) visible = false;
+            if (matchesSearch && matchesDay && visible) products.push({ name: i.name, existing: i.existing, recommended: i.recommended, notes: i.notes });
+        });
+    }
+    return products;
+}
 
-    <!-- מודלים נפרדים ועצמאיים לחלוטין לכל פונקציות ה-AI -->
-    <div id="ai-recipes-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-4xl w-full shadow-2xl overflow-hidden flex flex-col h-[85vh] border dark:border-slate-700">
-            <div class="p-4 bg-purple-900 text-white flex justify-between items-center"><h2 class="text-sm font-black">🍳 מחולל מתכונים מתקדם - עלי שיח</h2><button onclick="document.getElementById('ai-recipes-modal').classList.add('hidden')" class="text-purple-200 font-bold text-xs">סגור</button></div>
-            <div class="p-4 overflow-y-auto grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                <div class="md:col-span-2 space-y-3">
-                    <div><label class="font-black text-slate-700 dark:text-slate-300">שם התוצר המבוקש:</label><input type="text" id="ai-recipe-dish-input" placeholder="למשל: מרק ירקות, פסטה..." class="w-full p-2.5 border dark:border-slate-600 dark:bg-slate-700 rounded-xl font-bold"></div>
-                    <button onclick="window.cycleRecipeTime()" id="time-cycle-btn" class="px-4 py-2 rounded-xl border font-black bg-emerald-50 dark:bg-emerald-950 text-emerald-700">⏱️ זמן: מהיר (עד 20 דק')</button>
-                    <div class="border dark:border-slate-700 rounded-2xl p-3 bg-slate-50 dark:bg-slate-900 space-y-2">
-                        <span class="font-black text-slate-700 dark:text-slate-300 block border-b pb-1">🥫 בחירה ידנית ממוצרי המזווה:</span>
-                        <div id="pantry-manual-selection-container" class="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto p-1 bg-white dark:bg-slate-700 rounded-xl border"></div>
-                    </div>
-                    <button onclick="window.generateAdvancedAIRecipe()" class="w-full py-2.5 bg-emerald-600 text-white font-black rounded-xl shadow-sm">ייצר מתכון מותאם קשר</button>
-                    <div id="ai-recipe-output" class="hidden whitespace-pre-line bg-slate-50 dark:bg-slate-700 p-4 rounded-xl border font-semibold"></div>
-                </div>
-                <div class="bg-slate-50 dark:bg-slate-900 p-3 rounded-2xl border dark:border-slate-700 space-y-4">
-                    <button onclick="window.toggleMatrixPanel('veg')" class="w-full flex items-center justify-between p-2 bg-white dark:bg-slate-800 border rounded-xl font-black"><span>🥗 תפריט ירקות</span><span id="veg-panel-arrow">▼</span></button>
-                    <div id="panel-vegetables-content" class="hidden space-y-2"><div id="matrix-vegetables" class="flex flex-wrap gap-2 justify-center"></div><button onclick="window.addCustomMatrixItem('veg')" class="w-full mt-1 text-blue-500 font-bold text-[10px]">+ הוסף ירק</button></div>
-                    <button onclick="window.toggleMatrixPanel('tool')" class="w-full flex items-center justify-between p-2 bg-white dark:bg-slate-800 border rounded-xl font-black"><span>🍳 תפריט כלי מטבח</span><span id="tool-panel-arrow">▼</span></button>
-                    <div id="panel-tools-content" class="hidden space-y-2"><div id="matrix-tools" class="flex flex-wrap gap-2 justify-center"></div><button onclick="window.addCustomMatrixItem('tool')" class="w-full mt-1 text-blue-500 font-bold text-[10px]">+ הוסף כלי</button></div>
-                </div>
-            </div>
-        </div>
-    </div>
+async function callGeminiAPI(contents) {
+    const key = localStorage.getItem('aliSiach_gemini_key'); if (!key) { alert("⚠️ חסר מפתח Gemini API!"); return null; }
+    try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: contents }) });
+        const data = await res.json(); return data.candidates?.[0]?.content?.parts?.[0]?.text || "שגיאה בניתוח.";
+    } catch (err) { return "תקלת תקשורת מול שרתי AI."; }
+}
 
-    <div id="ai-receipt-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-md w-full shadow-2xl p-5 border dark:border-slate-700 space-y-4 text-xs">
-            <div class="flex justify-between items-center border-b pb-2"><h2 class="text-sm font-black text-slate-900 dark:text-white">📸 סורק קבלות חכם</h2><button onclick="document.getElementById('ai-receipt-modal').classList.add('hidden')" class="text-slate-400 font-bold">✕</button></div>
-            <div class="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 p-6 rounded-xl bg-slate-50 dark:bg-slate-700">
-                <input type="file" id="receipt-file-input" accept="image/*" class="hidden" onchange="window.handleReceiptUpload(event)">
-                <button onclick="document.getElementById('receipt-file-input').click()" class="px-4 py-2 bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-white font-black rounded-xl">📁 בחר צילום קבלה</button>
-                <span id="receipt-file-name" class="mt-2 text-[10px] text-slate-400">לא נבחר קובץ</span>
-            </div>
-            <button onclick="window.analyzeReceiptWithAI()" class="w-full py-2.5 bg-blue-600 text-white font-black rounded-xl shadow-md">הפעל סורק קבלות</button>
-            <div id="ai-receipt-output" class="hidden bg-slate-50 dark:bg-slate-700 p-3 rounded-xl border max-h-40 overflow-y-auto font-semibold"></div>
-        </div>
-    </div>
+async function runAIProcurementAnalysis() {
+    const out = document.getElementById('ai-procure-output'); out.classList.remove('hidden'); out.innerText = "🤖 מנתח מלאי מגמתי...";
+    let prompt = `השווה כמויות חודש קודם למלאי קיים. נתונים:\n${JSON.stringify(window.appData)}`;
+    out.innerText = await callGeminiAPI([{ parts: [{ text: prompt }] }]);
+}
+window.runAIProcurementAnalysis = runAIProcurementAnalysis;
 
-    <div id="ai-procure-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-lg w-full shadow-2xl p-5 border dark:border-slate-700 space-y-4 text-xs">
-            <div class="flex justify-between items-center border-b pb-2"><h2 class="text-sm font-black text-slate-900 dark:text-white">📋 המלצות רכש וחיסכון AI</h2><button onclick="document.getElementById('ai-procure-modal').classList.add('hidden')" class="text-slate-400 font-bold">✕</button></div>
-            <button onclick="window.runAIProcurementAnalysis()" class="w-full py-2.5 bg-purple-600 text-white font-black rounded-xl shadow-md">הפעל ניתוח מלאי מגמתי</button>
-            <div id="ai-procure-output" class="hidden whitespace-pre-line bg-slate-50 dark:bg-slate-700 p-4 rounded-xl border font-semibold max-h-60 overflow-y-auto"></div>
-        </div>
-    </div>
+async function generateAdvancedAIRecipe() {
+    const out = document.getElementById('ai-recipe-output'); out.classList.remove('hidden'); out.innerText = "🤖 בונה מתכון מותאם אישית...";
+    const visibleProducts = getCurrentlyVisibleProducts(); const dishInput = document.getElementById('ai-recipe-dish-input').value.trim();
+    const timeLabels = ["מהיר (עד 20 דקות)", "בינוני (עד 45 דקות)", "איטי (ללא הגבלת זמן)"];
+    let chosenPantryItems = []; for (const [name, isIncluded] of Object.entries(window.manualPantrySelections)) { if (isIncluded) chosenPantryItems.push(name); }
+    let prompt = `הצע מתכון קל וטעים ל-6 דיירים בעלי שיח בהתבסס על ההגבלות הבאות:\nמנה מבוקשת: ${dishInput || 'בחירה חופשית'}\nזמן הכנה: ${timeLabels[window.recipeTimeMode]}\nחוקי מטבח: בישול בשרי, ללא מעבד מזון, חיתוך בסכין בלבד, שמן קנולה בלבד, ללא סויה או כמון. כשר.\nמוצרים פתוחים כעת: ${JSON.stringify(visibleProducts)}\nמוצרי מזווה שנבחרו ידנית: ${JSON.stringify(chosenPantryItems)}\nמטריצת ירקות (0=אפשר, 1=חייב, 2=אסור): ${JSON.stringify(window.vegetableMatrix)}\nמטריצת כלי מטבח (0=אפשר, 1=חייב, 2=אסור): ${JSON.stringify(window.toolMatrix)}\n\nהצג הוראות ברורות למדריכים ובשורה האחרונה בהחלט תיתן שדרוג/האק מהיר למנה [Upgrade/Hack].`;
+    out.innerText = await callGeminiAPI([{ parts: [{ text: prompt }] }]);
+}
+window.generateAdvancedAIRecipe = generateAdvancedAIRecipe;
 
-    <!-- חלונית צ'אט ה-AI הסגולה המבודדת -->
-    <div id="ai-chat-window" class="hidden fixed bottom-6 right-6 w-80 h-96 bg-purple-900 text-white border border-purple-700 rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden">
-        <div class="p-3 bg-purple-950 flex justify-between items-center"><h3 class="text-xs font-black">🧠 עוזר AI לצוות השטח</h3><button onclick="window.toggleAIChatWindow()" class="text-xs font-bold">✕</button></div>
-        <div id="ai-chat-box" class="flex-1 p-3 overflow-y-auto space-y-2 bg-purple-950/20 text-[11px]"></div>
-        <div class="p-2 border-t border-purple-800 bg-purple-950 flex gap-1">
-            <input type="text" id="ai-chat-input" placeholder="שאל את ה-AI שאלה חופשית..." class="w-full p-2 rounded-xl text-xs font-bold bg-purple-800 text-white placeholder-purple-300 focus:outline-none">
-            <button onclick="window.sendFreeTextAIQuery()" class="px-3 bg-purple-600 text-white text-xs font-bold rounded-xl">שאל</button>
-        </div>
-    </div>
+function handleReceiptUpload(e) {
+    const file = e.target.files[0]; if (!file) return; window.receiptMimeType = file.type; document.getElementById('receipt-file-name').innerText = file.name;
+    const reader = new FileReader(); reader.onload = function(evt) { window.base64ReceiptImage = evt.target.result.split(',')[1]; }; reader.readAsDataURL(file);
+}
+window.handleReceiptUpload = handleReceiptUpload;
 
-    <!-- כפתור מרכז ההודעות והצ'אט המרחף תמיד למטה מצד שמאל (סעיף א', ג') -->
-    <button onclick="window.toggleFloatingChat()" class="fixed bottom-4 left-4 w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-2xl z-50 text-xl hover:scale-105 active:scale-95 transition-transform">💬</button>
-    
-    <!-- חלונית מרכז ההודעות המרחפת (התקבלו, נשלחו, ארכיון) (סעיף א') -->
-    <div id="floating-chat-window" class="hidden fixed bottom-18 left-4 w-88 h-96 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden">
-        <div class="p-3 bg-blue-600 text-white flex justify-between items-center"><h3 class="text-xs font-black">📋 מרכז הודעות ועדכוני דירה</h3><button onclick="window.toggleFloatingChat()" class="text-xs font-bold">✕</button></div>
-        <div class="p-2 bg-slate-50 dark:bg-slate-700 border-b dark:border-slate-600 flex gap-1 text-[10px] font-bold">
-            <button id="msg-center-received-btn" onclick="window.setFloatingMessageTab('received')" class="px-2 py-1 rounded bg-white dark:bg-slate-600 shadow-sm text-slate-800 dark:text-white">📥 התקבלו</button>
-            <button id="msg-center-sent-btn" onclick="window.setFloatingMessageTab('sent')" class="px-2 py-1 rounded">📤 נשלחו</button>
-            <button id="msg-center-archive-btn" onclick="window.setFloatingMessageTab('archive')" class="px-2 py-1 rounded">📦 ארכיון</button>
-        </div>
-        <div id="chat-messages-container" class="flex-1 p-3 overflow-y-auto space-y-2 bg-slate-50 dark:bg-slate-900 text-[11px]"></div>
-        <div class="p-2 border-t dark:border-slate-700 bg-white dark:bg-slate-800 flex flex-col gap-1.5">
-            <div class="flex gap-1">
-                <input type="text" id="chat-text-input" placeholder="כתוב עדכון לצוות..." class="w-full p-2 border dark:border-slate-600 dark:bg-slate-700 text-xs font-bold focus:outline-none">
-                <button onclick="window.sendChatMessage()" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-xl">שלח</button>
-            </div>
-        </div>
-    </div>
+async function analyzeReceiptWithAI() {
+    const out = document.getElementById('ai-receipt-output'); out.classList.remove('hidden'); out.innerText = "🤖 סורק קבלה...";
+    if (!window.base64ReceiptImage) return;
+    let systemPrompt = `קרא את פריטי המזון בקבלה והשווה למלאי: ${JSON.stringify(window.appData)}`;
+    const text = await callGeminiAPI([{ parts: [{ inlineData: { mimeType: window.receiptMimeType, data: window.base64ReceiptImage } }, { text: systemPrompt }] }]);
+    out.innerHTML = `<div class="whitespace-pre-line">${text}</div>`;
+}
+window.analyzeReceiptWithAI = analyzeReceiptWithAI;
 
-    <!-- מודל עריכת מצרך מורחב -->
-    <div id="product-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-md w-full p-5 shadow-2xl space-y-3 border dark:border-slate-700 text-xs">
-            <h3 class="text-sm font-black text-slate-900 dark:text-white border-b dark:border-slate-700 pb-1">✏️ עריכת נתוני מצרך מורחב</h3>
-            <div class="space-y-2">
-                <div><label class="block font-bold text-slate-400">שם המצרך:</label><input type="text" id="modal-prod-name" readonly class="w-full p-2 rounded-xl bg-slate-50 dark:bg-slate-700 border dark:border-slate-600 font-bold text-slate-500"></div>
-                <div class="grid grid-cols-3 gap-2">
-                    <div><label class="block font-bold text-slate-400">מחיר:</label><input type="number" id="modal-prod-price" class="w-full p-2 rounded-xl border dark:border-slate-600 dark:bg-slate-700 font-bold"></div>
-                    <div><label class="block font-bold text-slate-400">יעד מומלץ:</label><input type="number" id="modal-prod-recommended" class="w-full p-2 rounded-xl border dark:border-slate-600 dark:bg-slate-700 font-bold"></div>
-                    <div><label class="block font-bold text-slate-400">חודש קודם:</label><input type="number" id="modal-prod-lastmonth" class="w-full p-2 rounded-xl border dark:border-slate-600 dark:bg-slate-700 font-bold"></div>
-                </div>
-                <div>
-                    <label class="block font-bold text-slate-400 mb-1">📅 ימי שימוש ותפריט:</label>
-                    <div class="grid grid-cols-4 gap-1 bg-slate-50 dark:bg-slate-900 p-2 rounded-xl border dark:border-slate-700 mb-1">
-                        <label class="flex items-center gap-1"><input type="checkbox" value="ראשון" class="day-chk"> א'</label>
-                        <label class="flex items-center gap-1"><input type="checkbox" value="שני" class="day-chk"> ב'</label>
-                        <label class="flex items-center gap-1"><input type="checkbox" value="שלישי" class="day-chk"> ג'</label>
-                        <label class="flex items-center gap-1"><input type="checkbox" value="רביעי" class="day-chk"> ד'</label>
-                        <label class="flex items-center gap-1"><input type="checkbox" value="חמישי" class="day-chk"> ה'</label>
-                        <label class="flex items-center gap-1"><input type="checkbox" value="שישי" class="day-chk"> ו'</label>
-                        <label class="flex items-center gap-1"><input type="checkbox" value="שבת" class="day-chk"> ש'</label>
-                        <label class="flex items-center gap-1"><input type="checkbox" value="כל הימים" class="day-chk"> הכל</label>
-                    </div>
-                    <input type="text" id="modal-prod-days-custom" placeholder="הערת ימים חופשית" class="w-full p-2 rounded-xl border dark:border-slate-600 dark:bg-slate-700 font-bold">
-                </div>
-                <div><label class="block font-bold text-slate-400">הערות תפריט:</label><input type="text" id="modal-prod-notes" class="w-full p-2 rounded-xl border dark:border-slate-600 dark:bg-slate-700 font-bold"></div>
-            </div>
-            <div class="flex gap-2 pt-2"><button onclick="window.saveProductModalData()" class="flex-1 py-2 rounded-xl bg-blue-600 text-white font-black">שמור שינויים</button><button onclick="document.getElementById('product-modal').classList.add('hidden')" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-700 border dark:border-slate-600 text-slate-600 font-bold">ביטול</button></div>
-        </div>
-    </div>
-
-    <!-- מודל הגדרות מערכת וניהול צוות הכולל מנגנון טעינת קובץ גיבוי -->
-    <div id="settings-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-md w-full shadow-2xl overflow-hidden flex flex-col border dark:border-slate-700 max-h-[85vh]">
-            <div class="p-4 bg-slate-900 text-white flex justify-between items-center"><div class="flex items-center gap-2"><span>⚙️</span><h2 class="text-sm font-black">הגדרות מערכת</h2></div><button onclick="window.toggleSettingsModal()" class="text-slate-400 font-bold text-xs">סגור</button></div>
-            <div class="p-4 overflow-y-auto space-y-4 flex-1 text-xs">
-                
-                <!-- כלי טעינת קובץ JSON (סעיף ו') -->
-                <div class="space-y-2 bg-blue-50 dark:bg-blue-950/30 p-3 rounded-2xl border border-blue-200 dark:border-blue-900">
-                    <h3 class="font-black text-blue-900 dark:text-blue-300">📦 שחזור וטעינת נתונים מקובץ</h3>
-                    <p class="text-[10px] text-slate-500 mb-1">טען קובץ גיבוי חיצוני בפורמט JSON לעדכון המערכת</p>
-                    <input type="file" id="import-backup-file" accept=".json" onchange="window.importBackupFile(event)" class="hidden">
-                    <button onclick="document.getElementById('import-backup-file').click()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl shadow-sm transition">📁 בחר וטען קובץ גיבוי</button>
-                </div>
-
-                <div class="space-y-2 bg-slate-50 dark:bg-slate-900 p-3 rounded-2xl border dark:border-slate-700">
-                    <h3 class="font-black text-slate-800 dark:text-slate-200 border-b dark:border-slate-700 pb-1">👤 פרופיל משתמש</h3>
-                    <div class="flex items-center justify-between pt-1"><span class="font-bold text-slate-600 dark:text-slate-400">מצב לילה (Dark Mode):</span><button onclick="window.toggleDarkMode()" id="dark-mode-toggle-btn" class="px-3 py-1 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-white font-bold">כבוי</button></div>
-                </div>
-                <div class="space-y-2"><h3 class="font-black text-blue-600 border-b pb-1">🌐 חיבור ענן</h3><div class="flex gap-1"><input type="text" id="cloud-url-input" class="w-full p-2 border dark:border-slate-600 dark:bg-slate-700 font-mono text-[10px] text-slate-800 dark:text-white"><button onclick="window.saveCloudUrl()" class="px-3 bg-blue-600 text-white font-bold rounded-xl">שמור</button></div></div>
-                <div class="space-y-2 pt-1"><h3 class="font-black text-emerald-600 border-b pb-1">🤖 מפתח Gemini API:</h3><div class="flex gap-1"><input type="password" id="gemini-key-input" class="w-full p-2 border dark:border-slate-600 dark:bg-slate-700 font-mono text-[10px] text-slate-800 dark:text-white"><button onclick="window.saveGeminiKey()" class="px-3 bg-emerald-600 text-white font-bold rounded-xl">שמור</button></div></div>
-                <div id="admin-management-section" class="space-y-2 pt-1 hidden">
-                    <h3 class="font-black text-purple-600 border-b pb-1">👥 ניהול צוות (מנהל)</h3>
-                    <div id="admin-team-list" class="space-y-1 max-h-32 overflow-y-auto bg-slate-50 dark:bg-slate-900 p-2 rounded-xl border dark:border-slate-700"></div>
-                    <div class="p-3 bg-slate-100 dark:bg-slate-900 rounded-xl border dark:border-slate-700 space-y-2">
-                        <span class="font-bold block text-slate-700 dark:text-slate-300 text-[10px]">➕ הוספת איש צוות חדש:</span>
-                        <div class="grid grid-cols-2 gap-1.5">
-                            <input type="text" id="new-user-name" placeholder="שם עובד" class="p-1.5 border dark:border-slate-600 dark:bg-slate-700 rounded-lg">
-                            <input type="password" id="new-user-pin" maxlength="4" placeholder="קוד PIN" class="p-1.5 border dark:border-slate-600 dark:bg-slate-700 rounded-lg text-center tracking-widest">
-                        </div>
-                        <div class="flex gap-1.5">
-                            <select id="new-user-role" class="p-1.5 border dark:border-slate-600 dark:bg-slate-700 rounded-lg flex-1">
-                                <option value="staff">מדריך (Staff)</option>
-                                <option value="admin">מנהל (Admin)</option>
-                            </select>
-                            <button onclick="window.addNewTeamMember()" class="px-3 bg-purple-600 text-white font-black rounded-lg hover:bg-purple-700">הוסף</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- חלונית ספירת מלאי מהירה -->
-    <div id="walkthrough-screen" class="fixed inset-0 bg-slate-900/80 z-50 hidden items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-2xl max-w-sm w-full space-y-4 text-center border dark:border-slate-700 relative">
-            <button onclick="window.closeWalkthroughMode()" class="absolute top-4 left-4 font-black text-sm text-slate-400">✕</button>
-            <div class="space-y-1"><span id="wt-cat-title" class="bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 font-black px-3 py-1 rounded-full text-[9px]">קטגוריה</span><h3 id="wt-item-name" class="text-lg font-black text-slate-900 dark:text-white pt-1">-</h3></div>
-            <span id="wt-item-emoji" class="text-6xl block my-2 select-none">📦</span>
-            <div class="bg-slate-50 dark:bg-slate-900 p-3 rounded-2xl grid grid-cols-2 gap-2 border dark:border-slate-700">
-                <div class="border-l dark:border-slate-700"><span class="block text-slate-400 font-bold text-[11px]">קיים בדירה:</span><div class="flex items-center justify-center gap-2 mt-1"><button onclick="window.adjustWtQty(-0.5)" class="w-7 h-7 rounded-lg bg-white dark:bg-slate-700 border font-black shadow-sm dark:text-white">-</button><span id="wt-item-qty" class="text-xl font-black text-slate-900 dark:text-white">0</span><button onclick="window.adjustWtQty(0.5)" class="w-7 h-7 rounded-lg bg-white dark:bg-slate-700 border font-black shadow-sm dark:text-white">+</button></div></div>
-                <div class="flex flex-col justify-center items-center"><span class="block text-slate-400 font-bold text-[11px]">יעד מומלץ:</span><span id="wt-item-target" class="text-xl font-black text-slate-600 dark:text-slate-400">0</span></div>
-            </div>
-            <div class="flex gap-2 pt-2"><button onclick="window.walkthroughPrev()" class="flex-1 py-2 rounded-xl border dark:border-slate-700 font-bold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-700">⬅️ קודם (→)</button><button onclick="window.walkthroughNext()" class="flex-1 py-2 rounded-xl bg-blue-600 text-white font-black shadow-md">הבא (←) ➡️</button></div>
-        </div>
-    </div>
-
-    <script src="app.js"></script>
-    <script src="ai.js"></script>
-</body>
-</html>
+async function sendFreeTextAIQuery() {
+    const inp = document.getElementById('ai-chat-input'); const q = inp.value.trim(); if (!q) return;
+    const cb = document.getElementById('ai-chat-box'); cb.innerHTML += `<div class="text-right bg-purple-800 p-2 rounded-xl mb-1 max-w-[80%] mr-auto text-white"><b>אתה:</b> ${q}</div>`; inp.value = '';
+    let systemContext = `עוזר ניהול ומטבח בדירת עלי שיח. ענה בקצרה ובצורה פרקטית למדריכים. שאלה: ${q}`;
+    const reply = await callGeminiAPI([{ parts: [{ text: systemContext }] }]);
+    cb.innerHTML += `<div class="text-left bg-purple-950 p-2 rounded-xl mb-2 max-w-[80%] ml-auto text-purple-200"><b>AI:</b> ${reply}</div>`; cb.scrollTop = cb.scrollHeight;
+}
+window.sendFreeTextAIQuery = sendFreeTextAIQuery;
