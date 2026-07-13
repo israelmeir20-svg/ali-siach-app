@@ -1,4 +1,4 @@
-// אפליקציית עלי שיח - מודול AI חכם (גרסה סופית, מופרדת ומאובטחת)
+// אפליקציית עלי שיח - מודול AI חכם ומחולל מתכונים (גרסה סופית ויציבה)
 window.activeAITab = 'procure';
 window.base64ReceiptImage = null;
 window.receiptMimeType = null;
@@ -12,6 +12,7 @@ if (!window.toolMatrix) {
 }
 window.manualPantrySelections = {};
 
+// פיצול לחלוציות AI מבודדות לחלוטין (סעיף א', ג')
 function openAIRecipesModal() { 
     if (!window.currentUser) return; 
     document.getElementById('ai-recipes-modal').classList.remove('hidden'); 
@@ -35,18 +36,13 @@ function openAIProcureModal() {
 }
 window.openAIProcureModal = openAIProcureModal;
 
-// פתרון באג הפעלת צ'אט ה-AI הסגול המבודד (ב')
+// פתיחה וסגירה של חלונית צ'אט ה-AI הסגולה המבודדת (סעיף ב')
 function toggleAIChatWindow() {
     if (!window.currentUser) return;
     const win = document.getElementById('ai-chat-window');
     window.isAIChatOpen = !window.isAIChatOpen;
-    if (window.isAIChatOpen) {
-        win.classList.remove('hidden');
-        win.classList.add('flex');
-    } else {
-        win.classList.add('hidden');
-        win.classList.remove('flex');
-    }
+    if (window.isAIChatOpen) { win.classList.remove('hidden'); win.classList.add('flex'); } 
+    else { win.classList.add('hidden'); win.classList.remove('flex'); }
 }
 window.toggleAIChatWindow = toggleAIChatWindow;
 
