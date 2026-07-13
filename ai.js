@@ -1,4 +1,4 @@
-// אפליקציית עלי שיח - מודול AI חכם ומחולל מתכונים (גרסה סופית ויציבה)
+// אפליקציית עלי שיח - מודול AI חכם ותפעול מופרד (גרסה סופית, נקייה ומאובטחת)
 window.activeAITab = 'procure';
 window.base64ReceiptImage = null;
 window.receiptMimeType = null;
@@ -12,40 +12,7 @@ if (!window.toolMatrix) {
 }
 window.manualPantrySelections = {};
 
-// פיצול לחלוציות AI מבודדות לחלוטין (סעיף א', ג')
-function openAIRecipesModal() { 
-    if (!window.currentUser) return; 
-    document.getElementById('ai-recipes-modal').classList.remove('hidden'); 
-    document.getElementById('ai-recipes-modal').classList.add('flex'); 
-    buildAILists(); 
-    buildPantryManualSelectionDOM(); 
-}
-window.openAIRecipesModal = openAIRecipesModal;
-
-function openAIReceiptModal() { 
-    if (!window.currentUser) return; 
-    document.getElementById('ai-receipt-modal').classList.remove('hidden'); 
-    document.getElementById('ai-receipt-modal').classList.add('flex'); 
-}
-window.openAIReceiptModal = openAIReceiptModal;
-
-function openAIProcureModal() { 
-    if (!window.currentUser) return; 
-    document.getElementById('ai-procure-modal').classList.remove('hidden'); 
-    document.getElementById('ai-procure-modal').classList.add('flex'); 
-}
-window.openAIProcureModal = openAIProcureModal;
-
-// פתיחה וסגירה של חלונית צ'אט ה-AI הסגולה המבודדת (סעיף ב')
-function toggleAIChatWindow() {
-    if (!window.currentUser) return;
-    const win = document.getElementById('ai-chat-window');
-    window.isAIChatOpen = !window.isAIChatOpen;
-    if (window.isAIChatOpen) { win.classList.remove('hidden'); win.classList.add('flex'); } 
-    else { win.classList.add('hidden'); win.classList.remove('flex'); }
-}
-window.toggleAIChatWindow = toggleAIChatWindow;
-
+// שליטה על פתיחה וסגירה של תפריטי הירקות והכלים הקורסים (סעיף ט')
 function toggleMatrixPanel(type) {
     const panelId = type === 'veg' ? 'panel-vegetables-content' : 'panel-tools-content';
     const arrowId = type === 'veg' ? 'veg-panel-arrow' : 'tool-panel-arrow';
@@ -55,7 +22,7 @@ function toggleMatrixPanel(type) {
     if (panel.classList.contains('hidden')) {
         panel.classList.remove('hidden');
         arrow.innerText = "▲";
-        buildAILists(); 
+        window.buildAILists(); 
     } else {
         panel.classList.add('hidden');
         arrow.innerText = "▼";
@@ -63,6 +30,7 @@ function toggleMatrixPanel(type) {
 }
 window.toggleMatrixPanel = toggleMatrixPanel;
 
+// בניית לחצנים מוגדלים ב-35% עם צבעוניות חזקה שאינה נדרסת על ידי Tailwind (סעיף א')
 function buildAILists() {
     const vegContainer = document.getElementById('matrix-vegetables'); if (!vegContainer) return; vegContainer.innerHTML = '';
     for (const [name, state] of Object.entries(window.vegetableMatrix)) {
@@ -81,7 +49,7 @@ function buildAILists() {
 
     const toolContainer = document.getElementById('matrix-tools'); if (!toolContainer) return; toolContainer.innerHTML = '';
     const toolEmojis = {
-        "מחבת ללא מכסה בשרית": "🍳", "סיר שטוח עם מכסה בשרי": "🍲", "סיר קטן גבוה עם מכסה בשרי": "🥣", 
+        "מחבת ללא מכסה בשרית": "🍳", "סיר שטוח עם מכסה בשרי": "🍲", "סיר קטן גבוה WITH מכסה בשרי": "🥣", 
         "סיר רגיל עם מכסה בשרי": "🍲", "סכין בשרית": "🔪", "סכין חלבית": "🍴", "פומפייה": "🧀", 
         "תנור בשרי": "♨️", "טוסטר חלבי": "🥪", "כיריים": "🔥", "מיניבר": "🚰"
     };
@@ -138,6 +106,42 @@ function buildPantryManualSelectionDOM() {
 }
 window.buildPantryManualSelectionDOM = buildPantryManualSelectionDOM;
 
+function openAIRecipesModal() { 
+    if (!window.currentUser) return; 
+    document.getElementById('ai-recipes-modal').classList.remove('hidden'); 
+    document.getElementById('ai-recipes-modal').classList.add('flex'); 
+    buildAILists(); 
+    buildPantryManualSelectionDOM(); 
+}
+window.openAIRecipesModal = openAIRecipesModal;
+
+function openAIReceiptModal() { 
+    if (!window.currentUser) return; 
+    document.getElementById('ai-receipt-modal').classList.remove('hidden'); 
+    document.getElementById('ai-receipt-modal').classList.add('flex'); 
+}
+window.openAIReceiptModal = openAIReceiptModal;
+
+function openAIProcureModal() { 
+    if (!window.currentUser) return; 
+    document.getElementById('ai-procure-modal').classList.remove('hidden'); 
+    document.getElementById('ai-procure-modal').classList.add('flex'); 
+}
+window.openAIProcureModal = openAIProcureModal;
+
+// פתיחה וסגירה של חלונית צ'אט ה-AI הסגולה המבודדת (סעיף ב')
+function toggleAIChatWindow() {
+    if (!window.currentUser) return;
+    const win = document.getElementById('ai-chat-window');
+    window.isAIChatOpen = !window.isAIChatOpen;
+    if (window.isAIChatOpen) { win.classList.remove('hidden'); win.classList.add('flex'); } 
+    else { win.classList.add('hidden'); win.classList.remove('flex'); }
+}
+window.toggleAIChatWindow = toggleAIChatWindow;
+
+function setAITab(tab) { window.activeAITab = tab; }
+window.setAITab = setAITab;
+
 function cycleRecipeTime() {
     window.recipeTimeMode = (window.recipeTimeMode + 1) % 3; const btn = document.getElementById('time-cycle-btn');
     if (window.recipeTimeMode === 0) btn.innerText = "⏱️ זמן: מהיר (עד 20 דק')";
@@ -168,7 +172,7 @@ async function callGeminiAPI(contents) {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: contents })
         });
         const data = await res.json(); return data.candidates?.[0]?.content?.parts?.[0]?.text || "שגיאה בניתוח.";
-    } catch (err) { return "תקלת תקשורת מול שרתי AI."; }
+    } catch (err) { return "תקלת תקשורת מול שדרוג שרתי AI."; }
 }
 
 async function runAIProcurementAnalysis() {
