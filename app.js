@@ -4,7 +4,6 @@ window.teamMembers = [];
 window.teamMessages = [];
 window.currentUser = null;
 window.cloudUrl = localStorage.getItem('aliSiachCloudUrl') || "";
-window.saveTimeout = null;
 window.isDarkMode = localStorage.getItem('aliSiachDarkMode') === 'true';
 window.activeFilter = 'all';
 window.activeDayFilter = 'all';
@@ -190,16 +189,21 @@ async function fetchCloudData() {
     } catch (e) { console.error(e); }
 }
 
-function triggerDebouncedSync(immediate = false) {
-    localStorage.setItem('aliSiachLocalCache', JSON.stringify({ appData: window.appData, teamMembers: window.teamMembers, teamMessages: window.teamMessages, vegetableMatrix: window.vegetableMatrix, toolMatrix: window.toolMatrix }));
-    if (window.saveTimeout) clearTimeout(window.saveTimeout); 
-    if (immediate) syncWithCloud(); else window.saveTimeout = setTimeout(syncWithCloud, 1500);
-}
-window.triggerDebouncedSync = triggerDebouncedSync;
-
-async function syncWithCloud() {
-    if (!window.cloudUrl || !navigator.onLine) return;
-    try { await fetch(window.cloudUrl, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ appData: window.appData, teamMembers: window.teamMembers, teamMessages: window.teamMessages }) }); } catch (e) { console.error(e); }
+// פונקציית שליחת פקודות נקודתיות לענן (מניעת דריסות לחלוטין)
+async function sendActionToCloud(actionBody) {
+    if (!window.cloudUrl || !navigator.onLine) return false;
+    try {
+        const res = await fetch(window.cloudUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify(actionBody)
+        });
+        const result = await res.json();
+        return result.success;
+    } catch (e) {
+        console.error("Cloud action sync error:", e);
+        return false;
+    }
 }
 
 function saveCloudUrl() { window.cloudUrl = document.getElementById('cloud-url-input').value.trim(); localStorage.setItem('aliSiachCloudUrl', window.cloudUrl); fetchCloudData(); showToast("הוגדר ענן!", "💾"); }
@@ -216,7 +220,17 @@ function updateItemValue(category, index, field, value) {
         item[field] = num;
         item.changesCount = (item.changesCount || 0) + 1;
         renderApp();
-        triggerDebouncedSync();
+        
+        localStorage.setItem('aliSiachLocalCache', JSON.stringify({ appData: window.appData, teamMembers: window.teamMembers, teamMessages: window.teamMessages, vegetableMatrix: window.vegetableMatrix, toolMatrix: window.toolMatrix }));
+        
+        // שליחת עדכון אטומי נקודתי לענן
+        sendActionToCloud({
+            action: "UPDATE_STOCK",
+            category: category,
+            itemName: item.name,
+            field: field,
+            value: num
+        });
     }
 }
 window.updateItemValue = updateItemValue;
@@ -393,7 +407,8 @@ function handleCategoryDrop(e, targetCategory) {
     if (dragSourceCategory && dragSourceCategory !== targetCategory) {
         const item = window.appData[dragSourceCategory].splice(dragSourceIndex, 1)[0];
         window.appData[targetCategory].push(item);
-        renderApp(); triggerDebouncedSync(true);
+        renderApp();
+        localStorage.setItem('aliSiachLocalCache', JSON.stringify({ appData: window.appData, teamMembers: window.teamMembers, teamMessages: window.teamMessages }));
     }
     document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
 }
@@ -402,7 +417,8 @@ function handleDropReorder(e, targetCategory, targetIndex) {
     if (dragSourceCategory === targetCategory && dragSourceIndex !== targetIndex) {
         const movedItem = window.appData[targetCategory].splice(dragSourceIndex, 1)[0];
         window.appData[targetCategory].splice(targetIndex, 0, movedItem);
-        renderApp(); triggerDebouncedSync(true);
+        renderApp();
+        localStorage.setItem('aliSiachLocalCache', JSON.stringify({ appData: window.appData, teamMembers: window.teamMembers, teamMessages: window.teamMessages }));
     }
 }
 
@@ -481,8 +497,23 @@ function renderChatMessages() {
 }
 window.renderChatMessages = renderChatMessages;
 
-function deleteMessageComplete(id) { window.teamMessages = window.teamMessages.filter(m => m.id !== id); renderMessages(); renderChatMessages(); triggerDebouncedSync(true); }
-function archiveMessageComplete(id) { const msg = window.teamMessages.find(m => m.id === id); if (msg) { msg.isArchived = true; renderMessages(); renderChatMessages(); triggerDebouncedSync(true); } }
+function deleteMessageComplete(id) { 
+    window.teamMessages = window.teamMessages.filter(m => m.id !== id); 
+    renderMessages(); 
+    renderChatMessages(); 
+    localStorage.setItem('aliSiachLocalCache', JSON.stringify({ appData: window.appData, teamMembers: window.teamMembers, teamMessages: window.teamMessages }));
+    sendActionToCloud({ action: "SYNC_MESSAGES", teamMessages: window.teamMessages });
+}
+function archiveMessageComplete(id) { 
+    const msg = window.teamMessages.find(m => m.id === id); 
+    if (msg) { 
+        msg.isArchived = true; 
+        renderMessages(); 
+        renderChatMessages(); 
+        localStorage.setItem('aliSiachLocalCache', JSON.stringify({ appData: window.appData, teamMembers: window.teamMembers, teamMessages: window.teamMessages }));
+        sendActionToCloud({ action: "SYNC_MESSAGES", teamMessages: window.teamMessages });
+    } 
+}
 window.archiveMessageComplete = archiveMessageComplete;
 
 function renderAdminTeamList() {
@@ -496,7 +527,9 @@ function renderAdminTeamList() {
             if (m.role === 'admin') {
                 if (prompt("הזן קוד מאסטר 9876 למחיקת מנהל:") !== '9876') { alert("קוד שגוי!"); return; }
             }
-            window.teamMembers.splice(idx, 1); renderAdminTeamList(); buildUserLoginSelect(); triggerDebouncedSync(true);
+            window.teamMembers.splice(idx, 1); renderAdminTeamList(); buildUserLoginSelect(); 
+            localStorage.setItem('aliSiachLocalCache', JSON.stringify({ appData: window.appData, teamMembers: window.teamMembers, teamMessages: window.teamMessages }));
+            sendActionToCloud({ action: "SYNC_MEMBERS", teamMembers: window.teamMembers });
         };
         c.appendChild(row);
     });
@@ -507,7 +540,10 @@ function addNewTeamMember() {
     const name = nameInp.value.trim(); const pin = pinInp.value.trim(); const role = document.getElementById('new-user-role').value;
     if (!name || pin.length !== 4) { alert("מלא פרטים תקינים!"); return; }
     window.teamMembers.push({ name, pin, role }); nameInp.value = ''; pinInp.value = '';
-    renderAdminTeamList(); buildUserLoginSelect(); triggerDebouncedSync(true); showToast("איש צוות נוסף!");
+    renderAdminTeamList(); buildUserLoginSelect(); 
+    localStorage.setItem('aliSiachLocalCache', JSON.stringify({ appData: window.appData, teamMembers: window.teamMembers, teamMessages: window.teamMessages }));
+    sendActionToCloud({ action: "SYNC_MEMBERS", teamMembers: window.teamMembers });
+    showToast("איש צוות נוסף!");
 }
 window.addNewTeamMember = addNewTeamMember;
 
@@ -523,13 +559,26 @@ window.closeAddProductModal = closeAddProductModal;
 function submitNewProduct() {
     const name = document.getElementById('add-prod-name').value.trim(); const cat = document.getElementById('add-prod-category').value;
     const price = parseFloat(document.getElementById('add-prod-price').value) || 0; const rec = parseFloat(document.getElementById('add-prod-recommended').value) || 0;
-    if (!name) return; window.appData[cat].push({ name, existing: 0, recommended: rec, price, orderedLastMonth: 0, notes: "", days: "כל הימים", changesCount: 0 });
-    closeAddProductModal(); document.getElementById('add-prod-name').value = ''; renderApp(); triggerDebouncedSync(true);
+    if (!name) return; 
+    
+    const newProd = { name, existing: 0, recommended: rec, price, orderedLastMonth: 0, notes: "", days: "כל הימים", changesCount: 0 };
+    window.appData[cat].push(newProd);
+    closeAddProductModal(); document.getElementById('add-prod-name').value = ''; renderApp(); 
+    
+    localStorage.setItem('aliSiachLocalCache', JSON.stringify({ appData: window.appData, teamMembers: window.teamMembers, teamMessages: window.teamMessages }));
+    sendActionToCloud({ action: "ADD_PRODUCT", category: cat, product: newProd });
 }
 window.submitNewProduct = submitNewProduct;
 
 function deleteProductComplete(category, index) {
-    if (confirm("למחוק פריט זה?")) { window.appData[category].splice(index, 1); renderApp(); triggerDebouncedSync(true); }
+    if (confirm("למחוק פריט זה?")) { 
+        const item = window.appData[category][index];
+        window.appData[category].splice(index, 1); 
+        renderApp(); 
+        
+        localStorage.setItem('aliSiachLocalCache', JSON.stringify({ appData: window.appData, teamMembers: window.teamMembers, teamMessages: window.teamMessages }));
+        sendActionToCloud({ action: "DELETE_PRODUCT", category: category, itemName: item.name });
+    }
 }
 window.deleteProductComplete = deleteProductComplete;
 
@@ -552,7 +601,19 @@ function showWalkthroughItem() {
 
 function adjustWtQty(amt) {
     const item = window.walkthroughItems[window.walkthroughIndex]; const real = window.appData[item.cat][item.origIdx];
-    let v = (parseFloat(real.existing) || 0) + amt; real.existing = v < 0 ? 0 : Math.round(v * 2) / 2; showWalkthroughItem(); triggerDebouncedSync();
+    let v = (parseFloat(real.existing) || 0) + amt; 
+    real.existing = v < 0 ? 0 : Math.round(v * 2) / 2; 
+    showWalkthroughItem(); 
+    
+    localStorage.setItem('aliSiachLocalCache', JSON.stringify({ appData: window.appData, teamMembers: window.teamMembers, teamMessages: window.teamMessages, vegetableMatrix: window.vegetableMatrix, toolMatrix: window.toolMatrix }));
+    
+    sendActionToCloud({
+        action: "UPDATE_STOCK",
+        category: item.cat,
+        itemName: real.name,
+        field: "existing",
+        value: real.existing
+    });
 }
 window.adjustWtQty = adjustWtQty;
 
@@ -590,19 +651,43 @@ function openProductModal(cat, index) {
 window.openProductModal = openProductModal;
 
 function saveProductModalData() {
-    if (!window.activeEdit) return; const item = window.appData[window.activeEdit.cat][window.activeEdit.index];
-    item.price = parseFloat(document.getElementById('modal-prod-price').value) || 0; item.recommended = parseFloat(document.getElementById('modal-prod-recommended').value) || 0;
-    item.orderedLastMonth = parseFloat(document.getElementById('modal-prod-lastmonth').value) || 0; item.notes = document.getElementById('modal-prod-notes').value.trim();
-    let selectedDays = []; document.querySelectorAll('.day-chk:checked').forEach(chk => selectedDays.push(chk.value));
+    if (!window.activeEdit) return; 
+    const cat = window.activeEdit.cat;
+    const idx = window.activeEdit.index;
+    const item = window.appData[cat][idx];
+    
+    const newPrice = parseFloat(document.getElementById('modal-prod-price').value) || 0;
+    const newRec = parseFloat(document.getElementById('modal-prod-recommended').value) || 0;
+    const newLastMonth = parseFloat(document.getElementById('modal-prod-lastmonth').value) || 0;
+    const newNotes = document.getElementById('modal-prod-notes').value.trim();
+    
+    let selectedDays = []; 
+    document.querySelectorAll('.day-chk:checked').forEach(chk => selectedDays.push(chk.value));
     let customDays = document.getElementById('modal-prod-days-custom').value.trim();
-    item.days = customDays ? customDays : (selectedDays.length > 0 ? selectedDays.join(', ') : 'כל הימים');
-    document.getElementById('product-modal').classList.add('hidden'); renderApp(); triggerDebouncedSync(true);
+    const newDays = customDays ? customDays : (selectedDays.length > 0 ? selectedDays.join(', ') : 'כל הימים');
+    
+    item.price = newPrice;
+    item.recommended = newRec;
+    item.orderedLastMonth = newLastMonth;
+    item.notes = newNotes;
+    item.days = newDays;
+    
+    document.getElementById('product-modal').classList.add('hidden'); renderApp(); 
+    
+    localStorage.setItem('aliSiachLocalCache', JSON.stringify({ appData: window.appData, teamMembers: window.teamMembers, teamMessages: window.teamMessages, vegetableMatrix: window.vegetableMatrix, toolMatrix: window.toolMatrix }));
+    
+    sendActionToCloud({ action: "UPDATE_STOCK", category: cat, itemName: item.name, field: "price", value: newPrice });
+    sendActionToCloud({ action: "UPDATE_STOCK", category: cat, itemName: item.name, field: "recommended", value: newRec });
+    sendActionToCloud({ action: "UPDATE_STOCK", category: cat, itemName: item.name, field: "orderedLastMonth", value: newLastMonth });
+    sendActionToCloud({ action: "UPDATE_STOCK", category: cat, itemName: item.name, field: "notes", value: newNotes });
+    sendActionToCloud({ action: "UPDATE_STOCK", category: cat, itemName: item.name, field: "days", value: newDays });
 }
 window.saveProductModalData = saveProductModalData;
 
 function toggleSettingsModal() { if (!window.currentUser) return; const m = document.getElementById('settings-modal'); m.classList.toggle('hidden'); m.classList.toggle('flex'); renderAdminTeamList(); }
 window.toggleSettingsModal = toggleSettingsModal;
 
+// פונקציית הפעלה מחדש של הטאב הנבחר במרכז ההודעות
 function toggleFloatingChat() { 
     if (!window.currentUser) return; 
     const win = document.getElementById('floating-chat-window'); 
@@ -617,15 +702,12 @@ function toggleFloatingChat() {
 }
 window.toggleFloatingChat = toggleFloatingChat;
 
-function sendChatMessage() { const inp = document.getElementById('chat-text-input'); const text = inp.value.trim(); if (!text || !window.currentUser) return; const target = "כולם"; window.teamMessages.unshift({ id: "msg_" + Date.now(), from: window.currentUser.name, to: target, text, date: new Date().toLocaleDateString('he-IL'), readBy: [window.currentUser.name], isArchived: false }); inp.value = ''; renderApp(); triggerDebouncedSync(true); }
-window.sendChatMessage = sendChatMessage;
-
 function toggleNotificationDropdown() { 
     if (!window.currentUser) return; 
     const dropdown = document.getElementById('notification-dropdown'); 
     window.isNotificationOpen = !window.isNotificationOpen; 
     if (window.isNotificationOpen) { dropdown.classList.remove('hidden'); renderMessages(); } 
-    else { dropdown.classList.add('hidden'); window.teamMessages.forEach(m => { if (!m.readBy.includes(window.currentUser.name)) m.readBy.push(window.currentUser.name); }); renderApp(); triggerDebouncedSync(true); } 
+    else { dropdown.classList.add('hidden'); window.teamMessages.forEach(m => { if (!m.readBy.includes(window.currentUser.name)) m.readBy.push(window.currentUser.name); }); renderApp(); } 
 }
 window.toggleNotificationDropdown = toggleNotificationDropdown;
 
@@ -685,7 +767,13 @@ function importBackupFile(e) {
                 renderApp();
                 buildUserLoginSelect();
                 buildChatTargetSelect();
-                triggerDebouncedSync(true);
+                
+                sendActionToCloud({ action: "SYNC_MESSAGES", teamMessages: window.teamMessages });
+                sendActionToCloud({ action: "SYNC_MEMBERS", teamMembers: window.teamMembers });
+                for (const [cat, items] of Object.entries(window.appData)) {
+                    items.forEach(i => sendActionToCloud({ action: "ADD_PRODUCT", category: cat, product: i }));
+                }
+                
                 alert("נתוני המערכת שוחזרו בהצלחה מתוך קובץ הגיבוי!");
                 toggleSettingsModal();
             } else { alert("שגיאה: מבנה קובץ הגיבוי אינו תקין."); }
