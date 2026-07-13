@@ -429,6 +429,34 @@
             </div>
         </div>
     </div>
+    <!-- מודל ניהול ועריכת משמרות יומית מרוכזת (Day Management Modal) -->
+    <div id="day-edit-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 border dark:border-slate-700 text-xs">
+            <div class="flex justify-between items-center border-b dark:border-slate-700 pb-2">
+                <div>
+                    <h3 id="day-modal-title" class="text-sm font-black text-slate-900 dark:text-white">עריכת שיבוצי יום</h3>
+                    <p id="day-modal-hebrew-date" class="text-[10px] font-bold text-slate-400 mt-0.5"></p>
+                </div>
+                <button onclick="document.getElementById('day-edit-modal').classList.add('hidden')" class="text-xs font-black text-slate-400 hover:text-slate-600">✕ סגור</button>
+            </div>
+
+            <!-- בקרת נעילת יום מהירה לרכז -->
+            <div class="flex items-center justify-between bg-slate-50 dark:bg-slate-900 p-3 rounded-xl border dark:border-slate-700/60">
+                <span class="font-black text-slate-700 dark:text-slate-300">🔒 סגירת הדירה ליום זה (שבת חופשית / חג):</span>
+                <button id="day-modal-shabbat-toggle-btn" class="px-4 py-1.5 rounded-lg text-white font-black text-[10px] shadow transition-all duration-200"></button>
+            </div>
+
+            <!-- טופס הזנת שמות המדריכים למשמרות השונות (תומך רשמית במשמרות הכפולות) -->
+            <div id="day-modal-shifts-form" class="space-y-3 pt-1">
+                <!-- ירונדר דינמית על ידי shifts.js -->
+            </div>
+
+            <div class="flex gap-2 pt-2 border-t dark:border-slate-700">
+                <button onclick="window.saveDayEditModalData()" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl shadow-md text-center">שמור עדכונים וסנכרן לענן</button>
+                <button onclick="document.getElementById('day-edit-modal').classList.add('hidden')" class="px-4 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-600 font-bold rounded-xl">ביטול</button>
+            </div>
+        </div>
+    </div>
 
     <!-- טעינת קבצים -->
     <script src="api.js"></script>
