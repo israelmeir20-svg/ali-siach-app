@@ -38,8 +38,8 @@ function buildAILists() {
         
         const buttonNode = document.createElement('button');
         buttonNode.type = "button";
-        buttonNode.className = "matrix-circle hover:scale-110 active:scale-95 shadow-md";
-        buttonNode.style = `${bgStyle} width: 64px !important; height: 64px !important; font-size: 2rem !important; border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center; transition: transform 0.15s;`;
+        buttonNode.className = "matrix-circle hover:scale-110 active:scale-95 shadow-md flex items-center justify-center";
+        buttonNode.style = `${bgStyle} width: 64px !important; height: 64px !important; font-size: 2rem !important; border-radius: 9999px; display: inline-flex;`;
         buttonNode.innerHTML = window.getEmoji(name).trim();
         buttonNode.onclick = () => window.cycleMatrixState('veg', name);
         vegContainer.appendChild(buttonNode);
@@ -58,8 +58,8 @@ function buildAILists() {
         
         const buttonNode = document.createElement('button');
         buttonNode.type = "button";
-        buttonNode.className = "matrix-circle hover:scale-110 active:scale-95 shadow-md";
-        buttonNode.style = `${bgStyle} width: 64px !important; height: 64px !important; font-size: 2rem !important; border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center; transition: transform 0.15s;`;
+        buttonNode.className = "matrix-circle hover:scale-110 active:scale-95 shadow-md flex items-center justify-center";
+        buttonNode.style = `${bgStyle} width: 64px !important; height: 64px !important; font-size: 2rem !important; border-radius: 9999px; display: inline-flex;`;
         buttonNode.innerHTML = toolEmojis[name] || "🔧";
         buttonNode.onclick = () => window.cycleMatrixState('tool', name);
         toolContainer.appendChild(buttonNode);
@@ -94,7 +94,7 @@ function buildPantryManualSelectionDOM() {
         items.forEach(item => {
             if (window.manualPantrySelections[item.name] === undefined) window.manualPantrySelections[item.name] = true;
             const wrapper = document.createElement('label');
-            wrapper.className = "flex items-center gap-2 p-1.5 bg-white dark:bg-slate-800 rounded-lg border dark:border-slate-700 text-[10px] font-bold cursor-pointer select-none";
+            wrapper.className = "flex items-center gap-2 p-1.5 bg-white rounded-lg border dark:border-slate-700 text-[10px] font-bold cursor-pointer select-none";
             const chk = document.createElement('input'); chk.type = "checkbox"; chk.checked = window.manualPantrySelections[item.name];
             chk.onchange = (e) => { window.manualPantrySelections[item.name] = e.target.checked; };
             wrapper.appendChild(chk); wrapper.appendChild(document.createTextNode(`${window.getEmoji(item.name)} ${item.name}`));
