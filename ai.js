@@ -1,4 +1,4 @@
-// אפליקציית עלי שיח - מודול AI חכם ותפעול מופרד (גרסה סופית, מופרדת ומאובטחת)
+// אפליקציית עלי שיח - מודול AI חכם (גרסה סופית, מופרדת ומאובטחת)
 window.activeAITab = 'procure';
 window.base64ReceiptImage = null;
 window.receiptMimeType = null;
@@ -39,8 +39,13 @@ function toggleAIChatWindow() {
     if (!window.currentUser) return;
     const win = document.getElementById('ai-chat-window');
     window.isAIChatOpen = !window.isAIChatOpen;
-    if (window.isAIChatOpen) { win.classList.remove('hidden'); win.classList.add('flex'); } 
-    else { win.classList.add('hidden'); win.classList.remove('flex'); }
+    if (window.isAIChatOpen) {
+        win.classList.remove('hidden');
+        win.classList.add('flex');
+    } else {
+        win.classList.add('hidden');
+        win.classList.remove('flex');
+    }
 }
 window.toggleAIChatWindow = toggleAIChatWindow;
 
@@ -49,8 +54,15 @@ function toggleMatrixPanel(type) {
     const arrowId = type === 'veg' ? 'veg-panel-arrow' : 'tool-panel-arrow';
     const panel = document.getElementById(panelId);
     const arrow = document.getElementById(arrowId);
-    if (panel.classList.contains('hidden')) { panel.classList.remove('hidden'); arrow.innerText = "▲"; buildAILists(); } 
-    else { panel.classList.add('hidden'); arrow.innerText = "▼"; }
+    
+    if (panel.classList.contains('hidden')) {
+        panel.classList.remove('hidden');
+        arrow.innerText = "▲";
+        buildAILists(); 
+    } else {
+        panel.classList.add('hidden');
+        arrow.innerText = "▼";
+    }
 }
 window.toggleMatrixPanel = toggleMatrixPanel;
 
@@ -60,6 +72,7 @@ function buildAILists() {
         let bgStyle = state === 1 ? "background-color: #fef2f2 !important; border: 4px solid #ef4444 !important;" : 
                       state === 2 ? "background-color: #f1f5f9 !important; border: 4px solid #94a3b8 !important; opacity: 0.35;" : 
                                     "background-color: #ecfdf5 !important; border: 4px solid #10b981 !important;";
+        
         const buttonNode = document.createElement('button');
         buttonNode.type = "button";
         buttonNode.className = "matrix-circle hover:scale-110 active:scale-95 shadow-md flex items-center justify-center";
@@ -70,11 +83,16 @@ function buildAILists() {
     }
 
     const toolContainer = document.getElementById('matrix-tools'); if (!toolContainer) return; toolContainer.innerHTML = '';
-    const toolEmojis = { "מחבת ללא מכסה בשרית": "🍳", "סיר שטוח עם מכסה בשרי": "🍲", "סיר קטן גבוה עם מכסה בשרי": "🥣", "סיר רגיל עם מכסה בשרי": "🍲", "סכין בשרית": "🔪", "סכין חלבית": "🍴", "פומפייה": "🧀", "תנור בשרי": "♨️", "טוסטר חלבי": "🥪", "כיריים": "🔥", "מיניבר": "🚰" };
+    const toolEmojis = {
+        "מחבת ללא מכסה בשרית": "🍳", "סיר שטוח עם מכסה בשרי": "🍲", "סיר קטן גבוה עם מכסה בשרי": "🥣", 
+        "סיר רגיל עם מכסה בשרי": "🍲", "סכין בשרית": "🔪", "סכין חלבית": "🍴", "פומפייה": "🧀", 
+        "תנור בשרי": "♨️", "טוסטר חלבי": "🥪", "כיריים": "🔥", "מיניבר": "🚰"
+    };
     for (const [name, state] of Object.entries(window.toolMatrix)) {
         let bgStyle = state === 1 ? "background-color: #fef2f2 !important; border: 4px solid #ef4444 !important;" : 
                       state === 2 ? "background-color: #f1f5f9 !important; border: 4px solid #94a3b8 !important; opacity: 0.35;" : 
                                     "background-color: #ecfdf5 !important; border: 4px solid #10b981 !important;";
+        
         const buttonNode = document.createElement('button');
         buttonNode.type = "button";
         buttonNode.className = "matrix-circle hover:scale-110 active:scale-95 shadow-md flex items-center justify-center";
@@ -87,9 +105,13 @@ function buildAILists() {
 window.buildAILists = buildAILists;
 
 function cycleMatrixState(type, name) {
-    if (type === 'veg') { window.vegetableMatrix[name] = (window.vegetableMatrix[name] + 1) % 3; } 
-    else { window.toolMatrix[name] = (window.toolMatrix[name] + 1) % 3; }
-    buildAILists(); window.triggerDebouncedSync();
+    if (type === 'veg') {
+        window.vegetableMatrix[name] = (window.vegetableMatrix[name] + 1) % 3;
+    } else {
+        window.toolMatrix[name] = (window.toolMatrix[name] + 1) % 3;
+    }
+    buildAILists();
+    window.triggerDebouncedSync();
 }
 window.cycleMatrixState = cycleMatrixState;
 
@@ -132,7 +154,7 @@ function getCurrentlyVisibleProducts() {
     for (const [cat, items] of Object.entries(window.appData)) {
         items.forEach(i => {
             const matchesSearch = i.name.toLowerCase().includes(window.searchQuery) || (i.notes && i.notes.toLowerCase().includes(window.searchQuery));
-            let matchesDay = window.activeDayFilter === 'all' || (i.days && (i.days.includes(window.activeDayFilter) || i.days.includes("כל הימים")));
+            let matchesDay = window.activeDayFilter === 'all' || (i.days && (i.days.includes(window.activeDayFilter) || i.days.includes("כל הימים") || i.days.includes("הכל")));
             const toOrder = window.calculateToOrder(i); let visible = true;
             if (window.activeFilter === 'to-order' && toOrder === 0) visible = false;
             if (window.activeFilter === 'in-stock' && toOrder > 0) visible = false;
@@ -145,7 +167,9 @@ function getCurrentlyVisibleProducts() {
 async function callGeminiAPI(contents) {
     const key = localStorage.getItem('aliSiach_gemini_key'); if (!key) { alert("⚠️ חסר מפתח Gemini API!"); return null; }
     try {
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: contents }) });
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: contents })
+        });
         const data = await res.json(); return data.candidates?.[0]?.content?.parts?.[0]?.text || "שגיאה בניתוח.";
     } catch (err) { return "תקלת תקשורת מול שרתי AI."; }
 }
@@ -162,7 +186,14 @@ async function generateAdvancedAIRecipe() {
     const visibleProducts = getCurrentlyVisibleProducts(); const dishInput = document.getElementById('ai-recipe-dish-input').value.trim();
     const timeLabels = ["מהיר (עד 20 דקות)", "בינוני (עד 45 דקות)", "איטי (ללא הגבלת זמן)"];
     let chosenPantryItems = []; for (const [name, isIncluded] of Object.entries(window.manualPantrySelections)) { if (isIncluded) chosenPantryItems.push(name); }
-    let prompt = `הצע מתכון קל וטעים ל-6 דיירים בעלי שיח בהתבסס על ההגבלות הבאות:\nמנה מבוקשת: ${dishInput || 'בחירה חופשית'}\nזמן הכנה: ${timeLabels[window.recipeTimeMode]}\nחוקי מטבח: בישול בשרי, ללא מעבד מזון, חיתוך בסכין בלבד, שמן קנולה בלבד, ללא סויה או כמון. כשר.\nמוצרים פתוחים כעת: ${JSON.stringify(visibleProducts)}\nמוצרי מזווה שנבחרו ידנית: ${JSON.stringify(chosenPantryItems)}\nמטריצת ירקות (0=אפשר, 1=חייב, 2=אסור): ${JSON.stringify(window.vegetableMatrix)}\nמטריצת כלי מטבח (0=אפשר, 1=חייב, 2=אסור): ${JSON.stringify(window.toolMatrix)}\n\nהצג הוראות ברורות למדריכים ובשורה האחרונה בהחלט תיתן שדרוג/האק מהיר למנה [Upgrade/Hack].`;
+
+    let prompt = `הצע מתכון קל וטעים ל-6 דיירים בעלי שיח בהתבסס על ההגבלות הבאות:\n`;
+    prompt += `מנה מבוקשת: ${dishInput || 'בחירה חופשית'}\nזמן הכנה: ${timeLabels[window.recipeTimeMode]}\n`;
+    prompt += `חוקי מטבח: בישול בשרי, ללא מעבד מזון, חיתוך בסכין בלבד, שמן קנולה בלבד, ללא סויה או כמון. כשר.\n`;
+    prompt += `מוצרים פתוחים כעת: ${JSON.stringify(visibleProducts)}\nמוצרי מזווה שנבחרו ידנית: ${JSON.stringify(chosenPantryItems)}\n`;
+    prompt += `מטריצת ירקות (0=אפשר, 1=חייב, 2=אסור): ${JSON.stringify(window.vegetableMatrix)}\n`;
+    prompt += `מטריצת כלי מטבח (0=אפשר, 1=חייב, 2=אסור): ${JSON.stringify(window.toolMatrix)}\n\n`;
+    prompt += `הצג הוראות ברורות למדריכים ובשורה האחרונה בהחלט תיתן שדרוג/האק מהיר למנה [Upgrade/Hack].`;
     out.innerText = await callGeminiAPI([{ parts: [{ text: prompt }] }]);
 }
 window.generateAdvancedAIRecipe = generateAdvancedAIRecipe;
