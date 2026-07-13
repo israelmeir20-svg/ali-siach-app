@@ -3,6 +3,7 @@
 window.currentCalendarDate = new Date();
 window.calendarViewMode = 'weekly';
 const BASE_MINIMUM_WAGE = 33; 
+let activeModalDateStr = ""; // מחזיק את התאריך שנפתח כרגע במודל לעריכה
 
 function initShiftsModule() {
     calculateSalaryStats();
@@ -35,7 +36,6 @@ function navigateCalendar(direction) {
 }
 window.navigateCalendar = navigateCalendar;
 
-// פונקציית טוגל פתיחה/סגירה של מגירת השכר הצפה
 function toggleSalaryDrawer() {
     const drawer = document.getElementById('salary-summary-drawer');
     if (drawer) {
@@ -50,37 +50,126 @@ function getShiftObject(dateStr, shiftType) {
     return found || { date: dateStr, shiftType: shiftType, assignedUser: "", tradeTargetUser: "", status: "Available", dayAttribute: "רגיל" };
 }
 
-// פונקציית טוגל מהירה עבור הרכז לסימון שבת חופשית ישירות מתוך הלוח
-async function toggleShabbatFree(dateStr) {
-    if (!window.currentUser || window.currentUser.role !== 'admin') return;
+// 1. פתיחת חלון הניהול והעריכה המרוכזת ליום שנבחר (חיקוי המבנה של image_53e7c3.png)
+function openDayEditModal(dateStr) {
+    activeModalDateStr = dateStr;
+    const dateObj = new Date(dateStr);
+    const dayOfWeek = dateObj.getDay();
+    const daysName = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
     
-    // בדיקה מה המצב הנוכחי של סוף השבוע לפי משמרת יום שישי בוקר
-    let currentShift = getShiftObject(dateStr, "שישי בוקר");
+    document.getElementById('day-modal-title').innerText = `ניהול ושיבוץ יום ${daysName[dayOfWeek]} (${dateObj.toLocaleDateString('he-IL')})`;
+    document.getElementById('day-modal-hebrew-date').innerText = `תאריך עברי: ${getHebrewDateString(dateObj)}`;
+    
+    // בקרת כפתור טוגל שבת חופשית/נעילה
+    const isClosed = getShiftObject(dateStr, "שישי בוקר").status === "Closed" || getShiftObject(dateStr, "צהריים א").status === "Closed";
+    const toggleBtn = document.getElementById('day-modal-shabbat-toggle-btn');
+    if (isClosed) {
+        toggleBtn.innerText = "🔓 פתח דירה כרגיל";
+        toggleBtn.className = "px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[10px] shadow";
+    } else {
+        toggleBtn.innerText = "🔒 סגור דירה (חופש)";
+        toggleBtn.className = "px-4 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black text-[10px] shadow";
+    }
+    toggleBtn.onclick = () => window.toggleShabbatFreeViaModal();
+
+    // בניית הטופס להקלדת השמות (תואם במדויק לסוגי הימים)
+    let shiftsToEdit = [];
+    if (dayOfWeek >= 0 && dayOfWeek <= 4) {
+        shiftsToEdit = ["בוקר", "צהריים א", "צהריים b", "לילה"]; // b פנימי לצורך תאימות ענן חלקס
+    } else if (dayOfWeek === 5) {
+        shiftsToEdit = ["שישי בוקר", "שבת א", "שבת b"];
+    } else if (dayOfWeek === 6) {
+        shiftsToEdit = []; // נשלט במלואו דרך כרטיסיית יום שישי
+    }
+
+    const formContainer = document.getElementById('day-modal-shifts-form');
+    formContainer.innerHTML = '';
+
+    if (shiftsToEdit.length === 0) {
+        formContainer.innerHTML = `<p class="text-slate-400 font-bold italic text-center py-4">משמרות השבת מנוהלות מתוך כרטיסיית יום שישי (משמרות רצף שבת).</p>`;
+    } else {
+        shiftsToEdit.forEach(type => {
+            // התאמת תוויות תצוגה
+            let displayLabel = type.replace(" b", " ב'").replace(" א", " א'");
+            let databaseType = type === "צהריים b" ? "צהריים ב" : (type === "שבת b" ? "שבת ב" : type);
+            let sObj = getShiftObject(dateStr, databaseType);
+            
+            formContainer.innerHTML += `
+                <div class="flex flex-col space-y-1 bg-slate-50 dark:bg-slate-900 p-2 rounded-xl border dark:border-slate-700/60">
+                    <label class="font-black text-slate-600 dark:text-slate-400 block">${displayLabel}:</label>
+                    <input type="text" id="modal-input-shift-${type}" value="${sObj.assignedUser || ''}" placeholder="הקלד שם מדריך..." class="w-full p-2 rounded-lg border dark:border-slate-600 dark:bg-slate-700 font-bold text-slate-800 dark:text-white focus:outline-none">
+                </div>
+            `;
+        });
+    }
+
+    // הצגת המודל
+    const modal = document.getElementById('day-edit-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+window.openDayEditModal = openDayEditModal;
+
+// 2. שמירת הנתונים מחלון הניהול ישירות למערך ולשרת גוגל
+async function saveDayEditModalData() {
+    const dateStr = activeModalDateStr;
+    const dateObj = new Date(dateStr);
+    const dayOfWeek = dateObj.getDay();
+    
+    let shiftsToSave = [];
+    if (dayOfWeek >= 0 && dayOfWeek <= 4) shiftsToSave = ["בוקר", "צהריים א", "צהריים b", "לילה"];
+    else if (dayOfWeek === 5) shiftsToSave = ["שישי בוקר", "שבת א", "שבת b"];
+
+    for (let type of shiftsToSave) {
+        let databaseType = type === "צהריים b" ? "צהריים ב" : (type === "שבת b" ? "שבת ב" : type);
+        let inputEl = document.getElementById(`modal-input-shift-${type}`);
+        if (inputEl) {
+            let assignedName = inputEl.value.trim();
+            window.setShiftInState(dateStr, databaseType, assignedName);
+            if (typeof window.sendActionToCloud === "function") {
+                await window.sendActionToCloud({ action: "SET_SHIFT", date: dateStr, shiftType: databaseType, user: assignedName });
+            }
+        }
+    }
+
+    document.getElementById('day-edit-modal').classList.add('hidden');
+    initShiftsModule();
+    window.showToast("סידור העבודה עודכן וסונכרן לענן!", "💾");
+}
+window.saveDayEditModalData = saveDayEditModalData;
+
+// טוגל מהיר לנעילת יום מתוך חלון הניהול
+async function toggleShabbatFreeViaModal() {
+    document.getElementById('day-edit-modal').classList.add('hidden');
+    await window.toggleShabbatFree(activeModalDateStr);
+}
+window.toggleShabbatFreeViaModal = toggleShabbatFreeViaModal;
+
+async function toggleShabbatFree(dateStr) {
+    const dateObj = new Date(dateStr);
+    const dayOfWeek = dateObj.getDay();
+    let currentShift = getShiftObject(dateStr, dayOfWeek === 5 ? "שישי בוקר" : "צהריים א");
     let targetAttribute = currentShift.status === "Closed" ? "רגיל" : "שבת חופשית";
     
     if (typeof window.sendActionToCloud === "function") {
         await window.sendActionToCloud({ action: "SET_DAY_ATTRIBUTE", date: dateStr, attribute: targetAttribute });
     }
     
-    // עדכון הסטייט המקומי מיידית
-    let types = ["שישי בוקר", "שבת א", "שבת ב"];
+    let types = dayOfWeek === 5 ? ["שישי בוקר", "שבת א", "שבת ב"] : ["בוקר", "צהריים א", "צהריים ב", "לילה"];
     types.forEach(t => {
         let s = window.shifts.find(sh => sh.date === dateStr && sh.shiftType === t);
-        if (!s) {
-            s = { date: dateStr, shiftType: t };
-            window.shifts.push(s);
-        }
+        if (!s) { s = { date: dateStr, shiftType: t }; window.shifts.push(s); }
         s.status = targetAttribute === "שבת חופשית" ? "Closed" : "Available";
         s.dayAttribute = targetAttribute;
         if (targetAttribute === "שבת חופשית") s.assignedUser = "";
     });
     
     initShiftsModule();
-    window.showToast(targetAttribute === "שבת חופשית" ? "סוף השבוע הוגדר כשבת חופשית והדירה נסגרה!" : "סוף השבוע הוחזר למצב עבודה רגיל!", "🛠️");
+    window.showToast(targetAttribute === "שבת חופשית" ? "היום סומן כיום חופש/סגור!" : "היום הוחזר לפעילות שוטפת!", "🛠️");
 }
 window.toggleShabbatFree = toggleShabbatFree;
 
-// רנדור סידור שבועי רחב מסך עם משמרות כפולות
+// 3. רנדור הלוח השבועי הרחב המלא (כל הריבוע לחיץ ופותח את מודל העריכה)
 function renderWeeklyCalendar() {
     const container = document.getElementById('calendar-container'); if (!container) return;
     const currentDay = window.currentCalendarDate.getDay();
@@ -99,39 +188,26 @@ function renderWeeklyCalendar() {
         const dateStr = loopDate.toISOString().split('T')[0];
         const isToday = new Date().toISOString().split('T')[0] === dateStr;
         
-        // יצירת כפתור נעילת שבת ייעודי לרכז ליד יום שישי
-        let shabbatLockToggleBtn = "";
-        if (i === 5 && window.currentUser && window.currentUser.role === 'admin') {
-            let isClosed = getShiftObject(dateStr, "שישי בוקר").status === "Closed";
-            shabbatLockToggleBtn = `<button onclick="window.toggleShabbatFree('${dateStr}')" class="text-[9px] px-1.5 py-0.5 rounded bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-200 font-black">${isClosed ? '🔓 פתח שבת' : '🔒 שבת חופשית'}</button>`;
-        }
-
+        // קליק על כל הריבוע היומי פותח את המודל המרוכז
         html += `
-            <div class="border dark:border-slate-700 rounded-2xl p-3 flex flex-col space-y-3 ${isToday ? 'bg-indigo-50/30 border-indigo-300 dark:bg-indigo-950/20' : 'bg-slate-50/50 dark:bg-slate-900/20'}">
-                <div class="flex justify-between items-start border-b dark:border-slate-700 pb-1 w-full">
-                    <div class="text-right">
-                        <span class="font-black text-xs block text-slate-800 dark:text-white">יום ${daysName[i]}</span>
-                        <span class="text-[9px] text-slate-400 font-bold block">${loopDate.getDate()}/${loopDate.getMonth()+1} | ${getHebrewDateString(loopDate).split(' ')[0]}</span>
-                    </div>
-                    ${shabbatLockToggleBtn}
+            <div onclick="window.openDayEditModal('${dateStr}')" class="border dark:border-slate-700 rounded-2xl p-3 flex flex-col space-y-3 cursor-pointer transition-all duration-200 hover:border-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-800/30 ${isToday ? 'bg-indigo-50/30 border-indigo-300 dark:bg-indigo-950/20' : 'bg-slate-50/50 dark:bg-slate-900/20'}">
+                <div class="text-right border-b dark:border-slate-700 pb-1">
+                    <span class="font-black text-xs block text-slate-800 dark:text-white">יום ${daysName[i]}</span>
+                    <span class="text-[10px] text-slate-400 font-bold block">${loopDate.getDate()}/${loopDate.getMonth()+1} | ${getHebrewDateString(loopDate).split(' ')[0]}</span>
                 </div>
-                <div class="space-y-2 flex-1 flex flex-col justify-start">
+                <div class="space-y-1.5 flex-1 flex flex-col justify-start">
         `;
 
-        // יישום הפיצול של משמרות צהריים ושבת לשני מדריכים במקביל (א' ו-ב')
         let dayShifts = [];
-        if (i >= 0 && i <= 4) { 
-            dayShifts = ["בוקר", "צהריים א", "צהריים ב", "לילה"]; // פיצול צהריים
-        } else if (i === 5) { 
-            dayShifts = ["שישי בוקר", "שבת א", "שבת ב"]; // פיצול שבת
-        }
+        if (i >= 0 && i <= 4) dayShifts = ["בוקר", "צהריים א", "צהריים ב", "לילה"];
+        else if (i === 5) dayShifts = ["שישי בוקר", "שבת א", "שבת ב"];
 
         dayShifts.forEach(type => {
-            html += renderShiftCardHtml(dateStr, type, loopDate);
+            html += renderShiftRowInlineHtml(dateStr, type, loopDate);
         });
 
         if (dayShifts.length === 0 && i === 6) {
-            html += `<p class="text-[9px] text-slate-400 italic text-center py-6">מכוסה תחת משמרות שבת א'+ב'</p>`;
+            html += `<p class="text-[9px] text-slate-400 italic text-center py-8">מכוסה תחת משמרות שבת</p>`;
         }
 
         html += `</div></div>`;
@@ -142,6 +218,7 @@ function renderWeeklyCalendar() {
 }
 window.renderWeeklyCalendar = renderWeeklyCalendar;
 
+// 4. רנדור הלוח החודשי (חיקוי מלא של image_53e7c3.png)
 function renderMonthlyCalendar() {
     const container = document.getElementById('calendar-container'); if (!container) return;
     const year = window.currentCalendarDate.getFullYear();
@@ -158,7 +235,7 @@ function renderMonthlyCalendar() {
         <div class="grid grid-cols-7 gap-2">
     `;
 
-    for (let b = 0; b < startDayOfWeek; b++) html += `<div class="bg-slate-100/40 dark:bg-slate-900/10 rounded-xl min-h-[80px]"></div>`;
+    for (let b = 0; b < startDayOfWeek; b++) html += `<div class="bg-slate-100/40 dark:bg-slate-900/10 rounded-xl min-h-[90px]"></div>`;
 
     for (let day = 1; day <= totalDaysInMonth; day++) {
         const loopDate = new Date(year, month, day);
@@ -167,131 +244,52 @@ function renderMonthlyCalendar() {
         const dayOfWeek = loopDate.getDay();
 
         html += `
-            <button onclick="window.currentCalendarDate = new Date('${dateStr}'); window.toggleCalendarView('weekly');" class="text-right border dark:border-slate-700/60 p-1.5 rounded-xl flex flex-col justify-between min-h-[85px] bg-white dark:bg-slate-800 hover:border-indigo-400 transition ${isToday ? 'border-indigo-400 bg-indigo-50/20' : ''}">
-                <span class="font-black text-xs text-slate-800 dark:text-white">${day}</span>
-                <div class="w-full space-y-0.5 pt-1">
+            <div onclick="window.openDayEditModal('${dateStr}')" class="text-right border dark:border-slate-700/60 p-2 rounded-xl flex flex-col justify-between min-h-[105px] bg-white dark:bg-slate-800 hover:border-indigo-400 cursor-pointer transition ${isToday ? 'border-indigo-400 bg-indigo-50/20' : ''}">
+                <div class="flex justify-between items-center w-full border-b pb-0.5 mb-1 dark:border-slate-700">
+                    <span class="font-black text-xs text-slate-800 dark:text-white">${day}</span>
+                    <span class="text-[9px] text-slate-400 font-bold">${getHebrewDateString(loopDate).split(' ')[0]}</span>
+                </div>
+                <div class="w-full space-y-1 flex-1 flex flex-col justify-start">
         `;
 
-        let checkTypes = (dayOfWeek >= 0 && dayOfWeek <= 4) ? ["צהריים א", "צהריים ב"] : (dayOfWeek === 5 ? ["שישי בוקר", "שבת א"] : []);
+        let checkTypes = (dayOfWeek >= 0 && dayOfWeek <= 4) ? ["בוקר", "צהריים א", "צהריים ב", "לילה"] : (dayOfWeek === 5 ? ["שישי בוקר", "שבת א", "שבת ב"] : []);
         checkTypes.forEach(t => {
             let s = getShiftObject(dateStr, t);
-            if (s.status === 'Closed') html += `<div class="text-[7px] bg-blue-100 text-blue-800 rounded px-0.5 truncate font-black">🔒 סגור</div>`;
-            else if (s.assignedUser) html += `<div class="text-[7px] bg-slate-100 rounded px-0.5 text-slate-600 truncate text-right font-black">${t.replace("צהריים ", "צ'").replace("שבת ", "ש'")}: ${s.assignedUser}</div>`;
+            if (s.status === 'Closed') {
+                if(t === "בוקר" || t === "שישי בוקר") html += `<div class="text-[8px] bg-blue-100 text-blue-800 rounded px-1 font-black text-center">🔒 סגור</div>`;
+            } else if (s.assignedUser) {
+                let isMe = window.currentUser && s.assignedUser === window.currentUser.name;
+                let shortType = t.replace("צהריים ", "צ'").replace("שבת ", "ש'").replace("שישי ", "ש'");
+                html += `<div class="text-[8px] rounded px-1 font-black truncate text-right ${isMe ? 'bg-purple-600 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}">${shortType}: ${s.assignedUser}</div>`;
+            }
         });
 
-        html += `</div></button>`;
+        html += `</div></div>`;
     }
     html += `</div>`;
     container.innerHTML = html;
 }
 window.renderMonthlyCalendar = renderMonthlyCalendar;
 
-function renderShiftCardHtml(dateStr, shiftType, dateObj) {
+// רנדור שורות המשמרת התמציתיות בתוך קוביות הימים (חיקוי הטבלה ב-image_53e7c3.png)
+function renderShiftRowInlineHtml(dateStr, shiftType, dateObj) {
     let s = getShiftObject(dateStr, shiftType);
-    let isSummer = isSummerTime(dateObj);
-    
-    let hoursStr = "15:30 - 22:00";
-    if (shiftType === 'בוקר') hoursStr = "08:00 - 15:30";
-    else if (shiftType === 'לילה') hoursStr = "22:00 - 08:00";
-    else if (shiftType === 'שישי בוקר') hoursStr = isSummer ? "08:00 - 14:00" : "08:00 - 13:00";
-    else if (shiftType.includes('שבת')) hoursStr = isSummer ? "14:00 עד מוצש 22:00" : "13:00 עד מוצש 22:00";
-
-    if (s.status === "Closed") {
-        return `<div class="p-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 text-center text-blue-600 font-black text-[9px]">🔒 שבת חופשית</div>`;
-    }
+    if (s.status === "Closed") return '';
 
     if (shiftType === 'בוקר' && s.dayAttribute !== 'חופש_בוקר' && !s.assignedUser) return '';
 
     let isMe = window.currentUser && s.assignedUser === window.currentUser.name;
-    let cardClass = isMe ? "bg-purple-600 text-white border-purple-700 shadow" : (s.assignedUser ? "bg-slate-100 dark:bg-slate-800 border-slate-200 text-slate-700 dark:text-slate-300" : "bg-white dark:bg-slate-800/40 border-dashed border-slate-300 text-slate-400");
-
-    let cleanTypeLabel = shiftType.replace(" א", " א'").replace(" ב", " ב'");
-    let badgeHtml = `<span class="text-[8px] px-1 py-0.5 rounded font-black ${isMe ? 'bg-purple-800 text-purple-100' : 'bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}">${cleanTypeLabel}</span>`;
-    
-    if (s.status === "Pending_Pool") badgeHtml += ` <span class="text-[7px] bg-amber-500 text-white font-bold p-0.5 rounded">בורסה</span>`;
-    if (s.status === "Pending_Direct") badgeHtml += ` <span class="text-[7px] bg-blue-50 text-blue-700 font-bold p-0.5 rounded">החלפה</span>`;
-
-    let userLabel = s.assignedUser ? `👤 ${s.assignedUser}` : "➕ פנוי לשיבוץ";
-    let actionsHtml = '';
-
-    if (!s.assignedUser) {
-        actionsHtml = `<button onclick="window.executeShiftAction('TAKE', '${dateStr}', '${shiftType}')" class="text-[8px] font-black text-indigo-600 dark:text-indigo-400 underline block text-left w-full pt-1">השתבץ</button>`;
-    } else if (isMe) {
-        actionsHtml = `
-            <div class="flex justify-between items-center border-t border-purple-500/50 pt-1 mt-1 text-[8px] font-black text-purple-100">
-                <button onclick="window.openTradeFlow('${dateStr}', '${shiftType}')" class="hover:underline">החלפה 👥</button>
-                <button onclick="window.executeShiftAction('POOL', '${dateStr}', '${shiftType}')" class="hover:underline text-amber-200">לבורסה 📢</button>
-            </div>
-        `;
-    } else {
-        if (s.status === "Pending_Pool") {
-            actionsHtml = `<button onclick="window.executeShiftAction('CONFIRM_POOL', '${dateStr}', '${shiftType}')" class="text-[8px] font-black text-emerald-600 underline block text-left w-full pt-1">קח משמרת</button>`;
-        } else if (s.status === "Pending_Direct" && window.currentUser && s.tradeTargetUser === window.currentUser.name) {
-            actionsHtml = `
-                <div class="flex justify-end gap-1.5 pt-1 font-black text-[8px]">
-                    <button onclick="window.executeShiftAction('RESPOND', '${dateStr}', '${shiftType}', true)" class="text-emerald-600">קבל ✓</button>
-                    <button onclick="window.executeShiftAction('RESPOND', '${dateStr}', '${shiftType}', false)" class="text-red-500">סרב ✕</button>
-                </div>
-            `;
-        }
-    }
-
-    if (window.currentUser && window.currentUser.role === 'admin' && s.assignedUser) {
-        actionsHtml += `<button onclick="window.executeShiftAction('CLEAR', '${dateStr}', '${shiftType}')" class="text-[7px] text-red-400 hover:underline block text-right pt-0.5 w-full font-normal">מחק 🗑️</button>`;
-    }
+    let textClass = isMe ? "text-purple-700 dark:text-purple-400 font-black" : (s.assignedUser ? "text-slate-800 dark:text-slate-200" : "text-slate-400 font-normal italic");
+    let displayType = shiftType.replace("צהריים ", "צ'").replace("שבת ", "ש'").replace("שישי ", "ש'");
+    let displayUser = s.assignedUser || "[פנוי]";
 
     return `
-        <div class="border rounded-xl p-1.5 flex flex-col justify-between text-right text-[9px] font-bold ${cardClass}">
-            <div class="flex justify-between items-center w-full">${badgeHtml}<span class="text-[8px] opacity-60 font-mono">${hoursStr.split(' ')[0]}</span></div>
-            <p class="pt-1 text-xs font-black truncate">${userLabel}</p>
-            ${actionsHtml}
+        <div class="text-[10px] flex justify-between items-center w-full border-b border-slate-100 dark:border-slate-800 pb-0.5">
+            <span class="text-slate-400 font-bold">${displayType}:</span>
+            <span class="truncate max-w-[70px] ${textClass}">${displayUser}</span>
         </div>
     `;
 }
-
-async function executeShiftAction(actionType, dateStr, shiftType, extraParam = null) {
-    if (!window.currentUser) return;
-    
-    if (actionType === 'TAKE') {
-        if (window.currentUser.role !== 'admin') {
-            window.setShiftInState(dateStr, shiftType, window.currentUser.name);
-            await window.sendActionToCloud({ action: "SET_SHIFT", date: dateStr, shiftType: shiftType, user: window.currentUser.name });
-        } else {
-            let targetName = prompt("שם המדריך לשיבוץ:"); if (!targetName) return;
-            window.setShiftInState(dateStr, shiftType, targetName);
-            await window.sendActionToCloud({ action: "SET_SHIFT", date: dateStr, shiftType: shiftType, user: targetName });
-        }
-    }
-    else if (actionType === 'CLEAR') {
-        window.setShiftInState(dateStr, shiftType, "");
-        await window.sendActionToCloud({ action: "SET_SHIFT", date: dateStr, shiftType: shiftType, user: "" });
-    }
-    else if (actionType === 'POOL') {
-        let s = getShiftObject(dateStr, shiftType); s.status = "Pending_Pool"; s.tradeTargetUser = "כולם";
-        await window.sendActionToCloud({ action: "TRADE_REQUEST", date: dateStr, shiftType: shiftType, targetUser: "כולם", status: "Pending_Pool" });
-    }
-    else if (actionType === 'CONFIRM_POOL') {
-        window.setShiftInState(dateStr, shiftType, window.currentUser.name);
-        await window.sendActionToCloud({ action: "TRADE_RESPONSE", date: dateStr, shiftType: shiftType, user: window.currentUser.name, approved: true });
-    }
-    else if (actionType === 'RESPOND') {
-        if (extraParam === true) window.setShiftInState(dateStr, shiftType, window.currentUser.name);
-        else { let s = getShiftObject(dateStr, shiftType); s.status = "Declined"; }
-        await window.sendActionToCloud({ action: "TRADE_RESPONSE", date: dateStr, shiftType: shiftType, user: window.currentUser.name, approved: extraParam });
-    }
-
-    initShiftsModule();
-    window.showToast("השיבוץ עודכן ומסונכרן לענן!", "💾");
-}
-window.executeShiftAction = executeShiftAction;
-
-function openTradeFlow(dateStr, shiftType) {
-    let target = prompt("שם המדריך להחלפה ישירה:"); if (!target) return;
-    let s = getShiftObject(dateStr, shiftType); s.status = "Pending_Direct"; s.tradeTargetUser = target;
-    if (typeof window.sendActionToCloud === "function") window.sendActionToCloud({ action: "TRADE_REQUEST", date: dateStr, shiftType: shiftType, targetUser: target, status: "Pending_Direct" });
-    initShiftsModule();
-}
-window.openTradeFlow = openTradeFlow;
 
 function setShiftInState(dateStr, shiftType, userName) {
     let found = window.shifts.find(s => s.date === dateStr && s.shiftType === shiftType);
@@ -313,14 +311,13 @@ function calculateSalaryStats() {
         if (sDate.getMonth() !== currentMonth || sDate.getFullYear() !== currentYear || s.assignedUser !== window.currentUser.name || s.status === 'Closed') return;
 
         if (s.shiftType.includes("צהריים") || s.shiftType === "בוקר") {
-            regularCount++;
-            moneyEarned += (s.shiftType === "בוקר" ? 7.5 : 6.5) * BASE_MINIMUM_WAGE;
+            regularCount++; moneyEarned += (s.shiftType === "בוקר" ? 7.5 : 6.5) * BASE_MINIMUM_WAGE;
         } else if (s.shiftType === "לילה") {
             nightCount++; moneyEarned += 10 * (BASE_MINIMUM_WAGE * 1.5);
         } else if (s.shiftType === "שישי בוקר") {
             regularCount++; moneyEarned += (isSummerTime(sDate) ? 6 : 5) * BASE_MINIMUM_WAGE;
         } else if (s.shiftType.includes("שבת")) {
-            weekendCount++; moneyEarned += 1400; // 1,400 ש"ח פיקס לשבת
+            weekendCount++; moneyEarned += 1400; 
         }
     });
 
@@ -334,7 +331,6 @@ window.calculateSalaryStats = calculateSalaryStats;
 function renderTodayShiftsWidget() {
     const c = document.getElementById('dashboard-today-shifts'); if (!c) return;
     const todayStr = new Date().toISOString().split('T')[0];
-    const isSummer = isSummerTime(new Date());
     let currentDayOfWeek = new Date().getDay();
     
     let checkTypes = (currentDayOfWeek >= 0 && currentDayOfWeek <= 4) ? ["בוקר", "צהריים א", "צהריים ב", "לילה"] : ["שישי בוקר", "שבת א", "שבת ב"];
@@ -342,10 +338,10 @@ function renderTodayShiftsWidget() {
     
     checkTypes.forEach(t => {
         let s = getShiftObject(todayStr, t);
-        if (s.status === 'Closed') html += `<div class="p-1.5 bg-blue-50 dark:bg-blue-950/40 border rounded-xl">🔒 <b>${t}:</b> שבת חופשית</div>`;
+        if (s.status === 'Closed') html += `<div class="p-1.5 bg-blue-50 dark:bg-blue-950/40 border rounded-xl text-[10px]">🔒 <b>${t}:</b> שבת חופשית</div>`;
         else {
             let name = s.assignedUser || `<span class="text-red-400 font-normal">טרם שובץ</span>`;
-            html += `<div class="p-1.5 bg-slate-50 dark:bg-slate-900 rounded-xl border">⏰ <b>${t}:</b> ${name}</div>`;
+            html += `<div class="p-1.5 bg-slate-50 dark:bg-slate-900 rounded-xl border text-[10px]">⏰ <b>${t}:</b> ${name}</div>`;
             
             let hr = new Date().getHours();
             if (t === "בוקר" && hr >= 8 && hr < 15.5) badgeStaffName = s.assignedUser || badgeStaffName;
