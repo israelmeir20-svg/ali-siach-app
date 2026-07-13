@@ -1,4 +1,4 @@
-// אפליקציית עלי שיח - ניהול מלאי מרכזי (גרסת ממשק פרימיום סופית)
+// אפליקציית עלי שיח - ניהול מלאי מרכזי (גרסה מלאה, יציבה ומסונכרנת)
 window.appData = {};
 window.teamMembers = [];
 window.teamMessages = [];
@@ -17,7 +17,6 @@ window.activeEdit = null;
 window.viewMode = localStorage.getItem('aliSiachViewMode') || 'table'; 
 window.messageCenterTab = 'received';
 
-// אתחול משתני מצב מפורשים למניעת שגיאות ריצה במרכז ההודעות
 window.isNotificationOpen = false;
 window.isChatOpen = false;
 
@@ -104,9 +103,10 @@ function initChart() {
         if (window.myChart) window.myChart.destroy();
         window.myChart = new Chart(ctx, {
             type: 'doughnut',
-            data: { labels: ['חסר', 'להזמנה', 'תקין'], datasets: [{ data: [20, 10, 67], backgroundColor: ['#ef4444', '#3b82f6', '#10b981'], borderHighlightColor: '#ffffff', borderWidth: 2 }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutOut: '70%' }
+            data: { labels: ['חסר', 'להזמנה', 'מלאי תקין'], datasets: [{ data: [0, 0, 100], backgroundColor: ['#ef4444', '#3b82f6', '#10b981'], borderWidth: 2 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutOut: '72%' }
         });
+        updateChartData();
     } catch(e) { console.error(e); }
 }
 
@@ -135,8 +135,8 @@ function renderCategoryProgressBars() {
         let pct = total > 0 ? Math.round((missing / total) * 100) : 0;
         container.innerHTML += `
             <div class="space-y-1">
-                <div class="flex justify-between text-[10px] font-bold text-slate-400"><span>${catName}</span><span>${missing} פריטים לחסר</span></div>
-                <div class="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden"><div class="bg-purple-600 h-full rounded-full transition-all duration-300" style="width: ${pct}%"></div></div>
+                <div class="flex justify-between text-[10px] font-bold text-slate-400"><span>${catName}</span><span>${missing} פריטים</span></div>
+                <div class="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden"><div class="bg-purple-600 h-full rounded-full" style="width: ${pct}%"></div></div>
             </div>
         `;
     }
@@ -223,10 +223,7 @@ window.updateItemValue = updateItemValue;
 function filterInventory() { window.searchQuery = document.getElementById('search-bar').value.toLowerCase(); renderApp(); }
 window.filterInventory = filterInventory;
 
-function setFilter(type) {
-    window.activeFilter = type;
-    renderApp();
-}
+function setFilter(type) { window.activeFilter = type; renderApp(); }
 window.setFilter = setFilter;
 
 function setDayFilter(day) {
@@ -250,15 +247,14 @@ function setViewMode(mode) {
 }
 window.setViewMode = setViewMode;
 
-// בנאי בקר כמויות מבוסס סימנים מופשטים בלבד לפי דרישת המעצב (סעיף ב)
 function createQtyControllerHtml(category, origIndex, field, currentValue) {
     return `
-        <div class="flex items-center justify-center gap-1 bg-slate-50 dark:bg-slate-900 p-1 rounded-xl border dark:border-slate-700 mx-auto max-w-[150px]">
-            <button onclick="window.updateItemValue('${category}', ${origIndex}, '${field}', ${currentValue - 1})" class="w-6 h-6 text-xs bg-white dark:bg-slate-700 border dark:border-slate-600 rounded font-black shadow-sm hover:bg-red-50 text-slate-700 dark:text-white">▼</button>
+        <div class="flex items-center justify-center gap-1 bg-slate-50 dark:bg-slate-950 p-1 rounded-xl border dark:border-slate-700 mx-auto max-w-[150px]">
+            <button onclick="window.updateItemValue('${category}', ${origIndex}, '${field}', ${currentValue - 1})" class="w-6 h-6 text-[9px] bg-white dark:bg-slate-700 border dark:border-slate-600 rounded font-black shadow-sm hover:bg-red-50 text-slate-700 dark:text-white">▼</button>
             <button onclick="window.updateItemValue('${category}', ${origIndex}, '${field}', ${currentValue - 0.5})" class="w-6 h-6 text-xs bg-white dark:bg-slate-700 border dark:border-slate-600 rounded font-black shadow-sm hover:bg-red-50 text-slate-700 dark:text-white">-</button>
-            <input type="number" step="0.5" min="0" value="${currentValue}" onchange="window.updateItemValue('${category}', ${origIndex}, '${field}', this.value)" class="w-10 text-center font-black text-xs bg-white dark:bg-slate-800 text-blue-700 dark:text-blue-400 p-0.5 rounded border dark:border-slate-600 data-existing">
+            <input type="number" step="0.5" min="0" value="${currentValue}" onchange="window.updateItemValue('${category}', ${origIndex}, '${field}', this.value)" class="w-10 text-center font-black text-xs bg-white dark:bg-slate-800 rounded border dark:border-slate-600 p-0.5">
             <button onclick="window.updateItemValue('${category}', ${origIndex}, '${field}', ${currentValue + 0.5})" class="w-6 h-6 text-xs bg-white dark:bg-slate-700 border dark:border-slate-600 rounded font-black shadow-sm hover:bg-green-50 text-slate-700 dark:text-white">+</button>
-            <button onclick="window.updateItemValue('${category}', ${origIndex}, '${field}', ${currentValue + 1})" class="w-6 h-6 text-xs bg-white dark:bg-slate-700 border dark:border-slate-600 rounded font-black shadow-sm hover:bg-green-50 text-slate-700 dark:text-white">▲</button>
+            <button onclick="window.updateItemValue('${category}', ${origIndex}, '${field}', ${currentValue + 1})" class="w-6 h-6 text-[9px] bg-white dark:bg-slate-700 border dark:border-slate-600 rounded font-black shadow-sm text-slate-700 dark:text-white">▲</button>
         </div>
     `;
 }
@@ -283,7 +279,6 @@ function renderApp() {
             if (window.activeFilter === 'in-stock') return matchesSearch && matchesDay && toOrder === 0;
             return matchesSearch && matchesDay;
         });
-        if (filtered.length === 0 && window.searchQuery !== '') continue;
 
         const catSection = document.createElement('div');
         catSection.className = "space-y-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 rounded-3xl shadow-sm";
@@ -338,6 +333,7 @@ function renderApp() {
                             <div class="p-1.5 rounded-lg ${toOrder > 0 ? 'data-toorder-active' : 'data-toorder'}">להזמנה: <span class="block text-xs font-black">${toOrder || '-'}</span></div>
                         </div>
                     </div>
+                    ${item.notes ? `<p class="text-[10px] bg-slate-50 dark:bg-slate-900 border dark:border-slate-700 p-1.5 rounded-lg text-slate-500 mt-2 truncate font-medium">💡 ${item.notes}</p>` : ''}
                 `;
                 itemCard.querySelector('.edit-btn').onclick = () => openProductModal(catName, item.originalIndex);
                 itemCard.querySelector('.delete-item-btn').onclick = () => deleteProductComplete(catName, item.originalIndex);
@@ -345,7 +341,6 @@ function renderApp() {
             });
             catSection.appendChild(gridContainer);
         } else {
-            // טבלה משופרת ללא אימוג'ים - העתק קפדני לפי דרישת העיצוב החדש
             const tableWrapper = document.createElement('div');
             tableWrapper.className = "overflow-x-auto pt-2";
             let rowsHtml = '';
@@ -354,10 +349,12 @@ function renderApp() {
                 const toOrder = calculateToOrder(item);
                 rowsHtml += `
                     <tr class="table-row-floating border-b dark:border-slate-700 text-xs font-bold hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition">
-                        <td class="p-3 text-slate-900 dark:text-white text-sm font-black">${item.name}</td>
+                        <td class="p-3 text-slate-900 dark:text-white text-sm font-black flex items-center gap-2">
+                            <span class="text-xl">${getEmoji(item.name)}</span><span>${item.name}</span>
+                        </td>
                         <td class="p-2">${createQtyControllerHtml(catName, item.originalIndex, 'existing', item.existing)}</td>
                         <td class="p-2">${createQtyControllerHtml(catName, item.originalIndex, 'recommended', item.recommended)}</td>
-                        <td class="p-3 text-center text-slate-500 font-bold text-sm">${item.orderedLastMonth || '-'}</td>
+                        <td class="p-3 data-lastmonth text-center text-sm font-black">${item.orderedLastMonth || '-'}</td>
                         <td class="p-3 text-center text-slate-400 font-bold">-</td>
                         <td class="p-3 text-center text-sm font-black ${toOrder > 0 ? 'data-toorder-active' : 'text-slate-300'}">${toOrder ? `₪${(toOrder * (item.price || 0)).toFixed(0)}` : '-'}</td>
                         <td class="p-3 text-slate-500 text-center font-black">${item.days || 'כל הימים'}</td>
@@ -430,10 +427,6 @@ function setMessageCenterTabUI() {
 
 function renderMessages() {
     const container = document.getElementById('messages-list-container'); if (!container || !window.currentUser) return; container.innerHTML = '';
-    let unreadCount = 0;
-    window.teamMessages.forEach(m => { if ((m.to === "כולם" || m.to === window.currentUser.name) && !m.readBy.includes(window.currentUser.name) && m.from !== window.currentUser.name) unreadCount++; });
-    const badge = document.getElementById('unread-badge'); if (unreadCount > 0) { badge.innerText = unreadCount; badge.classList.remove('hidden'); } else badge.classList.add('hidden');
-
     let displayList = window.messageCenterTab === 'received' ? window.teamMessages.filter(m => m.to === "כולם" || m.to === window.currentUser.name) : window.teamMessages.filter(m => m.from === window.currentUser.name);
     if (displayList.length === 0) { container.innerHTML = `<div class="text-slate-400 italic text-center py-2 text-[10px]">אין הודעות בתיקייה</div>`; return; }
     
@@ -443,7 +436,7 @@ function renderMessages() {
         item.className = "p-2 border-b dark:border-slate-700 text-[11px] hover:bg-slate-50 flex justify-between items-start";
         item.innerHTML = `
             <div class="flex-1">
-                <div class="flex justify-between text-[9px] text-slate-400"><span>מאת: ${m.from} | אל: ${m.to}</span><span>${m.date}</span></div>
+                <div class="flex justify-between text-[9px] text-slate-400"><span>מאת: ${m.from}</span><span>${m.date}</span></div>
                 <p class="${isRead ? 'text-slate-400' : 'text-slate-900 dark:text-white font-bold'}">${m.text}</p>
             </div>
             <button class="text-red-400 px-1 msg-del-btn">✕</button>
@@ -544,6 +537,7 @@ document.addEventListener('keydown', function(e) {
 
 function toggleDarkMode() { window.isDarkMode = !window.isDarkMode; localStorage.setItem('aliSiachDarkMode', window.isDarkMode); applyDarkModeStyles(); }
 window.toggleDarkMode = toggleDarkMode;
+
 function applyDarkModeStyles() {
     const btn = document.getElementById('dark-mode-toggle-btn');
     if (window.isDarkMode) { document.documentElement.classList.add('dark'); document.body.classList.add('dark-mode'); if(btn) btn.innerText = "פעיל"; } 
@@ -560,9 +554,6 @@ function openProductModal(cat, index) {
 }
 window.openProductModal = openProductModal;
 
-function closeProductModal() { document.getElementById('product-modal').classList.add('hidden'); }
-window.closeProductModal = closeProductModal;
-
 function saveProductModalData() {
     if (!window.activeEdit) return; const item = window.appData[window.activeEdit.cat][window.activeEdit.index];
     item.price = parseFloat(document.getElementById('modal-prod-price').value) || 0; item.recommended = parseFloat(document.getElementById('modal-prod-recommended').value) || 0;
@@ -570,34 +561,27 @@ function saveProductModalData() {
     let selectedDays = []; document.querySelectorAll('.day-chk:checked').forEach(chk => selectedDays.push(chk.value));
     let customDays = document.getElementById('modal-prod-days-custom').value.trim();
     item.days = customDays ? customDays : (selectedDays.length > 0 ? selectedDays.join(', ') : 'כל הימים');
-    closeProductModal(); renderApp(); triggerDebouncedSync(true);
+    document.getElementById('product-modal').classList.add('hidden'); renderApp(); triggerDebouncedSync(true);
 }
 window.saveProductModalData = saveProductModalData;
 
 function toggleSettingsModal() { if (!window.currentUser) return; const m = document.getElementById('settings-modal'); m.classList.toggle('hidden'); m.classList.toggle('flex'); renderAdminTeamList(); }
 window.toggleSettingsModal = toggleSettingsModal;
 
-function toggleFloatingChat(forceOpen = false) { if (!window.currentUser) return; const win = document.getElementById('floating-chat-window'); isChatOpen = forceOpen ? true : !isChatOpen; if (isChatOpen) { win.classList.remove('hidden'); renderChatMessages(); } else win.classList.add('hidden'); }
+function toggleFloatingChat() { if (!window.currentUser) return; const win = document.getElementById('floating-chat-window'); window.isChatOpen = !window.isChatOpen; if (window.isChatOpen) { win.classList.remove('hidden'); renderChatMessages(); } else win.classList.add('hidden'); }
 window.toggleFloatingChat = toggleFloatingChat;
 
 function sendChatMessage() { const inp = document.getElementById('chat-text-input'); const text = inp.value.trim(); if (!text || !window.currentUser) return; const target = document.getElementById('chat-target-select').value; window.teamMessages.unshift({ id: "msg_" + Date.now(), from: window.currentUser.name, to: target, text, date: new Date().toLocaleDateString('he-IL'), readBy: [window.currentUser.name] }); inp.value = ''; renderApp(); triggerDebouncedSync(true); }
 window.sendChatMessage = sendChatMessage;
 
-function renderChatMessages() { const container = document.getElementById('chat-messages-container'); if (!container || !window.currentUser) return; container.innerHTML = ''; window.teamMessages.filter(m => m.to === "כולם" || m.to === window.currentUser.name || m.from === window.currentUser.name).forEach(m => { container.innerHTML += `<div class="p-2 border rounded-xl bg-white mb-1 shadow-sm text-slate-800"><div class="text-[9px] text-slate-400"><b>${m.from}</b></div><p>${m.text}</p></div>`; }); }
+function renderChatMessages() { const container = document.getElementById('chat-messages-container'); if (!container || !window.currentUser) return; container.innerHTML = ''; window.teamMessages.filter(m => m.to === "כולם" || m.to === window.currentUser.name || m.from === window.currentUser.name).forEach(m => { container.innerHTML += `<div class="p-2 border rounded-xl bg-white mb-1 shadow-sm text-slate-800 dark:bg-slate-700 dark:text-white dark:border-slate-600"><div class="text-[9px] text-slate-400"><b>${m.from}</b></div><p>${m.text}</p></div>`; }); }
 
 function toggleNotificationDropdown() { 
     if (!window.currentUser) return; 
     const dropdown = document.getElementById('notification-dropdown'); 
     window.isNotificationOpen = !window.isNotificationOpen; 
-    if (window.isNotificationOpen) { 
-        dropdown.classList.remove('hidden'); 
-        renderMessages(); 
-    } else { 
-        dropdown.classList.add('hidden'); 
-        window.teamMessages.forEach(m => { if (!m.readBy.includes(window.currentUser.name)) m.readBy.push(window.currentUser.name); }); 
-        renderApp(); 
-        triggerDebouncedSync(true); 
-    } 
+    if (window.isNotificationOpen) { dropdown.classList.remove('hidden'); renderMessages(); } 
+    else { dropdown.classList.add('hidden'); window.teamMessages.forEach(m => { if (!m.readBy.includes(window.currentUser.name)) m.readBy.push(window.currentUser.name); }); renderApp(); triggerDebouncedSync(true); } 
 }
 window.toggleNotificationDropdown = toggleNotificationDropdown;
 
