@@ -17,9 +17,10 @@ window.activeEdit = null;
 window.viewMode = localStorage.getItem('aliSiachViewMode') || 'table'; 
 window.messageCenterTab = 'received';
 
-// פתרון סופי לבאג קריסת מרכז ההודעות והצ'אט הצף
+// אתחול משתני מצב גלובליים למניעת ReferenceError בפתיחת תפריטים
 window.isNotificationOpen = false;
 window.isChatOpen = false;
+window.isAIChatOpen = false;
 
 let dragSourceCategory = null;
 let dragSourceIndex = null;
@@ -248,14 +249,14 @@ function setViewMode(mode) {
 }
 window.setViewMode = setViewMode;
 
+// בנאי כמויות נקי ללא סמלי חצים למטה התואם במדויק לעיצוב [▲][+][input][-] (סעיף ה')
 function createQtyControllerHtml(category, origIndex, field, currentValue) {
     return `
-        <div class="flex items-center justify-center gap-1 bg-slate-50 dark:bg-slate-950 p-1 rounded-xl border dark:border-slate-700 mx-auto max-w-[150px]">
-            <button onclick="window.updateItemValue('${category}', ${origIndex}, '${field}', ${currentValue - 1})" class="w-6 h-6 text-[9px] bg-white dark:bg-slate-700 border dark:border-slate-600 rounded font-black shadow-sm hover:bg-red-50 text-slate-700 dark:text-white">▼</button>
-            <button onclick="window.updateItemValue('${category}', ${origIndex}, '${field}', ${currentValue - 0.5})" class="w-6 h-6 text-xs bg-white dark:bg-slate-700 border dark:border-slate-600 rounded font-black shadow-sm hover:bg-red-50 text-slate-700 dark:text-white">-</button>
-            <input type="number" step="0.5" min="0" value="${currentValue}" onchange="window.updateItemValue('${category}', ${origIndex}, '${field}', this.value)" class="w-10 text-center font-black text-xs bg-white dark:bg-slate-800 rounded border dark:border-slate-600 p-0.5">
-            <button onclick="window.updateItemValue('${category}', ${origIndex}, '${field}', ${currentValue + 0.5})" class="w-6 h-6 text-xs bg-white dark:bg-slate-700 border dark:border-slate-600 rounded font-black shadow-sm hover:bg-green-50 text-slate-700 dark:text-white">+</button>
-            <button onclick="window.updateItemValue('${category}', ${origIndex}, '${field}', ${currentValue + 1})" class="w-6 h-6 text-[9px] bg-white dark:bg-slate-700 border dark:border-slate-600 rounded font-black shadow-sm text-slate-700 dark:text-white">▲</button>
+        <div class="flex flex-row items-center justify-center gap-1 bg-slate-50 dark:bg-slate-950 p-1 rounded-xl border dark:border-slate-700 mx-auto max-w-[150px]">
+            <button onclick="window.updateItemValue('${category}', ${origIndex}, '${field}', ${currentValue + 1})" class="w-6 h-6 text-xs bg-white dark:bg-slate-700 border dark:border-slate-600 rounded font-black shadow-sm text-slate-700 dark:text-white">▲</button>
+            <button onclick="window.updateItemValue('${category}', ${origIndex}, '${field}', ${currentValue + 0.5})" class="w-6 h-6 text-xs bg-white dark:bg-slate-700 border dark:border-slate-600 rounded font-black shadow-sm text-slate-700 dark:text-white">+</button>
+            <input type="number" step="0.5" min="0" value="${currentValue}" onchange="window.updateItemValue('${category}', ${origIndex}, '${field}', this.value)" class="w-11 text-center font-black text-xs bg-white dark:bg-slate-800 rounded border dark:border-slate-600 p-0.5 data-existing">
+            <button onclick="window.updateItemValue('${category}', ${origIndex}, '${field}', ${currentValue - 0.5})" class="w-6 h-6 text-xs bg-white dark:bg-slate-700 border dark:border-slate-600 rounded font-black shadow-sm text-slate-700 dark:text-white">-</button>
         </div>
     `;
 }
@@ -300,7 +301,6 @@ function renderApp() {
         if (window.viewMode === 'grid') {
             const gridContainer = document.createElement('div');
             gridContainer.className = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-2";
-
             filtered.forEach(item => {
                 const toOrder = calculateToOrder(item);
                 const itemCard = document.createElement('div');
@@ -316,28 +316,19 @@ function renderApp() {
                 itemCard.innerHTML = `
                     <div class="flex justify-between items-start">
                         <span class="text-xs font-bold text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded-md">₪${item.price || 0}</span>
-                        <div class="flex gap-2">
-                            <button class="text-slate-400 hover:text-blue-600 text-xs edit-btn">✏️</button>
-                            <button class="text-slate-300 hover:text-red-500 text-xs delete-item-btn">🗑️</button>
-                        </div>
+                        <div class="flex gap-2"><button class="text-slate-400 hover:text-blue-600 text-xs edit-btn">✏️</button><button class="text-slate-300 hover:text-red-500 text-xs del-btn">🗑️</button></div>
                     </div>
                     <div class="flex flex-col items-center justify-center flex-1 my-4 space-y-2">
-                        <h3 class="text-xl font-black text-slate-900 dark:text-white text-center leading-tight">${item.name}</h3>
+                        <h3 class="text-xl font-black text-slate-900 dark:text-white text-center">${item.name}</h3>
                         <span class="text-6xl select-none block">${getEmoji(item.name)}</span>
-                        ${item.days ? `<span class="px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/50 text-[9px] text-blue-600 font-bold border border-blue-100">📅 ${item.days}</span>` : ''}
                     </div>
-                    <div class="space-y-2 border-t dark:border-slate-700 pt-3">
-                        <div><span class="text-[10px] font-black text-slate-400 block mb-1">קיים במזווה:</span>${createQtyControllerHtml(catName, item.originalIndex, 'existing', item.existing)}</div>
-                        <div><span class="text-[10px] font-black text-slate-400 block mb-1">יעד מומלץ:</span>${createQtyControllerHtml(catName, item.originalIndex, 'recommended', item.recommended)}</div>
-                        <div class="grid grid-cols-2 gap-2 text-[11px] text-center font-bold pt-1">
-                            <div class="p-1.5 rounded-lg data-lastmonth">חודש קודם: <span class="block text-xs font-black">${item.orderedLastMonth || 0}</span></div>
-                            <div class="p-1.5 rounded-lg ${toOrder > 0 ? 'data-toorder-active' : 'data-toorder'}">להזמנה: <span class="block text-xs font-black">${toOrder || '-'}</span></div>
-                        </div>
+                    <div class="space-y-2 border-t pt-3">
+                        <div><span class="text-[10px] font-black text-slate-400 block mb-1">קיים במלאי:</span>${createQtyControllerHtml(catName, item.originalIndex, 'existing', item.existing)}</div>
+                        <div class="text-center pt-1"><span class="text-[10px] font-black text-slate-400 block mb-1">יעד מומלץ:</span><input type="number" value="${item.recommended}" onchange="window.updateItemValue('${catName}', ${item.originalIndex}, 'recommended', this.value)" class="w-16 text-center font-bold text-xs bg-slate-50 dark:bg-slate-700 rounded-xl border p-1"></div>
                     </div>
-                    ${item.notes ? `<p class="text-[10px] bg-slate-50 dark:bg-slate-900 border dark:border-slate-700 p-1.5 rounded-lg text-slate-500 mt-2 truncate font-medium">💡 ${item.notes}</p>` : ''}
                 `;
                 itemCard.querySelector('.edit-btn').onclick = () => openProductModal(catName, item.originalIndex);
-                itemCard.querySelector('.delete-item-btn').onclick = () => deleteProductComplete(catName, item.originalIndex);
+                itemCard.querySelector('.del-btn').onclick = () => deleteProductComplete(catName, item.originalIndex);
                 gridContainer.appendChild(itemCard);
             });
             catSection.appendChild(gridContainer);
@@ -350,11 +341,14 @@ function renderApp() {
                 const toOrder = calculateToOrder(item);
                 rowsHtml += `
                     <tr class="table-row-floating border-b dark:border-slate-700 text-xs font-bold hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition">
-                        <td class="p-3 text-slate-900 dark:text-white text-sm font-black flex items-center gap-2">
-                            <span class="text-xl">${getEmoji(item.name)}</span><span>${item.name}</span>
-                        </td>
+                        <td class="p-3 text-slate-900 dark:text-white text-sm font-black flex items-center gap-2"><span class="text-xl">${getEmoji(item.name)}</span><span>${item.name}</span></td>
                         <td class="p-2">${createQtyControllerHtml(catName, item.originalIndex, 'existing', item.existing)}</td>
-                        <td class="p-2">${createQtyControllerHtml(catName, item.originalIndex, 'recommended', item.recommended)}</td>
+                        
+                        <!-- הסרת כפתורי הפלוס והמינוס מעמודת יעד מומלץ לפי דרישת העיצוב (סעיף ה') -->
+                        <td class="p-2 text-center">
+                            <input type="number" value="${item.recommended}" onchange="window.updateItemValue('${catName}', ${item.originalIndex}, 'recommended', this.value)" class="w-16 text-center font-bold text-xs bg-slate-50 dark:bg-slate-700 rounded-xl border p-1 focus:outline-none">
+                        </td>
+                        
                         <td class="p-3 data-lastmonth text-center text-sm font-black">${item.orderedLastMonth || '-'}</td>
                         <td class="p-3 text-center text-slate-400 font-bold">-</td>
                         <td class="p-3 text-center text-sm font-black ${toOrder > 0 ? 'data-toorder-active' : 'text-slate-300'}">${toOrder ? `₪${(toOrder * (item.price || 0)).toFixed(0)}` : '-'}</td>
@@ -368,7 +362,7 @@ function renderApp() {
             tableWrapper.innerHTML = `
                 <table class="w-full text-right border-separate border-spacing-0 custom-table">
                     <thead>
-                        <tr class="text-[11px] font-black text-slate-400 bg-slate-50/80 dark:bg-slate-900/20">
+                        <tr class="text-[11px] font-black text-slate-400 bg-slate-50/80 dark:bg-slate-700/50">
                             <th class="p-3">שם המוצר</th>
                             <th class="p-3 text-center">קיים במלאי</th>
                             <th class="p-3 text-center">יעד מומלץ</th>
@@ -526,9 +520,18 @@ window.walkthroughNext = walkthroughNext;
 function walkthroughPrev() { if (window.walkthroughIndex > 0) { window.walkthroughIndex--; showWalkthroughItem(); } }
 window.walkthroughPrev = walkthroughPrev;
 
+document.addEventListener('keydown', function(e) {
+    const wtScreen = document.getElementById('walkthrough-screen');
+    if (wtScreen && wtScreen.classList.contains('flex')) {
+        if (e.key === 'ArrowLeft') { e.preventDefault(); window.walkthroughNext(); }
+        if (e.key === 'ArrowRight') { e.preventDefault(); window.walkthroughPrev(); }
+        if (e.key === 'ArrowUp') { e.preventDefault(); window.adjustWtQty(0.5); }
+        if (e.key === 'ArrowDown') { e.preventDefault(); window.adjustWtQty(-0.5); }
+    }
+});
+
 function toggleDarkMode() { window.isDarkMode = !window.isDarkMode; localStorage.setItem('aliSiachDarkMode', window.isDarkMode); applyDarkModeStyles(); }
 window.toggleDarkMode = toggleDarkMode;
-
 function applyDarkModeStyles() {
     const btn = document.getElementById('dark-mode-toggle-btn');
     if (window.isDarkMode) { document.documentElement.classList.add('dark'); document.body.classList.add('dark-mode'); if(btn) btn.innerText = "פעיל"; } 
@@ -559,7 +562,18 @@ window.saveProductModalData = saveProductModalData;
 function toggleSettingsModal() { if (!window.currentUser) return; const m = document.getElementById('settings-modal'); m.classList.toggle('hidden'); m.classList.toggle('flex'); renderAdminTeamList(); }
 window.toggleSettingsModal = toggleSettingsModal;
 
-function toggleFloatingChat() { if (!window.currentUser) return; const win = document.getElementById('floating-chat-window'); window.isChatOpen = !window.isChatOpen; if (window.isChatOpen) { win.classList.remove('hidden'); renderChatMessages(); } else win.classList.add('hidden'); }
+// פתרון הפעלת כפתור הודעות הצוות הכחול הצף (ד')
+function toggleFloatingChat() { 
+    if (!window.currentUser) return; 
+    const win = document.getElementById('floating-chat-window'); 
+    window.isChatOpen = !window.isChatOpen; 
+    if (window.isChatOpen) { 
+        win.classList.remove('hidden'); 
+        renderChatMessages(); 
+    } else { 
+        win.classList.add('hidden'); 
+    } 
+}
 window.toggleFloatingChat = toggleFloatingChat;
 
 function sendChatMessage() { const inp = document.getElementById('chat-text-input'); const text = inp.value.trim(); if (!text || !window.currentUser) return; const target = "כולם"; window.teamMessages.unshift({ id: "msg_" + Date.now(), from: window.currentUser.name, to: target, text, date: new Date().toLocaleDateString('he-IL'), readBy: [window.currentUser.name] }); inp.value = ''; renderApp(); triggerDebouncedSync(true); }
@@ -590,7 +604,7 @@ window.toggleSharePopover = toggleSharePopover;
 
 function exportData(type) {
     const fullText = generateOrderTextFull(); toggleSharePopover();
-    if (type === 'copy') { navigator.clipboard.writeText(fullText); showToast("הרשימה הועתקה!", "📋"); } 
+    if (type === 'copy') { navigator.clipboard.writeText(fullText); showToast("הרשימה המלאה הועתקה!", "📋"); } 
     else if (type === 'whatsapp') { window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(fullText)}`, '_blank'); } 
 }
 window.exportData = exportData;
