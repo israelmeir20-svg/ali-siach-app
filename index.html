@@ -11,9 +11,9 @@
     </script>
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="text-slate-800 dark:text-slate-200 antialiased min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
+<body class="text-slate-800 dark:text-slate-200 antialiased min-h-screen flex flex-row bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
 
-    <!-- מסך התחברות קשיח -->
+    <!-- מסך התחברות קשיח ומאובטח -->
     <div id="login-screen" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-2xl max-w-sm w-full space-y-4 border border-slate-200 dark:border-slate-700 text-center">
             <div id="test-diagnostic-error" class="hidden text-right bg-red-600 text-white text-xs p-3 rounded-xl font-bold whitespace-pre-line shadow-inner"></div>
@@ -28,7 +28,7 @@
         </div>
     </div>
 
-    <!-- מסך ספירת מלאי מהירה (Walkthrough) -->
+    <!-- מסך ספירת מלאי מהירה (Walkthrough Box) -->
     <div id="walkthrough-screen" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] hidden items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-2xl max-w-md w-full space-y-4 border border-slate-200 dark:border-slate-700 text-center relative animate-fade-in">
             <button onclick="window.closeWalkthroughMode()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold">✕</button>
@@ -59,193 +59,307 @@
         </div>
     </div>
 
-    <!-- בר ניווט עליון מודרני -->
-    <nav class="sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/60 dark:border-slate-700 z-40 h-20 flex items-center px-6">
-        <div class="max-w-7xl mx-auto w-full flex items-center justify-between gap-6">
-            
-            <!-- שמאל הניווט: שם משתמש לחיץ לפתיחת הודעות -->
-            <div class="flex items-center gap-4">
-                <button onclick="window.toggleSettingsModal()" class="p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm text-slate-500 hover:bg-slate-100 transition">⚙️</button>
-                
-                <div class="relative">
-                    <button onclick="window.toggleNotificationDropdown()" class="flex items-center gap-2 p-2.5 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 rounded-2xl shadow-sm text-sm font-black text-slate-800 dark:text-white hover:bg-slate-100 transition">
-                        <span>שלום, </span><span id="current-user-display">-</span>
-                        <span id="unread-badge" class="hidden bg-red-500 text-white font-black text-[9px] w-4.5 h-4.5 rounded-full flex items-center justify-center border border-white">0</span>
-                    </button>
-                    
-                    <!-- חלונית תפריט שם משתמש (רק הודעות שהתקבלו) -->
-                    <div id="notification-dropdown" class="hidden absolute left-0 mt-2 w-80 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl z-50 flex flex-col overflow-hidden">
-                        <div class="p-3 bg-slate-50 dark:bg-slate-700 border-b dark:border-slate-600 flex justify-between items-center">
-                            <span class="text-xs font-black text-slate-700 dark:text-slate-200">📥 הודעות שהתקבלו</span>
-                            <button onclick="window.toggleNotificationDropdown()" class="text-[10px] text-slate-400 font-bold">סגור</button>
-                        </div>
-                        <div id="messages-list-container" class="max-h-64 overflow-y-auto p-2 space-y-2"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- מרכז הניווט: בר חיפוש רחב -->
-            <div class="flex-1 max-w-xl relative flex items-center">
-                <span class="absolute right-4 text-slate-400 text-base">🔍</span>
-                <input type="text" id="search-bar" oninput="window.filterInventory()" placeholder="חיפוש לפי מוצר, קטגוריה, הערה..." class="w-full pr-11 pl-12 py-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold focus:outline-none shadow-inner">
-                <span class="absolute left-4 text-slate-300 font-mono text-xs select-none">| 🔲</span>
-            </div>
-
-            <!-- ימין הניווט: לוגו המערכת -->
-            <div class="flex items-center gap-3">
-                <div class="text-right">
-                    <h1 class="text-base font-black text-slate-900 dark:text-white leading-none tracking-tight">עלי שיח</h1>
-                    <p class="text-[10px] font-bold text-slate-400 pt-0.5">ניהול מלאי</p>
-                </div>
-                <span class="text-3xl bg-amber-50 dark:bg-amber-950/30 p-2 rounded-2xl border border-amber-100 dark:border-amber-900 select-none">🧺</span>
-            </div>
+    <!-- סרגל כלים ימני מודרני קבוע (Sidebar - בורר התצוגות של האפליקציה) -->
+    <aside class="w-64 bg-slate-900 text-white flex flex-col min-h-screen p-4 space-y-2 border-l border-slate-800 shrink-0">
+        <div class="p-3 mb-4 text-center font-black text-lg border-b border-slate-800 text-indigo-400 tracking-wide select-none">
+            🧺 עלי שיח - ניהול
         </div>
-    </nav>
 
-    <!-- תוכן ראשי -->
-    <main class="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
+        <button id="btn-dashboard" onclick="window.switchView('view-dashboard')" class="sidebar-btn w-full text-right p-3 rounded-xl flex items-center space-x-reverse space-x-2 bg-indigo-700 text-white font-bold transition shadow-sm">
+            <span>🏠 דאשבורד - מבט על</span>
+        </button>
+
+        <button id="btn-inventory" onclick="window.switchView('view-inventory')" class="sidebar-btn w-full text-right p-3 rounded-xl flex items-center space-x-reverse space-x-2 hover:bg-slate-800 text-slate-400 font-bold transition">
+            <span>📦 ניהול מלאי מלא</span>
+        </button>
+
+        <button id="btn-shifts" onclick="window.switchView('view-shifts')" class="sidebar-btn w-full text-right p-3 rounded-xl flex items-center space-x-reverse space-x-2 hover:bg-slate-800 text-slate-400 font-bold transition">
+            <span>📅 לוח משמרות ושכר</span>
+        </button>
+
+        <button id="btn-recipes" onclick="window.switchView('view-recipes')" class="sidebar-btn w-full text-right p-3 rounded-xl flex items-center space-x-reverse space-x-2 hover:bg-slate-800 text-slate-400 font-bold transition">
+            <span>🤖 עוזר מטבח ועוזר AI</span>
+        </button>
+
+        <div class="flex-1"></div>
+
+        <button onclick="window.toggleSettingsModal()" class="w-full text-right p-3 rounded-xl flex items-center space-x-reverse space-x-2 hover:bg-slate-800 text-slate-500 text-xs font-bold transition border-t border-slate-800/60 pt-4">
+            <span>⚙️ הגדרות ומערכת ענן</span>
+        </button>
+    </aside>
+
+    <!-- מעטפת התוכן המרכזית (הבמה הדינמית של ה-SPA) -->
+    <div class="flex-1 flex flex-col min-h-screen overflow-x-hidden">
         
-        <!-- גריד דאשבורד משולש -->
-        <div id="dashboard-area" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-            <div class="lg:col-span-3 flex flex-col justify-between gap-3">
-                <div class="premium-card p-4 rounded-3xl flex items-center justify-between border-r-4 border-r-red-500">
-                    <div class="p-2 bg-red-50 dark:bg-red-950/30 text-xl rounded-2xl">⚠️</div>
-                    <div class="text-left"><span class="text-[10px] font-bold text-slate-400 block">מוצרים חסרים</span><span id="dash-missing-val" class="text-2xl font-black text-slate-900 dark:text-white">0</span></div>
-                </div>
-                <div class="premium-card p-4 rounded-3xl flex items-center justify-between border-r-4 border-r-blue-500">
-                    <div class="p-2 bg-blue-50 dark:bg-blue-950/30 text-xl rounded-2xl">🛒</div>
-                    <div class="text-left"><span class="text-[10px] font-bold text-slate-400 block">פריטים להזמנה</span><span id="dash-total-val" class="text-2xl font-black text-slate-900 dark:text-white">0</span></div>
-                </div>
-                <div class="premium-card p-4 rounded-3xl flex items-center justify-between border-r-4 border-r-emerald-500">
-                    <div class="p-2 bg-emerald-50 dark:bg-emerald-950/30 text-xl rounded-2xl">💰</div>
-                    <div class="text-left"><span class="text-[10px] font-bold text-slate-400 block">עלות משוערת</span><span id="dash-cost-val" class="text-2xl font-black text-slate-900 dark:text-white">₪0</span></div>
-                </div>
-            </div>
-
-            <div class="premium-card p-5 rounded-3xl lg:col-span-4 flex flex-col justify-between items-center relative min-h-[180px]">
-                <span class="text-xs font-black text-slate-900 dark:text-white block w-full text-right border-b dark:border-slate-700 pb-1.5 mb-2">סטטוס מלאי</span>
-                <div class="w-full flex-1 flex items-center justify-center gap-4 relative">
-                    <div class="w-28 h-28 relative">
-                        <canvas id="categoryChart"></canvas>
-                    </div>
-                    <div id="chart-legend-labels" class="text-[10px] font-bold space-y-1 text-slate-500 text-right">
-                        <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-red-500"></span> חסר</div>
-                        <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-blue-500"></span> להזמנה</div>
-                        <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> מלאי תקין</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="premium-card p-5 rounded-3xl lg:col-span-5 flex flex-col justify-between">
-                <span class="text-xs font-black text-slate-900 dark:text-white block text-right border-b dark:border-slate-700 pb-1.5">חוסרים לפי קטגוריות</span>
-                <div id="category-progress-container" class="flex-1 flex flex-col justify-center space-y-3 pt-3"></div>
-            </div>
-        </div>
-
-        <!-- סרגל כלים מרכזי מאוחד -->
-        <div class="premium-card rounded-3xl p-4 flex flex-col space-y-3">
-            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+        <!-- בר ניווט עליון מודרני שקוף -->
+        <nav class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/60 dark:border-slate-700 h-20 flex items-center px-6 shrink-0 z-10">
+            <div class="w-full flex items-center justify-between gap-6">
                 
-                <!-- שמאל הסרגל: בוררי מצבי תצוגה -->
-                <div class="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-700 p-1 rounded-xl text-xs font-black">
-                    <button id="view-grid-btn" onclick="window.setViewMode('grid')" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-200">⬜ מצב ריבועים</button>
-                    <button id="view-table-btn" onclick="window.setViewMode('table')" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-200">📋 מצב טבלה</button>
-                </div>
-
-                <!-- מרכז-שמאל: כפתור שיתוף דוח מובנה -->
-                <div class="relative inline-block text-right">
-                    <button onclick="window.toggleSharePopover()" class="p-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-xl text-xs font-black flex items-center gap-1 border dark:border-slate-600">
-                        <span>📤 שיתוף הדוח</span>
-                    </button>
-                    <div id="share-popover" class="hidden absolute right-0 mt-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl rounded-xl p-1.5 flex gap-1 z-30 whitespace-nowrap">
-                        <button onclick="window.exportData('copy')" class="px-2 py-1 text-[11px] font-bold hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-700 dark:text-slate-200">📋 העתק</button>
-                        <button onclick="window.exportData('whatsapp')" class="px-2 py-1 text-[11px] font-bold hover:bg-emerald-50 dark:hover:bg-emerald-950/30 rounded-lg text-emerald-700">💬 וואטסאפ</button>
-                        <button onclick="window.exportData('download')" class="px-2 py-1 text-[11px] font-bold hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-lg text-blue-700">📥 הורד קובץ גיבוי</button>
+                <!-- שמאל הניווט: פרופיל משתמש והודעות -->
+                <div class="flex items-center gap-4">
+                    <button onclick="window.handleLogout()" class="p-2 bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-red-500 rounded-xl text-xs font-black transition">התנתק 🚪</button>
+                    
+                    <div class="relative">
+                        <button onclick="window.toggleNotificationDropdown()" class="flex items-center gap-2 p-2.5 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 rounded-2xl shadow-sm text-sm font-black text-slate-800 dark:text-white hover:bg-slate-100 transition">
+                            <span>שלום, </span><span id="current-user-display">-</span>
+                            <span id="unread-badge" class="hidden bg-red-500 text-white font-black text-[9px] w-4.5 h-4.5 rounded-full flex items-center justify-center border border-white">0</span>
+                        </button>
+                        
+                        <!-- חלונית תפריט הודעות עליון -->
+                        <div id="notification-dropdown" class="hidden absolute left-0 mt-2 w-80 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl z-50 flex flex-col overflow-hidden">
+                            <div class="p-3 bg-slate-50 dark:bg-slate-700 border-b dark:border-slate-600 flex justify-between items-center">
+                                <span class="text-xs font-black text-slate-700 dark:text-slate-200">📥 הודעות שהתקבלו</span>
+                                <button onclick="window.toggleNotificationDropdown()" class="text-[10px] text-slate-400 font-bold">סגור</button>
+                            </div>
+                            <div id="messages-list-container" class="max-h-64 overflow-y-auto p-2 space-y-2"></div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- מרכז הסרגל: כפתור פריט חדש וספירת מלאי מהירה -->
-                <div class="flex items-center gap-3 justify-center flex-1 w-full md:w-auto">
-                    <button onclick="window.openAddProductModal()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl shadow-sm transition flex items-center gap-1"><span>+ פריט חדש</span></button>
-                    <button onclick="window.startWalkthroughMode()" class="w-full max-w-xs py-2.5 bg-purple-900 hover:bg-purple-950 text-white font-black text-sm rounded-2xl shadow-md transition flex items-center justify-center gap-2">
-                        <span>⏱️ ספירת מלאי מהירה</span>
-                    </button>
+                <!-- מרכז הניווט: בר חיפוש מהיר המחובר ישירות לפילטרים -->
+                <div class="flex-1 max-w-xl relative flex items-center">
+                    <span class="absolute right-4 text-slate-400 text-base">🔍</span>
+                    <input type="text" id="search-bar" oninput="window.filterInventory()" placeholder="חיפוש מהיר לפי מוצר, קטגוריה, הערות..." class="w-full pr-11 pl-12 py-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold focus:outline-none shadow-inner">
+                    <span class="absolute left-4 text-slate-300 font-mono text-xs select-none">| 🔲</span>
                 </div>
 
-                <!-- ימין הסרגל: תגיות סינון מהירות -->
-                <div class="flex items-center gap-1.5 text-xs font-bold text-slate-500">
-                    <button id="filter-all" onclick="window.setFilter('all')" class="px-2.5 py-1.5 rounded-xl border dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700">📋 כל הרשימה</button>
-                    <button id="filter-to-order" onclick="window.setFilter('to-order')" class="px-2.5 py-1.5 rounded-xl border dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700">🛒 מוצרים לחסר</button>
-                    <button id="filter-in-stock" onclick="window.setFilter('in-stock')" class="px-2.5 py-1.5 rounded-xl border dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700">✅ מלאי תקין</button>
-                </div>
-            </div>
-
-            <!-- סרגל סינון ימים תחתון מובנה -->
-            <div id="day-filter-bar" class="border-t dark:border-slate-700 pt-2 flex flex-wrap gap-1 justify-center">
-                <button onclick="window.setDayFilter('all')" id="day-filter-all" class="px-3 py-1 rounded-lg text-[11px] font-bold bg-blue-600 text-white shadow-sm">כל הימים</button>
-                <button onclick="window.setDayFilter('ראשון')" id="day-filter-ראשון" class="px-3 py-1 rounded-lg text-[11px] font-bold bg-slate-100 dark:bg-slate-700">ראשון</button>
-                <button onclick="window.setDayFilter('שני')" id="day-filter-שני" class="px-3 py-1 rounded-lg text-[11px] font-bold bg-slate-100 dark:bg-slate-700">שני</button>
-                <button onclick="window.setDayFilter('שלישי')" id="day-filter-שלישי" class="px-3 py-1 rounded-lg text-[11px] font-bold bg-slate-100 dark:bg-slate-700">שלישי</button>
-                <button onclick="window.setDayFilter('רביעי')" id="day-filter-רביעי" class="px-3 py-1 rounded-lg text-[11px] font-bold bg-slate-100 dark:bg-slate-700">רביעי</button>
-                <button onclick="window.setDayFilter('חמישי')" id="day-filter-חמישי" class="px-3 py-1 rounded-lg text-[11px] font-bold bg-slate-100 dark:bg-slate-700">חמישי</button>
-                <button onclick="window.setDayFilter('שישי')" id="day-filter-שישי" class="px-3 py-1 rounded-lg text-[11px] font-bold bg-slate-100 dark:bg-slate-700">שישי</button>
-                <button onclick="window.setDayFilter('שבת')" id="day-filter-שבת" class="px-3 py-1 rounded-lg text-[11px] font-bold bg-slate-100 dark:bg-slate-700">שבת</button>
-            </div>
-        </div>
-
-        <!-- מעטפת עבודה מרכזית -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            
-            <!-- 4 לחצני ה-AI הריבועיים בשמאל -->
-            <div class="lg:col-span-2 grid grid-cols-2 lg:grid-cols-1 gap-3">
-                <button onclick="window.openAIRecipesModal()" class="p-4 bg-purple-100 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-900 rounded-2xl shadow-sm text-center flex flex-col items-center justify-center space-y-1.5 transition hover:scale-105">
-                    <span class="text-2xl">🍳</span><span class="text-[10px] font-black text-purple-900 dark:text-purple-300">מחולל מתכונים</span>
-                </button>
-                <button onclick="window.toggleAIChatWindow()" class="p-4 bg-purple-500 text-white rounded-2xl shadow-sm text-center flex flex-col items-center justify-center space-y-1.5 transition hover:scale-105">
-                    <span class="text-2xl">🧠</span><span class="text-[10px] font-black">עוזר ה-AI לצוות</span>
-                </button>
-                <button onclick="window.openAIReceiptModal()" class="p-4 bg-slate-800 text-white rounded-2xl shadow-sm text-center flex flex-col items-center justify-center space-y-1.5 transition hover:scale-105">
-                    <span class="text-2xl">🔲</span><span class="text-[10px] font-black">סורק קבלות</span>
-                </button>
-                <button onclick="window.openAIProcureModal()" class="p-4 bg-amber-100 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 rounded-2xl shadow-sm text-center flex flex-col items-center justify-center space-y-1.5 transition hover:scale-105">
-                    <span class="text-2xl">💡</span><span class="text-[10px] font-black text-amber-900 dark:text-amber-300">המלצות רכש</span>
-                </button>
-            </div>
-
-            <!-- מכולת המלאי המרכזית מימין -->
-            <div id="inventory-container" class="lg:col-span-10 space-y-6"></div>
-        </div>
-    </main>
-
-    <!-- מודלים ומערכות AI -->
-    <div id="ai-recipes-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-4xl w-full shadow-2xl overflow-hidden flex flex-col h-[85vh] border dark:border-slate-700">
-            <div class="p-4 bg-purple-900 text-white flex justify-between items-center"><h2 class="text-sm font-black">🍳 מחולל מתכונים מתקדם - עלי שיח</h2><button onclick="document.getElementById('ai-recipes-modal').classList.add('hidden')" class="text-purple-200 font-bold text-xs">סגור</button></div>
-            <div class="p-4 overflow-y-auto grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                <div class="md:col-span-2 space-y-3">
-                    <div><label class="font-black text-slate-700 dark:text-slate-300">שם התוצר המבוקש:</label><input type="text" id="ai-recipe-dish-input" placeholder="למשל: מרק ירקות, פסטה..." class="w-full p-2.5 border dark:border-slate-600 dark:bg-slate-700 rounded-xl font-bold"></div>
-                    <button onclick="window.cycleRecipeTime()" id="time-cycle-btn" class="px-4 py-2 rounded-xl border font-black bg-emerald-50 dark:bg-emerald-950 text-emerald-700">⏱️ זמן: מהיר (עד 20 דק')</button>
-                    <div class="border dark:border-slate-700 rounded-2xl p-3 bg-slate-50 dark:bg-slate-900 space-y-2">
-                        <span class="font-black text-slate-700 dark:text-slate-300 block border-b pb-1">🥫 בחירה ידנית ממוצרי המזווה:</span>
-                        <div id="pantry-manual-selection-container" class="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto p-1 bg-white dark:bg-slate-700 rounded-xl border"></div>
+                <!-- ימין הניווט: כותרת המדור הנוכחי משולבת במערכת -->
+                <div class="flex items-center gap-3">
+                    <div id="current-shift-top-badge" class="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 rounded-xl border border-indigo-100 dark:border-indigo-900 font-black text-[11px]">
+                        <span>🟢 מדריך במשמרת כעת:</span>
+                        <span id="top-badge-staff-name" class="underline">טוען...</span>
                     </div>
-                    <button onclick="window.generateAdvancedAIRecipe()" class="w-full py-2.5 bg-emerald-600 text-white font-black rounded-xl shadow-sm">ייצר מתכון מותאם קשר</button>
-                    <div id="ai-recipe-output" class="hidden whitespace-pre-line bg-slate-50 dark:bg-slate-700 p-4 rounded-xl border font-semibold"></div>
-                </div>
-                <div class="bg-slate-50 dark:bg-slate-900 p-3 rounded-2xl border dark:border-slate-700 space-y-4">
-                    <button onclick="window.toggleMatrixPanel('veg')" class="w-full flex items-center justify-between p-2 bg-white dark:bg-slate-800 border rounded-xl font-black"><span>🥗 תפריט ירקות</span><span id="veg-panel-arrow">▼</span></button>
-                    <div id="panel-vegetables-content" class="hidden space-y-2"><div id="matrix-vegetables" class="flex flex-wrap gap-2 justify-center"></div><button onclick="window.addCustomMatrixItem('veg')" class="w-full mt-1 text-blue-500 font-bold text-[10px]">+ הוסף ירק</button></div>
-                    <button onclick="window.toggleMatrixPanel('tool')" class="w-full flex items-center justify-between p-2 bg-white dark:bg-slate-800 border rounded-xl font-black"><span>🍳 תפריט כלי מטבח</span><span id="tool-panel-arrow">▼</span></button>
-                    <div id="panel-tools-content" class="hidden space-y-2"><div id="matrix-tools" class="flex flex-wrap gap-2 justify-center"></div><button onclick="window.addCustomMatrixItem('tool')" class="w-full mt-1 text-blue-500 font-bold text-[10px]">+ הוסף כלי</button></div>
+                    <span class="text-3xl bg-amber-50 dark:bg-amber-950/30 p-2 rounded-2xl border border-amber-100 dark:border-amber-900 select-none">🧺</span>
                 </div>
             </div>
-        </div>
+        </nav>
+
+        <!-- אזור רנדור התצוגות המתחלפות -->
+        <main class="flex-1 p-6 space-y-6 overflow-y-auto w-full">
+
+            <!-- 1. מכולה: דאשבורד "מבט על" (מסך הפתיחה הראשי) -->
+            <section id="view-dashboard" class="app-view space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                    <!-- תצוגת משמרות היום מהרשת -->
+                    <div class="lg:col-span-4 bg-white dark:bg-slate-800 p-5 rounded-3xl shadow-sm border border-slate-200/60 dark:border-slate-700 flex flex-col justify-between">
+                        <span class="text-xs font-black text-slate-900 dark:text-white block text-right border-b dark:border-slate-700 pb-2 mb-3">📅 סידור עבודה להיום בדירה</span>
+                        <div id="dashboard-today-shifts" class="flex-1 flex flex-col justify-center space-y-2 text-xs font-bold text-slate-600 dark:text-slate-300">
+                            <p class="text-slate-400 italic text-center">טוען נתוני משמרות משרת גוגל...</p>
+                        </div>
+                    </div>
+
+                    <!-- מדדי המלאי המהירים -->
+                    <div class="lg:col-span-3 flex flex-col justify-between gap-3">
+                        <div class="premium-card p-4 rounded-3xl flex items-center justify-between border-r-4 border-r-red-500">
+                            <div class="p-2 bg-red-50 dark:bg-red-950/30 text-xl rounded-2xl">⚠️</div>
+                            <div class="text-left"><span class="text-[10px] font-bold text-slate-400 block">מוצרים חסרים</span><span id="dash-missing-val" class="text-2xl font-black text-slate-900 dark:text-white">0</span></div>
+                        </div>
+                        <div class="premium-card p-4 rounded-3xl flex items-center justify-between border-r-4 border-r-blue-500">
+                            <div class="p-2 bg-blue-50 dark:bg-blue-950/30 text-xl rounded-2xl">🛒</div>
+                            <div class="text-left"><span class="text-[10px] font-bold text-slate-400 block">פריטים להזמנה</span><span id="dash-total-val" class="text-2xl font-black text-slate-900 dark:text-white">0</span></div>
+                        </div>
+                        <div class="premium-card p-4 rounded-3xl flex items-center justify-between border-r-4 border-r-emerald-500">
+                            <div class="p-2 bg-emerald-50 dark:bg-emerald-950/30 text-xl rounded-2xl">💰</div>
+                            <div class="text-left"><span class="text-[10px] font-bold text-slate-400 block">עלות משוערת</span><span id="dash-cost-val" class="text-2xl font-black text-slate-900 dark:text-white">₪0</span></div>
+                        </div>
+                    </div>
+
+                    <!-- פאי צ'ארט מעוגל -->
+                    <div class="premium-card p-5 rounded-3xl lg:col-span-5 flex flex-col justify-between items-center relative min-h-[180px]">
+                        <span class="text-xs font-black text-slate-900 dark:text-white block w-full text-right border-b dark:border-slate-700 pb-1.5 mb-2">סטטוס מצב המלאי בדירה</span>
+                        <div class="w-full flex-1 flex items-center justify-center gap-4 relative">
+                            <div class="w-24 h-24 relative">
+                                <canvas id="categoryChart"></canvas>
+                            </div>
+                            <div id="chart-legend-labels" class="text-[10px] font-bold space-y-1 text-slate-500 text-right">
+                                <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-red-500"></span> חסר לחלוטין</div>
+                                <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-blue-500"></span> חסר חלקית ומחכה לרכש</div>
+                                <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> מלאי תקין לחלוטין</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- מוצרים במחסור קריטי (מעקב צמוד) -->
+                    <div class="bg-white dark:bg-slate-800 p-5 rounded-3xl shadow-sm border border-slate-200/60 dark:border-slate-700 col-span-2">
+                        <h3 class="font-black text-xs text-slate-900 dark:text-white border-b dark:border-slate-700 pb-2 mb-3">⚠️ מוצרים במחסור קריטי (מעקב צמוד)</h3>
+                        <div id="dashboard-low-stock" class="overflow-x-auto">
+                            <p class="text-xs text-slate-400 italic">טוען מוצרים חסרים...</p>
+                        </div>
+                    </div>
+
+                    <!-- חוסרים מרוכזים לפי קטגוריה -->
+                    <div class="premium-card p-5 rounded-3xl flex flex-col justify-between">
+                        <span class="text-xs font-black text-slate-900 dark:text-white block text-right border-b dark:border-slate-700 pb-1.5">גרף חוסרים מרוכז לפי מחלקות</span>
+                        <div id="category-progress-container" class="flex-1 flex flex-col justify-center space-y-3 pt-3"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. מכולה: ניהול מלאי מלא (הטבלאות והגרידים המקוריים) -->
+            <section id="view-inventory" class="app-view hidden space-y-6">
+                <!-- סרגל כלים מרכזי מאוחד -->
+                <div class="premium-card rounded-3xl p-4 flex flex-col space-y-3">
+                    <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                        <!-- שמאל הסרגל: בוררי מצבי תצוגה -->
+                        <div class="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-700 p-1 rounded-xl text-xs font-black">
+                            <button id="view-grid-btn" onclick="window.setViewMode('grid')" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-200">⬜ מצב ריבועים</button>
+                            <button id="view-table-btn" onclick="window.setViewMode('table')" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-200">📋 מצב טבלה</button>
+                        </div>
+
+                        <!-- מרכז-שמאל: כפתור שיתוף דוח מובנה -->
+                        <div class="relative inline-block text-right">
+                            <button onclick="window.toggleSharePopover()" class="p-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-xl text-xs font-black flex items-center gap-1 border dark:border-slate-600">
+                                <span>📤 שיתוף הדוח</span>
+                            </button>
+                            <div id="share-popover" class="hidden absolute right-0 mt-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl rounded-xl p-1.5 flex gap-1 z-30 whitespace-nowrap">
+                                <button onclick="window.exportData('copy')" class="px-2 py-1 text-[11px] font-bold hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-700 dark:text-slate-200">📋 העתק</button>
+                                <button onclick="window.exportData('whatsapp')" class="px-2 py-1 text-[11px] font-bold hover:bg-emerald-50 dark:hover:bg-emerald-950/30 rounded-lg text-emerald-700">💬 וואטסאפ</button>
+                                <button onclick="window.exportData('download')" class="px-2 py-1 text-[11px] font-bold hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-lg text-blue-700">📥 הורד קובץ גיבוי</button>
+                            </div>
+                        </div>
+
+                        <!-- מרכז הסרגל: כפתור פריט חדש וספירת מלאי מהירה -->
+                        <div class="flex items-center gap-3 justify-center flex-1 w-full md:w-auto">
+                            <button onclick="window.openAddProductModal()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl shadow-sm transition flex items-center gap-1"><span>+ פריט חדש</span></button>
+                            <button onclick="window.startWalkthroughMode()" class="w-full max-w-xs py-2.5 bg-purple-900 hover:bg-purple-950 text-white font-black text-sm rounded-2xl shadow-md transition flex items-center justify-center gap-2">
+                                <span>⏱️ ספירת מלאי מהירה</span>
+                            </button>
+                        </div>
+
+                        <!-- ימין הסרגל: תגיות סינון מהירות -->
+                        <div class="flex items-center gap-1.5 text-xs font-bold text-slate-500">
+                            <button id="filter-all" onclick="window.setFilter('all')" class="px-2.5 py-1.5 rounded-xl border dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700">📋 כל הרשימה</button>
+                            <button id="filter-to-order" onclick="window.setFilter('to-order')" class="px-2.5 py-1.5 rounded-xl border dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700">🛒 מוצרים לחסר</button>
+                            <button id="filter-in-stock" onclick="window.setFilter('in-stock')" class="px-2.5 py-1.5 rounded-xl border dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700">✅ מלאי תקין</button>
+                        </div>
+                    </div>
+
+                    <!-- סרגל סינון ימים תחתון מובנה -->
+                    <div id="day-filter-bar" class="border-t dark:border-slate-700 pt-2 flex flex-wrap gap-1 justify-center">
+                        <button onclick="window.setDayFilter('all')" id="day-filter-all" class="px-3 py-1 rounded-lg text-[11px] font-bold bg-blue-600 text-white shadow-sm">כל הימים</button>
+                        <button onclick="window.setDayFilter('ראשון')" id="day-filter-ראשון" class="px-3 py-1 rounded-lg text-[11px] font-bold bg-slate-100 dark:bg-slate-700">ראשון</button>
+                        <button onclick="window.setDayFilter('שני')" id="day-filter-שני" class="px-3 py-1 rounded-lg text-[11px] font-bold bg-slate-100 dark:bg-slate-700">שני</button>
+                        <button onclick="window.setDayFilter('שלישי')" id="day-filter-שלישי" class="px-3 py-1 rounded-lg text-[11px] font-bold bg-slate-100 dark:bg-slate-700">שלישי</button>
+                        <button onclick="window.setDayFilter('רביעי')" id="day-filter-רביעי" class="px-3 py-1 rounded-lg text-[11px] font-bold bg-slate-100 dark:bg-slate-700">רביעי</button>
+                        <button onclick="window.setDayFilter('חמישי')" id="day-filter-חמישי" class="px-3 py-1 rounded-lg text-[11px] font-bold bg-slate-100 dark:bg-slate-700">חמישי</button>
+                        <button onclick="window.setDayFilter('שישי')" id="day-filter-שישי" class="px-3 py-1 rounded-lg text-[11px] font-bold bg-slate-100 dark:bg-slate-700">שישי</button>
+                        <button onclick="window.setDayFilter('שבת')" id="day-filter-שבת" class="px-3 py-1 rounded-lg text-[11px] font-bold bg-slate-100 dark:bg-slate-700">שבת</button>
+                    </div>
+                </div>
+
+                <!-- מכולת המלאי המרכזית (כאן ירונדרו הטבלאות) -->
+                <div id="inventory-container" class="space-y-6"></div>
+            </section>
+
+            <!-- 3. מכולה: מודול לוח משמרות ושכר (המערכת החדשה) -->
+            <section id="view-shifts" class="app-view hidden space-y-6">
+                <!-- סרגל בקרת לוח משמרות עליון -->
+                <div class="flex flex-col md:flex-row justify-between items-center bg-white dark:bg-slate-800 p-4 rounded-3xl shadow-sm border border-slate-200/60 dark:border-slate-700 gap-4">
+                    <div>
+                        <h2 class="text-lg font-black text-slate-900 dark:text-white">📅 סידור עבודה ומעקב שכר צוות</h2>
+                        <p id="current-calendar-month-label" class="text-[11px] font-bold text-slate-400 mt-0.5">חודש נוכחי</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <!-- כפתורי החלפה שבועי/חודשי שהגדרנו -->
+                        <div class="bg-slate-100 dark:bg-slate-700 p-1 rounded-xl text-xs font-black flex gap-1">
+                            <button id="btn-shift-view-weekly" onclick="window.toggleCalendarView('weekly')" class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm">📅 תצוגה שבועית</button>
+                            <button id="btn-shift-view-monthly" onclick="window.toggleCalendarView('monthly')" class="px-3 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-200">🗓️ תצוגה חודשית</button>
+                        </div>
+                        <div class="border-r h-6 dark:border-slate-700 mx-1"></div>
+                        <!-- כפתורי שליטה בחודש/שבוע הבא -->
+                        <button onclick="window.navigateCalendar(-1)" class="p-2 bg-slate-100 dark:bg-slate-700 rounded-xl text-xs font-bold hover:bg-slate-200">◀ הקודם</button>
+                        <button onclick="window.navigateCalendar(1)" class="p-2 bg-slate-100 dark:bg-slate-700 rounded-xl text-xs font-bold hover:bg-slate-200">הבא ▶</button>
+                    </div>
+                </div>
+
+                <!-- גריד מפוצל: לוח שנה בצד ימין, פאנל סטטיסטיקות ושכר בצד שמאל -->
+                <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+                    <!-- אזור רנדור לוח השנה הדינמי -->
+                    <div id="calendar-container" class="xl:col-span-8 bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm border border-slate-200/60 dark:border-slate-700 min-h-[400px]">
+                        <!-- הממשק ירונדר דינמית על ידי shifts.js -->
+                    </div>
+
+                    <!-- פאנל סטטיסטיקות שכר ומעקב אישי למדריכים -->
+                    <div class="xl:col-span-4 bg-white dark:bg-slate-800 p-5 rounded-3xl shadow-sm border border-slate-200/60 dark:border-slate-700 space-y-4">
+                        <h3 class="text-sm font-black text-slate-900 dark:text-white border-b dark:border-slate-700 pb-2 flex items-center gap-1.5">
+                            <span>📊 סיכום שעות ושכר צפוי</span>
+                            <span id="salary-staff-name-label" class="text-xs text-indigo-500 font-bold">(מדריך)</span>
+                        </h3>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="bg-slate-50 dark:bg-slate-900/40 p-3 rounded-2xl border dark:border-slate-700/60">
+                                <span class="text-[10px] font-bold text-slate-400 block mb-0.5">משמרות צהריים/בוקר</span>
+                                <span id="stats-regular-shifts" class="text-base font-black text-slate-800 dark:text-white">0</span>
+                            </div>
+                            <div class="bg-slate-50 dark:bg-slate-900/40 p-3 rounded-2xl border dark:border-slate-700/60">
+                                <span class="text-[10px] font-bold text-slate-400 block mb-0.5">משמרות לילה (150%)</span>
+                                <span id="stats-night-shifts" class="text-base font-black text-slate-800 dark:text-white">0</span>
+                            </div>
+                            <div class="bg-slate-50 dark:bg-slate-900/40 p-3 rounded-2xl border dark:border-slate-700/60">
+                                <span class="text-[10px] font-bold text-slate-400 block mb-0.5">שבתות מלאות בדירה</span>
+                                <span id="stats-weekend-shifts" class="text-base font-black text-slate-800 dark:text-white">0</span>
+                            </div>
+                            <div class="bg-indigo-50 dark:bg-indigo-950/20 p-3 rounded-2xl border border-indigo-100 dark:border-indigo-900">
+                                <span class="text-[10px] font-black text-indigo-500 block mb-0.5">ברוטו צפוי לחודש</span>
+                                <span id="stats-total-salary" class="text-lg font-black text-indigo-700 dark:text-indigo-400">₪0</span>
+                            </div>
+                        </div>
+                        
+                        <!-- פאנל שליטה מהיר לרכז הדירה (Admin-Only Panel) -->
+                        <div id="admin-calendar-controls-box" class="hidden border-t dark:border-slate-700 pt-4 mt-2 space-y-3">
+                            <span class="text-xs font-black text-purple-600 block">🛠️ כלים מהירים לרכז הדירה</span>
+                            <div class="flex flex-col gap-2">
+                                <button onclick="window.activateAdminDayOverride('שבת חופשית')" class="w-full py-2 text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white rounded-xl shadow-sm transition">🚫 סמן סופ"ש זה כשבת חופשית (דירה סגורה)</button>
+                                <button onclick="window.activateAdminDayOverride('חופש_בוקר')" class="w-full py-2 text-xs font-bold bg-purple-700 hover:bg-purple-800 text-white rounded-xl shadow-sm transition">☀️ פתח משמרות בוקר חריגות (טווח חופש/מלחמה)</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. מכולה: עוזר מטבח AI ומחולל מתכונים (עבר למסך מלא) -->
+            <section id="view-recipes" class="app-view hidden space-y-6">
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-3xl shadow-sm border border-slate-200/60 dark:border-slate-700">
+                    <h2 class="text-base font-black text-purple-900 dark:text-purple-400 mb-2">🍳 מחולל מתכונים ועוזר AI מתקדם - עלי שיח</h2>
+                    <p class="text-xs text-slate-400 font-bold mb-4">המערכת מייצרת מתכונים קלים ל-6 דיירים בהתבסס על המלאי, הכלים הזמינים ומגבלות המטבח.</p>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start text-xs">
+                        <div class="lg:col-span-8 space-y-4">
+                            <div>
+                                <label class="font-black text-slate-700 dark:text-slate-300 block mb-1">שם התוצר המבוקש:</label>
+                                <input type="text" id="ai-recipe-dish-input" placeholder="למשל: מרק ירקות, פסטה בסיר אחד, עוף בתנור..." class="w-full p-2.5 border dark:border-slate-600 dark:bg-slate-700 rounded-xl font-bold focus:outline-none">
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="window.cycleRecipeTime()" id="time-cycle-btn" class="px-4 py-2 rounded-xl border font-black bg-emerald-50 dark:bg-emerald-950 text-emerald-700 border-emerald-200 dark:border-emerald-900">⏱️ זמן: מהיר (עד 20 דק')</button>
+                            </div>
+                            <div class="border dark:border-slate-700 rounded-2xl p-4 bg-slate-50 dark:bg-slate-900 space-y-2">
+                                <span class="font-black text-slate-700 dark:text-slate-300 block border-b pb-1.5">🥫 בחירה ידנית ממוצרי המזווה:</span>
+                                <div id="pantry-manual-selection-container" class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-36 overflow-y-auto p-1 bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700"></div>
+                            </div>
+                            <button onclick="window.generateAdvancedAIRecipe()" class="w-full py-3 bg-purple-900 hover:bg-purple-950 text-white font-black rounded-xl shadow-md transition">ייצר מתכון מותאם קשר לעלי שיח</button>
+                            <div id="ai-recipe-output" class="hidden whitespace-pre-line bg-slate-50 dark:bg-slate-700 p-5 rounded-2xl border dark:border-slate-600 font-semibold shadow-inner text-sm leading-relaxed"></div>
+                        </div>
+                        
+                        <div class="lg:col-span-4 bg-slate-50 dark:bg-slate-900 p-4 rounded-2xl border dark:border-slate-700 space-y-4">
+                            <button onclick="window.toggleMatrixPanel('veg')" class="w-full flex items-center justify-between p-2.5 bg-white dark:bg-slate-800 border dark:border-slate-700 rounded-xl font-black"><span> salads 🥗 תפריט ירקות זמינים</span><span id="veg-panel-arrow">▼</span></button>
+                            <div id="panel-vegetables-content" class="hidden space-y-2"><div id="matrix-vegetables" class="flex flex-wrap gap-2 justify-center"></div><button onclick="window.addCustomMatrixItem('veg')" class="w-full mt-1 text-blue-500 font-bold text-[10px]">+ הוסף ירק חדש</button></div>
+                            
+                            <button onclick="window.toggleMatrixPanel('tool')" class="w-full flex items-center justify-between p-2.5 bg-white dark:bg-slate-800 border dark:border-slate-700 rounded-xl font-black"><span>🍳 תפריט כלי מטבח בדירה</span><span id="tool-panel-arrow">▼</span></button>
+                            <div id="panel-tools-content" class="hidden space-y-2"><div id="matrix-tools" class="flex flex-wrap gap-2 justify-center"></div><button onclick="window.addCustomMatrixItem('tool')" class="w-full mt-1 text-blue-500 font-bold text-[10px]">+ הוסף כלי חדש</button></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
     </div>
 
+    <!-- מודלים ומערכות פופאפ תומכות -->
     <div id="ai-receipt-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-md w-full shadow-2xl p-5 border dark:border-slate-700 space-y-4 text-xs">
             <div class="flex justify-between items-center border-b pb-2"><h2 class="text-sm font-black text-slate-900 dark:text-white">📸 סורק קבלות חכם</h2><button onclick="document.getElementById('ai-receipt-modal').classList.add('hidden')" class="text-slate-400 font-bold">✕</button></div>
-            <div class="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 p-6 rounded-xl bg-slate-50 dark:bg-slate-700">
+            <div class="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-600 p-6 rounded-xl bg-slate-50 dark:bg-slate-700">
                 <input type="file" id="receipt-file-input" accept="image/*" class="hidden" onchange="window.handleReceiptUpload(event)">
                 <button onclick="document.getElementById('receipt-file-input').click()" class="px-4 py-2 bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-white font-black rounded-xl">📁 בחר צילום קבלה</button>
                 <span id="receipt-file-name" class="mt-2 text-[10px] text-slate-400">לא נבחר קובץ</span>
@@ -263,7 +377,7 @@
         </div>
     </div>
 
-    <!-- חלונית צ'אט AI סגולה -->
+    <!-- חלונית צ'אט חופשי עוזר AI קטן צף -->
     <div id="ai-chat-window" class="hidden fixed bottom-6 right-6 w-80 h-96 bg-purple-900 text-white border border-purple-700 rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden">
         <div class="p-3 bg-purple-950 flex justify-between items-center"><h3 class="text-xs font-black">🧠 עוזר AI לצוות השטח</h3><button onclick="window.toggleAIChatWindow()" class="text-xs font-bold">✕</button></div>
         <div id="ai-chat-box" class="flex-1 p-3 overflow-y-auto space-y-2 bg-purple-950/20 text-[11px]"></div>
@@ -279,8 +393,6 @@
     <!-- חלונית מרכז ההודעות המורחב (3 טאבים, מחיקה, ארכוב ושליחה) -->
     <div id="floating-chat-window" class="hidden fixed bottom-18 left-4 w-80 h-96 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden">
         <div class="p-3 bg-blue-600 text-white flex justify-between items-center"><h3 class="text-xs font-black">💬 מרכז ההודעות ועדכוני דירה</h3><button onclick="window.toggleFloatingChat()" class="text-xs font-bold">✕</button></div>
-        
-        <!-- בורר הטאבים המפוצל לשלוש קטגוריות ניהול -->
         <div class="p-2 bg-slate-100 dark:bg-slate-700 border-b dark:border-slate-600 flex justify-center gap-1">
             <div class="flex gap-1 text-[10px] font-bold w-full justify-around">
                 <button id="msg-tab-received" onclick="window.setMessageCenterTab('received')" class="px-2 py-1 rounded shadow-sm flex-1 text-center bg-white dark:bg-slate-600">📥 התקבלו</button>
@@ -288,7 +400,6 @@
                 <button id="msg-tab-archive" onclick="window.setMessageCenterTab('archive')" class="px-2 py-1 rounded flex-1 text-center">🗄️ ארכיון</button>
             </div>
         </div>
-
         <div id="chat-messages-container" class="flex-1 p-3 overflow-y-auto space-y-2 bg-slate-50 dark:bg-slate-900 text-[11px]"></div>
         <div class="p-2 border-t dark:border-slate-700 bg-white dark:bg-slate-800 flex flex-col gap-1.5">
             <div class="flex gap-1">
@@ -329,7 +440,7 @@
         </div>
     </div>
 
-    <!-- מודל הגדרות מערכת וצוות -->
+    <!-- מודל הגדרות מערכת וצוות (הפרופיל הגלובלי) -->
     <div id="settings-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-md w-full shadow-2xl overflow-hidden flex flex-col border dark:border-slate-700 max-h-[85vh]">
             <div class="p-4 bg-slate-900 text-white flex justify-between items-center"><div class="flex items-center gap-2"><span>⚙️</span><h2 class="text-sm font-black">הגדרות מערכת</h2></div><button onclick="window.toggleSettingsModal()" class="text-slate-400 font-bold text-xs">סגור</button></div>
@@ -385,12 +496,17 @@
         </div>
     </div>
 
+    <!-- מערכת טוסטרים והתראות מהירות -->
     <div id="toast" class="fixed bottom-6 left-6 premium-card border border-slate-200 dark:border-slate-700 rounded-2xl p-3 shadow-xl flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 z-50">
         <span id="toast-icon" class="text-lg">✨</span>
         <span id="toast-message" class="text-xs font-black text-slate-800 dark:text-white"></span>
     </div>
 
-    <script src="app.js"></script>
-    <script src="ai.js"></script>
+    <!-- סדר טעינת קבצי ה-JavaScript המופרדים (הכרחי לעבודה תקינה של הדפדפן) -->
+    <script src="api.js"></script>
+    <script src="inventory.js"></script>
+    <script src="recipes.js"></script>
+    <script src="shifts.js"></script>
+    <script src="main.js"></script>
 </body>
 </html>
