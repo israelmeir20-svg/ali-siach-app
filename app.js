@@ -406,45 +406,70 @@ function handleDropReorder(e, targetCategory, targetIndex) {
     }
 }
 
-function setMessageCenterTab(tab) { window.messageCenterTab = tab; setMessageCenterTabUI(); renderMessages(); }
+function setMessageCenterTab(tab) { window.messageCenterTab = tab; setMessageCenterTabUI(); renderChatMessages(); }
 window.setMessageCenterTab = setMessageCenterTab;
 
 function setMessageCenterTabUI() {
     let tab = window.messageCenterTab;
-    document.getElementById('msg-tab-received').className = tab === 'received' ? "px-2 py-1 rounded bg-white dark:bg-slate-600 shadow-sm text-slate-800 dark:text-white" : "px-2 py-1 rounded text-slate-500 dark:text-slate-300";
-    document.getElementById('msg-tab-sent').className = tab === 'sent' ? "px-2 py-1 rounded bg-white dark:bg-slate-600 shadow-sm text-slate-800 dark:text-white" : "px-2 py-1 rounded text-slate-500 dark:text-slate-300";
-    document.getElementById('msg-tab-archive').className = tab === 'archive' ? "px-2 py-1 rounded bg-white dark:bg-slate-600 shadow-sm text-slate-800 dark:text-white" : "px-2 py-1 rounded text-slate-500 dark:text-slate-300";
+    document.getElementById('msg-tab-received').className = tab === 'received' ? "px-2 py-1 rounded bg-white dark:bg-slate-600 shadow-sm text-slate-800 dark:text-white flex-1 text-center" : "px-2 py-1 rounded text-slate-500 dark:text-slate-300 flex-1 text-center";
+    document.getElementById('msg-tab-sent').className = tab === 'sent' ? "px-2 py-1 rounded bg-white dark:bg-slate-600 shadow-sm text-slate-800 dark:text-white flex-1 text-center" : "px-2 py-1 rounded text-slate-500 dark:text-slate-300 flex-1 text-center";
+    document.getElementById('msg-tab-archive').className = tab === 'archive' ? "px-2 py-1 rounded bg-white dark:bg-slate-600 shadow-sm text-slate-800 dark:text-white flex-1 text-center" : "px-2 py-1 rounded text-slate-500 dark:text-slate-300 flex-1 text-center";
 }
 
+// תפריט עליון (שם המשתמש): מציג אך ורק הודעות שהתקבלו עם אפשרות מחיקה
 function renderMessages() {
     const container = document.getElementById('messages-list-container'); if (!container || !window.currentUser) return; container.innerHTML = '';
-    let displayList = [];
+    let displayList = window.teamMessages.filter(m => !m.isArchived && (m.to === "כולם" || m.to === window.currentUser.name) && m.from !== window.currentUser.name);
     
-    if (window.messageCenterTab === 'received') {
+    if (displayList.length === 0) { container.innerHTML = `<div class="text-slate-400 italic text-center py-2 text-[10px]">אין הודעות חדשות</div>`; return; }
+    
+    displayList.forEach(m => {
+        const item = document.createElement('div');
+        item.className = "p-2 border-b dark:border-slate-700 text-[11px] hover:bg-slate-50 dark:hover:bg-slate-700 flex justify-between items-start gap-2";
+        item.innerHTML = `
+            <div class="flex-1">
+                <div class="flex justify-between text-[9px] text-slate-400"><span>מאת: ${m.from}</span><span>${m.date}</span></div>
+                <p class="text-slate-900 dark:text-white font-bold pt-0.5">${m.text}</p>
+            </div>
+            <button class="text-red-400 px-1 hover:text-red-600 msg-del-btn">✕</button>
+        `;
+        item.querySelector('.msg-del-btn').onclick = () => deleteMessageComplete(m.id);
+        container.appendChild(item);
+    });
+}
+window.renderMessages = renderMessages;
+
+// מרכז ההודעות המרכזי (הכפתור הכחול הצף): מפוצל ל-3 טאבים עם פקדי ניהול מלאים
+function renderChatMessages() { 
+    const container = document.getElementById('chat-messages-container'); if (!container || !window.currentUser) return; container.innerHTML = '';
+    let displayList = [];
+    let tab = window.messageCenterTab;
+    
+    if (tab === 'received') {
         displayList = window.teamMessages.filter(m => !m.isArchived && (m.to === "כולם" || m.to === window.currentUser.name) && m.from !== window.currentUser.name);
-    } else if (window.messageCenterTab === 'sent') {
+    } else if (tab === 'sent') {
         displayList = window.teamMessages.filter(m => !m.isArchived && m.from === window.currentUser.name);
-    } else if (window.messageCenterTab === 'archive') {
+    } else if (tab === 'archive') {
         displayList = window.teamMessages.filter(m => m.isArchived && (m.from === window.currentUser.name || m.to === "כולם" || m.to === window.currentUser.name));
     }
 
-    if (displayList.length === 0) { container.innerHTML = `<div class="text-slate-400 italic text-center py-2 text-[10px]">אין הודעות בתיקייה</div>`; return; }
+    if (displayList.length === 0) { container.innerHTML = `<div class="text-slate-400 italic text-center py-2 text-[10px]">אין הודעות בתיקייה זו</div>`; return; }
     
     displayList.forEach(m => {
         const isRead = m.readBy.includes(window.currentUser.name) || m.from === window.currentUser.name;
         const item = document.createElement('div');
-        item.className = "p-2 border-b dark:border-slate-700 text-[11px] hover:bg-slate-50 dark:hover:bg-slate-700 flex justify-between items-start gap-2";
+        item.className = "p-2 border rounded-xl bg-white mb-1 shadow-sm text-slate-800 dark:bg-slate-700 dark:text-white dark:border-slate-600 flex justify-between items-start gap-2";
         
-        let archiveBtnHtml = !m.isArchived ? `<button class="text-blue-400 px-1 msg-arc-btn" title="ארכיון">📦</button>` : '';
+        let archiveBtnHtml = !m.isArchived ? `<button class="text-blue-500 hover:text-blue-600 text-xs msg-arc-btn" title="ארכיון">📦</button>` : '';
         
         item.innerHTML = `
             <div class="flex-1">
-                <div class="flex justify-between text-[9px] text-slate-400"><span>מאת: ${m.from} | אל: ${m.to}</span><span>${m.date}</span></div>
-                <p class="${isRead ? 'text-slate-400' : 'text-slate-900 dark:text-white font-bold'}">${m.text}</p>
+                <div class="flex justify-between text-[9px] text-slate-400"><b>${m.from}</b> <span class="mx-0.5">←</span> <b>${m.to}</b> <span class="text-[8px] opacity-70">(${m.date})</span></div>
+                <p class="${isRead ? 'text-slate-500 dark:text-slate-400' : 'font-black'} pt-0.5">${m.text}</p>
             </div>
-            <div class="flex items-center gap-1">
+            <div class="flex items-center gap-1.5 self-center">
                 ${archiveBtnHtml}
-                <button class="text-red-400 px-1 msg-del-btn" title="מחק">✕</button>
+                <button class="text-red-400 hover:text-red-600 font-bold msg-del-btn" title="מחק">✕</button>
             </div>
         `;
         item.querySelector('.msg-del-btn').onclick = () => deleteMessageComplete(m.id);
@@ -454,10 +479,10 @@ function renderMessages() {
         container.appendChild(item);
     });
 }
-window.renderMessages = renderMessages;
+window.renderChatMessages = renderChatMessages;
 
-function deleteMessageComplete(id) { window.teamMessages = window.teamMessages.filter(m => m.id !== id); renderMessages(); triggerDebouncedSync(true); }
-function archiveMessageComplete(id) { const msg = window.teamMessages.find(m => m.id === id); if (msg) { msg.isArchived = true; renderMessages(); triggerDebouncedSync(true); } }
+function deleteMessageComplete(id) { window.teamMessages = window.teamMessages.filter(m => m.id !== id); renderMessages(); renderChatMessages(); triggerDebouncedSync(true); }
+function archiveMessageComplete(id) { const msg = window.teamMessages.find(m => m.id === id); if (msg) { msg.isArchived = true; renderMessages(); renderChatMessages(); triggerDebouncedSync(true); } }
 window.archiveMessageComplete = archiveMessageComplete;
 
 function renderAdminTeamList() {
@@ -584,6 +609,7 @@ function toggleFloatingChat() {
     window.isChatOpen = !window.isChatOpen; 
     if (window.isChatOpen) { 
         win.classList.remove('hidden'); 
+        setMessageCenterTabUI();
         renderChatMessages(); 
     } else { 
         win.classList.add('hidden'); 
@@ -593,8 +619,6 @@ window.toggleFloatingChat = toggleFloatingChat;
 
 function sendChatMessage() { const inp = document.getElementById('chat-text-input'); const text = inp.value.trim(); if (!text || !window.currentUser) return; const target = "כולם"; window.teamMessages.unshift({ id: "msg_" + Date.now(), from: window.currentUser.name, to: target, text, date: new Date().toLocaleDateString('he-IL'), readBy: [window.currentUser.name], isArchived: false }); inp.value = ''; renderApp(); triggerDebouncedSync(true); }
 window.sendChatMessage = sendChatMessage;
-
-function renderChatMessages() { const container = document.getElementById('chat-messages-container'); if (!container || !window.currentUser) return; container.innerHTML = ''; window.teamMessages.forEach(m => { if(!m.isArchived) { container.innerHTML += `<div class="p-2 border rounded-xl bg-white mb-1 shadow-sm text-slate-800 dark:bg-slate-700 dark:text-white dark:border-slate-600"><div class="text-[9px] text-slate-400"><b>${m.from}</b></div><p>${m.text}</p></div>`; } }); }
 
 function toggleNotificationDropdown() { 
     if (!window.currentUser) return; 
