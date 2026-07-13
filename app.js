@@ -17,6 +17,7 @@ window.activeEdit = null;
 window.viewMode = localStorage.getItem('aliSiachViewMode') || 'table'; 
 window.messageCenterTab = 'received';
 
+// פתרון סופי לבאג קריסת מרכז ההודעות והצ'אט הצף
 window.isNotificationOpen = false;
 window.isChatOpen = false;
 
@@ -367,7 +368,7 @@ function renderApp() {
             tableWrapper.innerHTML = `
                 <table class="w-full text-right border-separate border-spacing-0 custom-table">
                     <thead>
-                        <tr class="text-[11px] font-black text-slate-400 bg-slate-50/80 dark:bg-slate-700/50">
+                        <tr class="text-[11px] font-black text-slate-400 bg-slate-50/80 dark:bg-slate-900/20">
                             <th class="p-3">שם המוצר</th>
                             <th class="p-3 text-center">קיים במלאי</th>
                             <th class="p-3 text-center">יעד מומלץ</th>
@@ -525,16 +526,6 @@ window.walkthroughNext = walkthroughNext;
 function walkthroughPrev() { if (window.walkthroughIndex > 0) { window.walkthroughIndex--; showWalkthroughItem(); } }
 window.walkthroughPrev = walkthroughPrev;
 
-document.addEventListener('keydown', function(e) {
-    const wtScreen = document.getElementById('walkthrough-screen');
-    if (wtScreen && wtScreen.classList.contains('flex')) {
-        if (e.key === 'ArrowLeft') { e.preventDefault(); window.walkthroughNext(); }
-        if (e.key === 'ArrowRight') { e.preventDefault(); window.walkthroughPrev(); }
-        if (e.key === 'ArrowUp') { e.preventDefault(); window.adjustWtQty(0.5); }
-        if (e.key === 'ArrowDown') { e.preventDefault(); window.adjustWtQty(-0.5); }
-    }
-});
-
 function toggleDarkMode() { window.isDarkMode = !window.isDarkMode; localStorage.setItem('aliSiachDarkMode', window.isDarkMode); applyDarkModeStyles(); }
 window.toggleDarkMode = toggleDarkMode;
 
@@ -571,10 +562,10 @@ window.toggleSettingsModal = toggleSettingsModal;
 function toggleFloatingChat() { if (!window.currentUser) return; const win = document.getElementById('floating-chat-window'); window.isChatOpen = !window.isChatOpen; if (window.isChatOpen) { win.classList.remove('hidden'); renderChatMessages(); } else win.classList.add('hidden'); }
 window.toggleFloatingChat = toggleFloatingChat;
 
-function sendChatMessage() { const inp = document.getElementById('chat-text-input'); const text = inp.value.trim(); if (!text || !window.currentUser) return; const target = document.getElementById('chat-target-select').value; window.teamMessages.unshift({ id: "msg_" + Date.now(), from: window.currentUser.name, to: target, text, date: new Date().toLocaleDateString('he-IL'), readBy: [window.currentUser.name] }); inp.value = ''; renderApp(); triggerDebouncedSync(true); }
+function sendChatMessage() { const inp = document.getElementById('chat-text-input'); const text = inp.value.trim(); if (!text || !window.currentUser) return; const target = "כולם"; window.teamMessages.unshift({ id: "msg_" + Date.now(), from: window.currentUser.name, to: target, text, date: new Date().toLocaleDateString('he-IL'), readBy: [window.currentUser.name] }); inp.value = ''; renderApp(); triggerDebouncedSync(true); }
 window.sendChatMessage = sendChatMessage;
 
-function renderChatMessages() { const container = document.getElementById('chat-messages-container'); if (!container || !window.currentUser) return; container.innerHTML = ''; window.teamMessages.filter(m => m.to === "כולם" || m.to === window.currentUser.name || m.from === window.currentUser.name).forEach(m => { container.innerHTML += `<div class="p-2 border rounded-xl bg-white mb-1 shadow-sm text-slate-800 dark:bg-slate-700 dark:text-white dark:border-slate-600"><div class="text-[9px] text-slate-400"><b>${m.from}</b></div><p>${m.text}</p></div>`; }); }
+function renderChatMessages() { const container = document.getElementById('chat-messages-container'); if (!container || !window.currentUser) return; container.innerHTML = ''; window.teamMessages.forEach(m => { container.innerHTML += `<div class="p-2 border rounded-xl bg-white mb-1 shadow-sm text-slate-800 dark:bg-slate-700 dark:text-white dark:border-slate-600"><div class="text-[9px] text-slate-400"><b>${m.from}</b></div><p>${m.text}</p></div>`; }); }
 
 function toggleNotificationDropdown() { 
     if (!window.currentUser) return; 
@@ -584,6 +575,25 @@ function toggleNotificationDropdown() {
     else { dropdown.classList.add('hidden'); window.teamMessages.forEach(m => { if (!m.readBy.includes(window.currentUser.name)) m.readBy.push(window.currentUser.name); }); renderApp(); triggerDebouncedSync(true); } 
 }
 window.toggleNotificationDropdown = toggleNotificationDropdown;
+
+function generateOrderTextFull() {
+    let txt = `📦 *דוח מלאי חודשי מלא - עלי שיח* 📦\n\n`;
+    for (const [cat, items] of Object.entries(window.appData)) {
+        let has = false; let ct = `*${cat}:*\n`;
+        items.forEach(i => { let toOrd = calculateToOrder(i); if (toOrd > 0) { ct += `• ${i.name} - להזמנה: *${toOrd}*\n`; has = true; } });
+        if (has) txt += ct + `\n`;
+    }
+    return txt;
+}
+function toggleSharePopover() { document.getElementById('share-popover').classList.toggle('hidden'); }
+window.toggleSharePopover = toggleSharePopover;
+
+function exportData(type) {
+    const fullText = generateOrderTextFull(); toggleSharePopover();
+    if (type === 'copy') { navigator.clipboard.writeText(fullText); showToast("הרשימה הועתקה!", "📋"); } 
+    else if (type === 'whatsapp') { window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(fullText)}`, '_blank'); } 
+}
+window.exportData = exportData;
 
 function showToast(msg, icon = "✨") { const t = document.getElementById('toast'); document.getElementById('toast-message').innerText = msg; document.getElementById('toast-icon').innerText = icon; t.classList.remove('translate-y-20', 'opacity-0'); t.classList.add('translate-y-0', 'opacity-100'); setTimeout(() => { t.classList.remove('translate-y-0', 'opacity-100'); t.classList.add('translate-y-20', 'opacity-0'); }, 3000); }
 window.showToast = showToast;
