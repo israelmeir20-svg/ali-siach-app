@@ -73,14 +73,10 @@
                         <span id="unread-badge" class="hidden bg-red-500 text-white font-black text-[9px] w-4.5 h-4.5 rounded-full flex items-center justify-center border border-white">0</span>
                     </button>
                     
-                    <!-- מרכז הודעות מפוצל תחת שם המשתמש -->
+                    <!-- חלונית תפריט שם משתמש (רק הודעות שהתקבלו) -->
                     <div id="notification-dropdown" class="hidden absolute left-0 mt-2 w-80 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl z-50 flex flex-col overflow-hidden">
-                        <div class="p-2 bg-slate-50 dark:bg-slate-700 border-b dark:border-slate-600 flex justify-between items-center gap-1">
-                            <div class="flex gap-1 text-[10px] font-bold">
-                                <button id="msg-tab-received" onclick="window.setMessageCenterTab('received')" class="px-2 py-1 rounded shadow-sm">📥 התקבלו</button>
-                                <button id="msg-tab-sent" onclick="window.setMessageCenterTab('sent')" class="px-2 py-1 rounded">📤 נשלחו</button>
-                                <button id="msg-tab-archive" onclick="window.setMessageCenterTab('archive')" class="px-2 py-1 rounded">🗄️ ארכיון</button>
-                            </div>
+                        <div class="p-3 bg-slate-50 dark:bg-slate-700 border-b dark:border-slate-600 flex justify-between items-center">
+                            <span class="text-xs font-black text-slate-700 dark:text-slate-200">📥 הודעות שהתקבלו</span>
                             <button onclick="window.toggleNotificationDropdown()" class="text-[10px] text-slate-400 font-bold">סגור</button>
                         </div>
                         <div id="messages-list-container" class="max-h-64 overflow-y-auto p-2 space-y-2"></div>
@@ -277,16 +273,26 @@
         </div>
     </div>
 
-    <!-- כפתור הודעות צף -->
+    <!-- כפתור מרכז ההודעות הכחול הצף משמאל למטה -->
     <button onclick="window.toggleFloatingChat()" class="fixed bottom-4 left-4 w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-2xl z-50 text-xl hover:scale-105 active:scale-95 transition-transform">💬</button>
     
-    <!-- חלונית צ'אט כחולה -->
+    <!-- חלונית מרכז ההודעות המורחב (3 טאבים, מחיקה, ארכוב ושליחה) -->
     <div id="floating-chat-window" class="hidden fixed bottom-18 left-4 w-80 h-96 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden">
-        <div class="p-3 bg-blue-600 text-white flex justify-between items-center"><h3 class="text-xs font-black">💬 צ'אט ועדכוני דירה</h3><button onclick="window.toggleFloatingChat()" class="text-xs font-bold">✕</button></div>
+        <div class="p-3 bg-blue-600 text-white flex justify-between items-center"><h3 class="text-xs font-black">💬 מרכז ההודעות ועדכוני דירה</h3><button onclick="window.toggleFloatingChat()" class="text-xs font-bold">✕</button></div>
+        
+        <!-- בורר הטאבים המפוצל לשלוש קטגוריות ניהול -->
+        <div class="p-2 bg-slate-100 dark:bg-slate-700 border-b dark:border-slate-600 flex justify-center gap-1">
+            <div class="flex gap-1 text-[10px] font-bold w-full justify-around">
+                <button id="msg-tab-received" onclick="window.setMessageCenterTab('received')" class="px-2 py-1 rounded shadow-sm flex-1 text-center bg-white dark:bg-slate-600">📥 התקבלו</button>
+                <button id="msg-tab-sent" onclick="window.setMessageCenterTab('sent')" class="px-2 py-1 rounded flex-1 text-center">📤 נשלחו</button>
+                <button id="msg-tab-archive" onclick="window.setMessageCenterTab('archive')" class="px-2 py-1 rounded flex-1 text-center">🗄️ ארכיון</button>
+            </div>
+        </div>
+
         <div id="chat-messages-container" class="flex-1 p-3 overflow-y-auto space-y-2 bg-slate-50 dark:bg-slate-900 text-[11px]"></div>
         <div class="p-2 border-t dark:border-slate-700 bg-white dark:bg-slate-800 flex flex-col gap-1.5">
             <div class="flex gap-1">
-                <input type="text" id="chat-text-input" placeholder="כתוב עדכון לצוות..." class="w-full p-2 border dark:border-slate-600 dark:bg-slate-700 text-xs font-bold focus:outline-none">
+                <input type="text" id="chat-text-input" placeholder="כתוב עדכון לצוות..." class="w-full p-2 border dark:border-slate-600 dark:bg-slate-700 text-xs font-bold focus:outline-none rounded-xl">
                 <button onclick="window.sendChatMessage()" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-xl">שלח</button>
             </div>
         </div>
