@@ -194,7 +194,7 @@ function renderApp() {
                     </div>
                     <div class="flex flex-col items-center justify-center flex-1 my-4 space-y-2">
                         <h3 class="text-xl font-black text-slate-900 dark:text-white text-center">${item.name}</h3>
-                        <span class="text-6xl select-none block">${getEmoji(item.name)}</span>
+                        <span class="text-6xl select-none block flex items-center justify-center text-slate-700 dark:text-slate-200" title="${item.name}">${window.getIconHtml(item.name)}</span>
                     </div>
                     <div class="space-y-2 border-t pt-3">
                         <div><span class="text-[10px] font-black text-slate-400 block mb-1">קיים במלאי:</span>${createQtyControllerHtml(catName, item.originalIndex, 'existing', item.existing)}</div>
@@ -215,7 +215,7 @@ function renderApp() {
                 const toOrder = calculateToOrder(item);
                 rowsHtml += `
                     <tr class="table-row-floating border-b dark:border-slate-700 text-xs font-bold hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition">
-                        <td class="p-3 text-slate-900 dark:text-white text-sm font-black flex items-center gap-2"><span class="text-xl">${getEmoji(item.name)}</span><span>${item.name}</span></td>
+                        <td class="p-3 text-slate-900 dark:text-white text-sm font-black flex items-center gap-2"><span class="text-xl text-slate-500 dark:text-slate-400" title="${item.name}">${window.getIconHtml(item.name)}</span><span>${item.name}</span></td>
                         <td class="p-2 text-center">
                             <input type="number" step="0.5" min="0" value="${item.existing}" onchange="window.updateItemValue('${catName}', ${item.originalIndex}, 'existing', this.value)" class="w-16 text-center font-black text-xs bg-slate-50 dark:bg-slate-700 rounded-xl border p-1 focus:outline-none">
                         </td>
