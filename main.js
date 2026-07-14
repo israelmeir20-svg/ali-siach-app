@@ -290,3 +290,48 @@ function showToast(msg, icon = "✨") {
     }, 3000); 
 }
 window.showToast = showToast;
+// מנוע אייקוני SVG וקטוריים אחיד ומקצועי לעלי שיח (תומך במעבר עכבר צץ)
+function getIconHtml(name) {
+    // מילון מפות ה-SVG הוקטוריים עבור כל המערכת
+    const svgMap = {
+        "מלפפון": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5c3-3 1.5-10.5 4.5-13.5s10.5-1.5 13.5 4.5-1.5 10.5-4.5 13.5-10.5 1.5-13.5-4.5Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M9 13.5c.5-.5 1-1.5 1-2.5M13.5 10c.5-.5 1.5-1 2.5-1" /></svg>`,
+        
+        "חסה": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3c-1.5 0-3 1-3.5 2.5C7.5 5 6 6 5.5 7.5 4 8 3 9.5 3 11c0 2 1.5 3.5 3.5 4 .5 1.5 2 2.5 3.5 2.5h4c1.5 0 3-1 3.5-2.5 2-.5 3.5-2 3.5-4 0-1.5-1-3-2.5-3.5-.5-1.5-2-2.5-3.5-2.5H12Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 17.5V11m0 0c-1-1-2.5-1.5-4-1m4 1c1-1 2.5-1.5 4-1" /></svg>`,
+        
+        "קולרבי": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><circle cx="12" cy="14" r="5" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 9V4M12 4c1-.5 2-1 3-1M14.5 10.5l3.5-3.5M9.5 10.5L6 7" /></svg>`,
+        
+        "קישוא": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 16.5c2-4 6-10.5 10.5-12.5s7.5 1 8.5 3.5-1.5 7.5-6 10.5-11 2.5-13-1.5Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M21.5 6.5l1.25-1.25M8 14.5c2-1 4-3 5-5" /></svg>`,
+        
+        "דלורית": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3.5c-1.5 0-2.5 1-2.5 2.5 0 1.5 1 2 1 3.5s-4 1.5-4 5.5c0 3.5 2.5 5.5 5.5 5.5s5.5-2 5.5-5.5c0-4-4-4-4-5.5s1-2 1-3.5c0-1.5-1-2.5-2.5-2.5Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 3.5V2" /></svg>`,
+        
+        "תפוח עץ": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6C9.5 3.5 4 4.5 4 11c0 4.5 4 8 8 9.5 4-1.5 8-5 8-9.5 0-6.5-5.5-7.5-8-5Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 6V3M12 4.5c1.5-.5 3-1.5 4-1.5" /></svg>`,
+        
+        "תפוז": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><circle cx="12" cy="12" r="8.25" /><circle cx="12" cy="5" r="0.5" fill="currentColor" /><path stroke-linecap="round" stroke-linejoin="round" d="M11.5 5.5l1-1M12.5 5.5l-1-1M9 10h.008M15 11h.008M10 14h.008M14 15h.008" /></svg>`,
+        
+        "אפרסק": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M12 20c4.5 0 7.5-3.5 7.5-8s-3-7.5-7.5-7.5S4.5 8 4.5 12s3 8 7.5 8Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5V20M12 4.5c1-1 2.5-1.5 3.5-1" /></svg>`,
+        
+        "גמבה": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75C6 6.75 4.5 8.5 4.5 12c0 4.5 2 6.75 4.5 6.75A3.75 3.75 0 0 0 12 17.25a3.75 3.75 0 0 0 3 1.5c2.5 0 4.5-2.25 4.5-6.75 0-3.5-1.5-5.25-3.75-5.25" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75V4M8.25 6.75a3.75 3.75 0 0 0 7.5 0" /></svg>`,
+        "פלפל": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75C6 6.75 4.5 8.5 4.5 12c0 4.5 2 6.75 4.5 6.75A3.75 3.75 0 0 0 12 17.25a3.75 3.75 0 0 0 3 1.5c2.5 0 4.5-2.25 4.5-6.75 0-3.5-1.5-5.25-3.75-5.25" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75V4M8.25 6.75a3.75 3.75 0 0 0 7.5 0" /></svg>`,
+
+        // כלי מטבח מהסבב הקודם
+        "מחבת ללא מכסה בשרית": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13h12c0 2.5-1.5 4.5-4.5 4.5h-3C4.5 17.5 3 15.5 3 13Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 14h6" /></svg>`,
+        "סיר שטוח עם מכסה בשרי": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M4 13h16v4c0 1.5-1 2.5-2.5 2.5h-11C5 19.5 4 18.5 4 13Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M4 15H2v2h2M20 15h2v2h-2M3.5 13h17M10 13v-2h4v2" /></svg>`,
+        "סיר קטן גבוה עם מכסה בשרי": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M7 10h10v8c0 1.5-1 2.5-2.5 2.5h-5C8 20.5 7 19.5 7 10Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M7 12H5v2h2M17 12h2v2h-2M6.5 10h11M10 10V7.5h4V10" /></svg>`,
+        "סיר רגיל עם מכסה בשרי": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M4 11h16v7c0 2-1.5 3-3 3H7c-1.5 0-3-1-3-3v-7Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M4 14c-1.5 0-2-.5-2-2s.5-2 2-2M20 14c1.5 0 2-.5 2-2s-.5-2-2-2M3.5 11c0-1.5 3.5-2.5 8.5-2.5s8.5 1 8.5 2.5M10 8.5V6.5h4v1.5" /></svg>`,
+        "סכין": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 4.5c-1-1-3.5 1-8 6L5 17v2h2.5l6.5-6.5c5-4.5 7-7 6-8Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M5 17l-1.5 1.5c-.5.5-.5 1.5 0 2s1.5.5 2 0L7 19" /></svg>`,
+        "פומפייה": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M8 6h8l3 14H5L8 6Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M9.5 6V3.5h5V6" /><path stroke-linecap="round" stroke-linejoin="round" d="M9 10h.01M12 10h.01M15 10h.01M10 13h.01M13 13h.01M11 16h.01M14 16h.01" /></svg>`,
+        "תנור בשרי": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><rect width="18" height="16" x="3" y="4" rx="2" /><rect width="14" height="8" x="5" y="9" rx="1" /><path stroke-linecap="round" stroke-linejoin="round" d="M7 11h10" /><circle cx="6" cy="6.5" r="0.75" /><circle cx="12" cy="6.5" r="0.75" /><circle cx="18" cy="6.5" r="0.75" /></svg>`,
+        "טוסטר חלבי": `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M4 9h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M6 9V7.5M11 9V7.5M13 9V7.5M18 9V7.5M22 13h1.5v2H22M7 7.5c0-.5.5-1 1-1h2c.5 0 1 .5 1 1v1.5H7V7.5Z" /></svg>`
+    };
+
+    // שליפת ה-SVG המתאים, או החזרת אימוג'י ברירת מחדל במידה והפריט לא רשום
+    let innerSvg = svgMap[name];
+    if (!innerSvg) {
+        let fallbackEmoji = typeof window.getEmoji === "function" ? window.getEmoji(name) : "📦";
+        return `<span title="${name}" class="select-none">${fallbackEmoji}</span>`;
+    }
+
+    // הזרקת ה-title ישירות לתוך אלמנט ה-SVG לצורך טקסט צץ במעבר עכבר מובנה
+    return innerSvg.replace("<svg", `<svg title="${name}"`);
+}
+window.getIconHtml = getIconHtml;
