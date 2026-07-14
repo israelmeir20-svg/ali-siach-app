@@ -54,6 +54,7 @@ function toggleAIChatWindow() {
 }
 window.toggleAIChatWindow = toggleAIChatWindow;
 
+// עדכון פונקציית רנדור רשימות ה-AI להצגת קוד ה-SVG והכותרת הצפה במעבר עכבר
 function buildAILists() {
     const vegContainer = document.getElementById('matrix-vegetables'); if (!vegContainer) return; vegContainer.innerHTML = '';
     for (const [name, state] of Object.entries(window.vegetableMatrix)) {
@@ -63,19 +64,15 @@ function buildAILists() {
         
         const buttonNode = document.createElement('button');
         buttonNode.type = "button";
+        buttonNode.title = name; // כותרת צפה במעבר עכבר
         buttonNode.className = "matrix-circle hover:scale-110 active:scale-95 shadow-md flex items-center justify-center";
-        buttonNode.style = `${bgStyle} width: 64px !important; height: 64px !important; font-size: 2rem !important; border-radius: 9999px; display: inline-flex;`;
-        buttonNode.innerHTML = typeof window.getEmoji === "function" ? window.getEmoji(name).trim() : "🥗";
-        buttonNode.onclick = () => cycleMatrixState('veg', name);
+        buttonNode.style = `${bgStyle} width: 64px !important; height: 64px !important; border-radius: 9999px; display: inline-flex;`;
+        buttonNode.innerHTML = window.getIconHtml(name); // שליפת ה-SVG
+        buttonNode.onclick = () => window.cycleMatrixState('veg', name);
         vegContainer.appendChild(buttonNode);
     }
 
     const toolContainer = document.getElementById('matrix-tools'); if (!toolContainer) return; toolContainer.innerHTML = '';
-    const toolEmojis = {
-        "מחבת ללא מכסה בשרית": "🍳", "סיר שטוח עם מכסה בשרי": "🍲", "סיר קטן גבוה עם מכסה בשרי": "🥣", 
-        "סיר רגיל עם מכסה בשרי": "🍲", "סכין בשרית": "🔪", "סכין חלבית": "🍴", "פומפייה": "🧀", 
-        "תנור בשרי": "♨️", "טוסטר חלבי": "🥪", "כיריים": "🔥", "מיניבר": "🚰"
-    };
     for (const [name, state] of Object.entries(window.toolMatrix)) {
         let bgStyle = state === 1 ? "background-color: #fef2f2 !important; border: 4px solid #ef4444 !important;" : 
                       state === 2 ? "background-color: #f1f5f9 !important; border: 4px solid #94a3b8 !important; opacity: 0.35;" : 
@@ -83,10 +80,11 @@ function buildAILists() {
         
         const buttonNode = document.createElement('button');
         buttonNode.type = "button";
+        buttonNode.title = name; // כותרת צפה במעבר עכבר
         buttonNode.className = "matrix-circle hover:scale-110 active:scale-95 shadow-md flex items-center justify-center";
-        buttonNode.style = `${bgStyle} width: 64px !important; height: 64px !important; font-size: 2rem !important; border-radius: 9999px; display: inline-flex;`;
-        buttonNode.innerHTML = toolEmojis[name] || "🔧";
-        buttonNode.onclick = () => cycleMatrixState('tool', name);
+        buttonNode.style = `${bgStyle} width: 64px !important; height: 64px !important; border-radius: 9999px; display: inline-flex;`;
+        buttonNode.innerHTML = window.getIconHtml(name); // שליפת ה-SVG
+        buttonNode.onclick = () => window.cycleMatrixState('tool', name);
         toolContainer.appendChild(buttonNode);
     }
 }
