@@ -6,7 +6,7 @@ window.receiptMimeType = null;
 window.recipeTimeMode = 0;
 window.manualPantrySelections = {};
 
-// עדכון מטריצת הירקות והפירות המורחבת בעלי שיח
+// 1. עדכון מטריצת הירקות והפירות המורחבת בעלי שיח
 if (!window.vegetableMatrix) {
     window.vegetableMatrix = { 
         "עגבניה": 0, "מלפפון": 0, "גזר": 0, "קולרבי": 0, "תפו\"א": 0, 
@@ -15,14 +15,16 @@ if (!window.vegetableMatrix) {
     };
 }
 
-// עדכון רשימת הכלים המאוחדת (סכין אחת מרכזית)
+// 2. עדכון רשימת הכלים והציוד המלאה (כולל הציוד החדש)
 if (!window.toolMatrix) {
     window.toolMatrix = { 
         "מחבת ללא מכסה בשרית": 0, "סיר שטוח עם מכסה בשרי": 0, "סיר קטן גבוה עם מכסה בשרי": 0, 
         "סיר רגיל עם מכסה בשרי": 0, "סכין": 0, "פומפייה": 0, 
-        "תנור בשרי": 0, "טוסטר חלבי": 0, "כיריים": 0, "מיניבר": 0 
+        "תנור בשרי": 0, "טוסטר חלבי": 0, "כיריים": 0, "מיניבר": 0,
+        "נייר כסף": 0, "תבנית חד\"פ": 0, "קערת פלסטיק": 0
     };
 }
+
 function toggleMatrixPanel(type) {
     const panelId = type === 'veg' ? 'panel-vegetables-content' : 'panel-tools-content';
     const arrowId = type === 'veg' ? 'veg-panel-arrow' : 'tool-panel-arrow';
@@ -54,7 +56,7 @@ function toggleAIChatWindow() {
 }
 window.toggleAIChatWindow = toggleAIChatWindow;
 
-// עדכון פונקציית רנדור רשימות ה-AI להצגת קוד ה-SVG והכותרת הצפה במעבר עכבר
+// 3. רנדור רשימות ה-AI להצגת קוד ה-SVG והכותרת הצפה במעבר עכבר
 function buildAILists() {
     const vegContainer = document.getElementById('matrix-vegetables'); if (!vegContainer) return; vegContainer.innerHTML = '';
     for (const [name, state] of Object.entries(window.vegetableMatrix)) {
@@ -67,7 +69,7 @@ function buildAILists() {
         buttonNode.title = name; // כותרת צפה במעבר עכבר
         buttonNode.className = "matrix-circle hover:scale-110 active:scale-95 shadow-md flex items-center justify-center";
         buttonNode.style = `${bgStyle} width: 64px !important; height: 64px !important; border-radius: 9999px; display: inline-flex;`;
-        buttonNode.innerHTML = window.getIconHtml(name); // שליפת ה-SVG
+        buttonNode.innerHTML = window.getIconHtml(name); // שליפת ה-SVG המעודכן
         buttonNode.onclick = () => window.cycleMatrixState('veg', name);
         vegContainer.appendChild(buttonNode);
     }
@@ -83,7 +85,7 @@ function buildAILists() {
         buttonNode.title = name; // כותרת צפה במעבר עכבר
         buttonNode.className = "matrix-circle hover:scale-110 active:scale-95 shadow-md flex items-center justify-center";
         buttonNode.style = `${bgStyle} width: 64px !important; height: 64px !important; border-radius: 9999px; display: inline-flex;`;
-        buttonNode.innerHTML = window.getIconHtml(name); // שליפת ה-SVG
+        buttonNode.innerHTML = window.getIconHtml(name); // שליפת ה-SVG המעודכן
         buttonNode.onclick = () => window.cycleMatrixState('tool', name);
         toolContainer.appendChild(buttonNode);
     }
@@ -124,8 +126,11 @@ function buildPantryManualSelectionDOM() {
             const chk = document.createElement('input'); chk.type = "checkbox"; chk.checked = window.manualPantrySelections[item.name];
             chk.onchange = (e) => { window.manualPantrySelections[item.name] = e.target.checked; };
             wrapper.appendChild(chk); 
-            let itemEmoji = typeof window.getEmoji === "function" ? window.getEmoji(item.name) : "🥫";
-            wrapper.appendChild(document.createTextNode(`${itemEmoji} ${item.name}`));
+            let itemIcon = typeof window.getIconHtml === "function" ? window.getIconHtml(item.name) : "🥫";
+            const iconSpan = document.createElement('span');
+            iconSpan.innerHTML = itemIcon;
+            wrapper.appendChild(iconSpan);
+            wrapper.appendChild(document.createTextNode(` ${item.name}`));
             container.appendChild(wrapper);
         });
     }
@@ -140,6 +145,7 @@ function cycleRecipeTime() {
 }
 window.cycleRecipeTime = cycleRecipeTime;
 
+// 4. מנוע החיבור המרכזי מול ה-API של Google Gemini
 async function callGeminiAPI(contents) {
     const key = localStorage.getItem('aliSiach_gemini_key'); 
     if (!key) { 
@@ -156,7 +162,7 @@ async function callGeminiAPI(contents) {
         return "תקלת תקשורת מול שרתי Google AI."; 
     }
 }
-window.callGeminiAPI = callGeminiAPI; // חשיפה גלובלית קריטית למניעת קפיאה במתכונים!
+window.callGeminiAPI = callGeminiAPI;
 
 async function generateAdvancedAIRecipe() {
     const out = document.getElementById('ai-recipe-output'); out.classList.remove('hidden'); out.innerText = "🤖 בונה מתכון מותאם אישית לדיירים...";
@@ -169,7 +175,7 @@ async function generateAdvancedAIRecipe() {
     }
 
     let prompt = `הצע מתכון קל ל-6 דיירים בעלי שיח בהתבסס על המצרכים הבאים:\n`;
-    prompt += `מנה مבוקשת: ${dishInput || 'בחירה חופשית'}\nזמן הכנה: ${timeLabels[window.recipeTimeMode]}\n`;
+    prompt += `מנה מבוקשת: ${dishInput || 'בחירה חופשית'}\nזמן הכנה: ${timeLabels[window.recipeTimeMode]}\n`;
     prompt += `חוקים: כשר, בשרי, ללא מעבד מזון, חיתוך בסכין בלבד, שמן קנולה בלבד, ללא סויה או כמון.\n`;
     prompt += `מוצרי מזווה זמינים: ${JSON.stringify(chosenPantryItems)}\n`;
     prompt += `מטריצת ירקות (0=אפשר, 1=חובה, 2=אסור): ${JSON.stringify(window.vegetableMatrix)}\n`;
